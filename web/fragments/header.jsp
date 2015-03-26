@@ -11,5 +11,6 @@
 	<script src="<%= request.getContextPath() %>/scripts/jquery/jquery-ui.js"></script>
 	<script src="<%= request.getContextPath() %>/scripts/fullcalendar/lib/moment.min.js"></script>
 	<script src="<%= request.getContextPath() %>/scripts/fullcalendar/fullcalendar.js"></script>
+	<script src="<%= request.getContextPath() %>/scripts/fullcalendar/lang-all.js"></script>
 </head>
 <body>

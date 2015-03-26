@@ -1,9 +1,10 @@
-<footer style="position:absolute; bottom:1px; font-size:9px">Santos &copy; 2014.</footer>
+<footer style="position:fixed; bottom:1px; font-size:9px">Santos &copy; 2014.</footer>
 <script>
 $("#error").dialog({
 	autoOpen: true,
 	title: "Errore",
 	modal: true,
+	closeOnEscape: false,
 	buttons: {
 		"ok": function() {
 			if($(this).data('next')) {

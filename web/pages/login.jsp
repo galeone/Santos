@@ -36,18 +36,19 @@ $( "#loginfrm" ).dialog({
    	autoOpen: true,
    	modal:true,
    	dialogClass: "no-close",
-       open: function() {
+   	closeOnEscape: false,
+    open: function() {
            // On open, hide the original submit button
            $( this ).find( "[type=submit]" ).hide();
-       },
-       buttons: [
+    },
+    buttons: [
            {
                text: "Login",
                click: $.noop,
                type: "submit",
                form: "loginfrm" // <-- Make the association
            }
-       ]
-   });
+    ]
+});
 </script>
 <%@ include file="../fragments/footer.jsp" %>
