@@ -1,0 +1,31 @@
+1) Aggiungere al build-path le librerie necessarie a compile time, ma fornite dal container a run-tme
+  > aggungere lib/servlet-api.jar in Project -> Properties -> Java Build Path
+
+2) Aggiungere al build-path le librerie necessarie a compile time e da fornire al container a run-time:
+  > aggiungere se esistenti le librerie in web/WEB-INF/lib/
+  > aggiungere in /lib le librerie che sono presenti in web/WEB-INF/lib  -> COPIANDOLE
+  
+3) Modificare il JRE di Eclipse affinché punti al JDK
+   > Window -> Preferences -> Java -> installed JREs -> Scegli il JDK
+
+3) ANT
+  > Abilitare la prospettiva: Window -> Show View -> ant
+  > Modificare il file ant/environment.properties
+  > cambiare il valore di server.home con quello corretto
+  > l'archivio creato si chiamerà "ServletTemplate" se si vuole cambiare nome
+  > bisogna modificare <project name="ServletTemplate" nel ant/build.xml
+  > ANT IGNORA IL "Java Build Path" specificat al punto 1 in eclipse
+  > Quindi ogni libreria necessaria va messa anche dentro a /lib
+  
+4) Modificare il web/WEB-INF/web.xml per:
+  > Mappare le classi
+  > Settare la homepage
+  > [[ I file degli errori (404 e 500 (exception)) sono già gestiti ]]
+  
+5) Collegare Tomcat ad Eclipse
+  > Window -> Show View -> Other -> Server -> Servers
+  > File -> New -> Other -> Server -> Apache -> tomcat 7
+  > Doppio click sul nome del server -> Use Tomcat Installation (takes control of ...)
+6) Aggiungere "javax.servlet" in fase di compilazione
+  > Properties -> Java Build Path -> Libraries -> Add Library -> Server -> Runtime
+  

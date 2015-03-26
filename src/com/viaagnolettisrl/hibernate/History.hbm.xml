@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+ -->
+<!DOCTYPE hibernate-mapping SYSTEM
+	"/home/paolo/db-gen/src/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+<class name="com.viaagnolettisrl.hibernate.History" table="history">
+	<id name="id" column="id">
+		<generator class="increment"/>
+	</id>
+	<property column="TIME" name="time" type="date" />
+	<property column="ACTION" name="action" type="string" length="50" />
+	<property column="WHAT" name="what" type="string" length="50" />
+	<property column="IDUSER" name="idUser" type="long" />
+</class>
+</hibernate-mapping>

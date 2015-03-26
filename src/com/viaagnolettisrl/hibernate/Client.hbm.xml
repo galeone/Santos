@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+ -->
+<!DOCTYPE hibernate-mapping SYSTEM
+	"/home/paolo/db-gen/src/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+<class name="com.viaagnolettisrl.hibernate.Client" table="clients">
+	<id name="id" column="id">
+		<generator class="increment"/>
+	</id>
+	<property column="NAME" name="name" type="string" length="50" />
+	<property column="CODE" name="code" type="string" length="50" />
+</class>
+</hibernate-mapping>

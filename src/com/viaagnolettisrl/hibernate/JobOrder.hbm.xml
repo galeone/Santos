@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!--
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+ --><!DOCTYPE hibernate-mapping SYSTEM "/home/paolo/db-gen/src/hibernate-mapping-3.0.dtd">
+<hibernate-mapping auto-import="true" default-access="property" default-cascade="none" default-lazy="true">
+<class dynamic-insert="false" dynamic-update="false" mutable="true" name="com.viaagnolettisrl.hibernate.JobOrder" optimistic-lock="version" polymorphism="implicit" select-before-update="false" table="joborders">
+	<id column="id" name="id">
+		<generator class="increment"/>
+	</id>
+	<set embed-xml="true" inverse="false" mutable="true" name="machines" optimistic-lock="true" sort="unsorted" table="AssignedJobOrders">
+<key column="idJobOrder" on-delete="noaction"/>
+<many-to-many class="com.viaagnolettisrl.hibernate.Machine" column="idMachine" embed-xml="true" not-found="exception" unique="false"/>
+</set>
+<property column="IDCLIENT" generated="never" lazy="false" name="idClient" optimistic-lock="true" type="long" unique="false"/>
+	<property column="LEADTIME" generated="never" lazy="false" name="leadTime" optimistic-lock="true" type="long" unique="false"/>
+</class>
+</hibernate-mapping>

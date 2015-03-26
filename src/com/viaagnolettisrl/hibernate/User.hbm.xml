@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+ -->
+<!DOCTYPE hibernate-mapping SYSTEM
+	"/home/paolo/db-gen/src/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+<class name="com.viaagnolettisrl.hibernate.User" table="users">
+	<id name="id" column="id">
+		<generator class="increment"/>
+	</id>
+	<property column="CANADDJOBORDER" name="canAddJobOrder" type="boolean" />
+	<property column="NAME" name="name" type="string" length="50" />
+	<property column="CANADDCLIENT" name="canAddClient" type="boolean" />
+	<property column="CANADDMACHINE" name="canAddMachine" type="boolean" />
+	<property column="PASSWORD" name="password" type="string" length="50" />
+	<property column="USERNAME" name="username" type="string" length="50" />
+	<property column="SURNAME" name="surname" type="string" length="50" />
+	<property column="ISADMIN" name="isAdmin" type="boolean" />
+</class>
+</hibernate-mapping>
