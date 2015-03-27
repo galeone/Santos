@@ -1,5 +1,7 @@
-.no-close .ui-dialog-titlebar-close {
-	display: none;
+body {
+	font-family: "Trebuchet MS", "Helvetica", "Arial", "Verdana",
+		"sans-serif";
+	font-size: 62.5%;
 }
 
 label, input {
@@ -23,18 +25,18 @@ h1 {
 	margin: .6em 0;
 }
 
-div#users-contain {
+div.contain {
 	width: 350px;
 	margin: 20px 0;
 }
 
-div#users-contain table {
+div.contain table {
 	margin: 1em 0;
 	border-collapse: collapse;
 	width: 100%;
 }
 
-div#users-contain table td, div#users-contain table th {
+div.contain table td, div.contain table th {
 	border: 1px solid #eee;
 	padding: .6em 10px;
 	text-align: left;
@@ -47,4 +49,8 @@ div#users-contain table td, div#users-contain table th {
 .validateTips {
 	border: 1px solid transparent;
 	padding: 0.3em;
+}
+
+.no-close .ui-dialog-titlebar-close {
+	display: none;
 }

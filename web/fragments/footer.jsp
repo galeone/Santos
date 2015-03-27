@@ -1,4 +1,5 @@
-<footer style="position:fixed; bottom:1px; font-size:9px">Santos &copy; 2014.</footer>
+<footer style="position: fixed; bottom: 1px; font-size: 9px">Santos
+	&copy; 2014.</footer>
 <script>
 $("#error").dialog({
 	autoOpen: true,

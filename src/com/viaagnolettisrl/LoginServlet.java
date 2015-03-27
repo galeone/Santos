@@ -8,21 +8,23 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import java.util.Hashtable;
+import org.hibernate.Query;
+import org.hibernate.Session;
+
+import com.viaagnolettisrl.hibernate.HibernateUtil;
+import com.viaagnolettisrl.hibernate.User;
+
+import java.util.Map;
 
 public class LoginServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 7437071575710203911L;
-	public static final String LOGIN_OK = "login_ok",
+	public static final String USER = "user",
 			LOGIN_NEXT = "/pages/home.jsp",
 			LOGIN_FORM = "/pages/login.jsp";
 
 	@Override
 	public void init() throws ServletException {
-		Hashtable<String, String> users = new Hashtable<String, String>();
-		users.put("user1", "pass1");
-		users.put("user2", "pass2");
-		this.getServletContext().setAttribute("users", users);
 	}
 
 	@Override
@@ -36,24 +38,23 @@ public class LoginServlet extends HttpServlet {
 			throws ServletException, IOException {
 
 		HttpSession session = req.getSession(true);
-		Boolean logged = (Boolean) session.getAttribute(LOGIN_OK);
+		User user = (User) session.getAttribute(USER);
 
-		if (logged != null && logged) { // already logged in
+		if (user != null) { // already logged in
 			// change url
 			resp.sendRedirect(req.getContextPath() + LOGIN_NEXT);
 			return;
 		} else {
-			session.setAttribute(LOGIN_OK, false);
+			session.setAttribute(USER, null);
 		}
 
-		String username = req.getParameter("username");
-		String password = req.getParameter("password");
-		if (username != null && password != null) {
-			session.setAttribute(LOGIN_OK, check(username, password));
+		Map<String, String> params = ServletUtils.getParameters(req, new String[]{"username", "password"});
+		if (params.get("username") != null && params.get("password") != null) {
+			session.setAttribute(USER, check(params.get("username"), params.get("password")));
 		}
 
-		logged = (Boolean) session.getAttribute(LOGIN_OK);
-		if (!logged) {
+		user = (User) session.getAttribute(USER);
+		if (user == null) {
 			resp.sendRedirect(req.getContextPath() + LOGIN_FORM
 					+ "?failed=1&next=" + LOGIN_NEXT);
 		} else { // change url
@@ -61,11 +62,10 @@ public class LoginServlet extends HttpServlet {
 		}
 	}
 
-	private boolean check(String username, String password) {
-		@SuppressWarnings("unchecked")
-		Hashtable<String, String> users = (Hashtable<String, String>) this
-				.getServletContext().getAttribute("users");
-		String storedPassword = users.get(username);
-		return storedPassword != null && storedPassword.equals(password);
+	private User check(String username, String password) {
+		Session session = HibernateUtil.openSession();
+		Query q = session.createQuery("from users where username = :username and password = :password")
+				.setString("password", password).setString("username", username);
+		return (User) q.uniqueResult();
 	}
 }

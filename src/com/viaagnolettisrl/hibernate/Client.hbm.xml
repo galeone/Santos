@@ -1,16 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
-<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
- -->
-<!DOCTYPE hibernate-mapping SYSTEM
-	"/home/paolo/db-gen/src/hibernate-mapping-3.0.dtd">
-
-<hibernate-mapping>
-<class name="com.viaagnolettisrl.hibernate.Client" table="clients">
-	<id name="id" column="id">
-		<generator class="increment"/>
-	</id>
-	<property column="NAME" name="name" type="string" length="50" />
-	<property column="CODE" name="code" type="string" length="50" />
-</class>
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!-- <!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 
+	3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd"> --><!DOCTYPE hibernate-mapping SYSTEM "/home/paolo/db-gen/src/hibernate-mapping-3.0.dtd">
+<hibernate-mapping auto-import="true" default-access="property"
+	default-cascade="none" default-lazy="true">
+	<class dynamic-insert="false" dynamic-update="false" mutable="true"
+		name="com.viaagnolettisrl.hibernate.Client" optimistic-lock="version"
+		polymorphism="implicit" select-before-update="false" table="clients">
+		<id column="id" name="id">
+			<generator class="increment" />
+		</id>
+		<set embed-xml="true" inverse="false" mutable="true" name="JobOrders"
+			optimistic-lock="true" sort="unsorted">
+			<key column="idClient" on-delete="noaction" />
+			<one-to-many class="com.viaagnolettisrl.hibernate.JobOrder"
+				embed-xml="true" not-found="exception" />
+		</set>
+		<property column="NAME" generated="never" lazy="false"
+			length="50" name="name" optimistic-lock="true" type="string" unique="false" />
+		<property column="CODE" generated="never" lazy="false"
+			length="50" name="code" optimistic-lock="true" type="string" unique="false" />
+	</class>
 </hibernate-mapping>
