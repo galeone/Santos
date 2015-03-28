@@ -27,5 +27,10 @@
 	src="<%= request.getContextPath() %>/scripts/fullcalendar/lang-all.js"></script>
 <script
 	src="<%= request.getContextPath() %>/scripts/datatables/jquery.dataTables.min.js"></script>
+<script
+	src="<%= request.getContextPath() %>/scripts/datatables/jquery.dataTables.editable.js"></script>
+<script
+	src="<%= request.getContextPath() %>/scripts/datatables/jquery.jeditable.js"></script>
+<script src="<%= request.getContextPath() %>/scripts/datatables/jquery.validate.js"></script>
 </head>
 <body>

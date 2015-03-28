@@ -63,9 +63,11 @@ public class LoginServlet extends HttpServlet {
 	}
 
 	private User check(String username, String password) {
-		Session session = HibernateUtil.openSession();
-		Query q = session.createQuery("from users where username = :username and password = :password")
+		Session session = HibernateUtil.getSessionFactory().openSession();
+		Query q = session.createQuery("from User where username = :username and password = :password")
 				.setString("password", password).setString("username", username);
-		return (User) q.uniqueResult();
+		User ret = (User) q.uniqueResult();
+		session.close();
+		return ret;
 	}
 }

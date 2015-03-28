@@ -10,9 +10,7 @@ import java.util.HashSet;
 
 import org.hibernate.Query;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.cfg.Configuration;
 
 public class HibernateMainTest {
 
@@ -23,7 +21,7 @@ public class HibernateMainTest {
 
 		// Insert entries
 		try {
-			session = HibernateUtil.openSession();
+			session = HibernateUtil.getSessionFactory().openSession();
 			tx = session.beginTransaction();
 			Calendar cal = null;
 
@@ -139,7 +137,7 @@ public class HibernateMainTest {
 		//Queries
 
 		//New session
-		session = HibernateUtil.openSession();
+		session = HibernateUtil.getSessionFactory().openSession();
 
 		try {}
 		catch (Exception e1) {

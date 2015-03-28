@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
-<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 
-	3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping auto-import="true" default-access="property"
 	default-cascade="none" default-lazy="true">
@@ -29,7 +28,7 @@
 			unique="false" />
 		<property column="USERNAME" generated="never" lazy="false"
 			length="50" name="username" optimistic-lock="true" type="string"
-			unique="false" />
+			unique="true" />
 		<property column="SURNAME" generated="never" lazy="false"
 			length="50" name="surname" optimistic-lock="true" type="string"
 			unique="false" />

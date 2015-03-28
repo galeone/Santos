@@ -1,5 +1,17 @@
+<%@ page contentType="text/html; charset=UTF-8"%>
+<%@ page errorPage="../../errors/exception.jsp"%>
 <%@ page session="true"%>
 <%@ page import="com.viaagnolettisrl.hibernate.*"%>
+<%@ page import="com.viaagnolettisrl.*"%>
+<%@ page import="java.util.List"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%
+	User user = (User) session.getAttribute(LoginServlet.USER);
+	if (user == null) {
+		response.sendRedirect(request.getContextPath()
+				+ LoginServlet.LOGIN_FORM);
+	}
+%>
 
 <script>
 	$(function() {
@@ -53,11 +65,11 @@
 					&& checkRegexp(
 							user_username,
 							/^[a-z]([0-9a-z_\s])+$/i,
-							"Il nome utente può contenere lettere, numeri, _ (underscore) e deve iniziare con una lettera.");
+							"Il nome utente puÃ² contenere lettere, numeri, _ (underscore) e deve iniziare con una lettera.");
 
 			valid = valid
 					&& checkRegexp(user_password, /^([0-9a-zA-Z])+$/,
-							"La password può contenere solo numeri e lettere : a-z 0-9");
+							"La password puÃ² contenere solo numeri e lettere : a-z 0-9");
 
 			if (valid) {
 				$("#users-table tbody").append(
@@ -123,8 +135,7 @@
 </div>
 
 
-<div class="contain ui-widget">
-	<h1>Utenti esistenti:</h1>
+<div class="contain ui-widget" style="max-width: 900px; margin: 0 auto">
 	<table id="users-table" class="ui-widget ui-widget-content">
 		<thead>
 			<tr class="ui-widget-header ">
@@ -135,16 +146,26 @@
 			</tr>
 		</thead>
 		<tbody>
-			<tr>
-				<td>John Doe</td>
-				<td>John</td>
-				<td>Doe</td>
-				<td>johndoe1</td>
+		<%
+		pageContext.setAttribute("users", GetList.Users());
+		%>
+		<c:forEach items="${users}" var="u">
+			<tr id="${u.id}">
+				<td>${u.username}</td>
+				<td>${u.name}</td>
+				<td>${u.surname}</td>
+				<td>${u.password}</td>
 			</tr>
+		</c:forEach>
+
 		</tbody>
 	</table>
 </div>
 <button id="create-user">Crea un nuovo utente</button>
 <script>
-$("#users-table").dataTable();
+$("#users-table").dataTable({
+	"language": {
+		"url": "<%= request.getContextPath() %>/scripts/datatables/italian.js"
+	}
+}).makeEditable();
 </script>
