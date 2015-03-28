@@ -3,8 +3,9 @@
 <%@ page session="true"%>
 <%@ page import="com.viaagnolettisrl.hibernate.*"%>
 <%@ page import="com.viaagnolettisrl.*"%>
+<%@ page import="com.google.gson.*"%>
 <%@ page import="java.util.List"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%
 	User user = (User) session.getAttribute(LoginServlet.USER);
 	if (user == null) {
@@ -139,6 +140,7 @@
 	<table id="users-table" class="ui-widget ui-widget-content">
 		<thead>
 			<tr class="ui-widget-header ">
+				<th>ID</th>
 				<th>Nome utente</th>
 				<th>Nome</th>
 				<th>Cognome</th>
@@ -146,26 +148,32 @@
 			</tr>
 		</thead>
 		<tbody>
-		<%
-		pageContext.setAttribute("users", GetList.Users());
-		%>
-		<c:forEach items="${users}" var="u">
-			<tr id="${u.id}">
-				<td>${u.username}</td>
-				<td>${u.name}</td>
-				<td>${u.surname}</td>
-				<td>${u.password}</td>
-			</tr>
-		</c:forEach>
-
 		</tbody>
 	</table>
 </div>
 <button id="create-user">Crea un nuovo utente</button>
+<button id="btnDeleteRow">Cancella utente</button>
 <script>
+<%
+Gson gson = new Gson();
+%>
+var users = <%= gson.toJson(GetList.Users()) %>;
 $("#users-table").dataTable({
 	"language": {
 		"url": "<%= request.getContextPath() %>/scripts/datatables/italian.js"
-	}
-}).makeEditable();
+	},
+	"data": users,
+	"createdRow": function ( row, data, index ) {
+		row.setAttribute('id', data.id);
+	},
+    columns: [
+              { data: 'id' },
+              { data: 'username' },
+              { data: 'name' },
+              { data: 'surname' },
+              { data: 'password' }
+          ]
+}).makeEditable({
+	sDeleteURL: "<%= request.getContextPath() %>/delete?what=user"
+});
 </script>

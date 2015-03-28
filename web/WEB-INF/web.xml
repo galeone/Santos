@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<web-app 
-    xmlns="http://java.sun.com/xml/ns/javaee"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
-    version="2.5">
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	version="2.5">
 
 	<!-- Name the servlets -->
 	<servlet>
 		<servlet-name>login</servlet-name>
 		<servlet-class>com.viaagnolettisrl.LoginServlet</servlet-class>
+	</servlet>
+
+	<servlet>
+		<servlet-name>delete</servlet-name>
+		<servlet-class>com.viaagnolettisrl.DeleteServlet</servlet-class>
 	</servlet>
 
 	<servlet>
@@ -26,6 +29,11 @@
 	<servlet-mapping>
 		<servlet-name>JSON</servlet-name>
 		<url-pattern>/JSON</url-pattern>
+	</servlet-mapping>
+
+	<servlet-mapping>
+		<servlet-name>delete</servlet-name>
+		<url-pattern>/delete</url-pattern>
 	</servlet-mapping>
 
 	<!-- Welcome files -->

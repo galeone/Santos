@@ -18,11 +18,14 @@
 	<ol>
 		<li class="ui-state-default ui-corner-all"><a href="#home">Home</a>
 		</li>
-		<li class="ui-state-default ui-corner-all"><a href="<%= request.getContextPath() %>/pages/ajax/clients.jsp">Clienti</a>
+		<li class="ui-state-default ui-corner-all"><a
+			href="<%= request.getContextPath() %>/pages/ajax/clients.jsp">Clienti</a>
 		</li>
-		<li class="ui-state-default ui-corner-all"><a href="<%= request.getContextPath() %>/pages/ajax/joborders.jsp">Commesse</a>
+		<li class="ui-state-default ui-corner-all"><a
+			href="<%= request.getContextPath() %>/pages/ajax/joborders.jsp">Commesse</a>
 		</li>
-		<li class="ui-state-default ui-corner-all"><a href="<%= request.getContextPath() %>/pages/ajax/machines.jsp">Macchine</a>
+		<li class="ui-state-default ui-corner-all"><a
+			href="<%= request.getContextPath() %>/pages/ajax/machines.jsp">Macchine</a>
 		</li>
 		<li class="ui-state-default ui-corner-all" style="float: right">
 			<a href='<%= request.getContextPath() %>/pages/ajax/logout.jsp'>Esci</a>
@@ -30,9 +33,11 @@
 		<%
 	if(user.getIsAdmin()) {
 %>
-		<li class="ui-state-default ui-corner-all"><a href="<%= request.getContextPath() %>/pages/ajax/users.jsp">Utenti</a>
+		<li class="ui-state-default ui-corner-all"><a
+			href="<%= request.getContextPath() %>/pages/ajax/users.jsp">Utenti</a>
 		</li>
-		<li class="ui-state-default ui-corner-all"><a href="<%= request.getContextPath() %>/pages/ajax/history.jsp">Storico</a>
+		<li class="ui-state-default ui-corner-all"><a
+			href="<%= request.getContextPath() %>/pages/ajax/history.jsp">Storico</a>
 		</li>
 		<%		
 	}
