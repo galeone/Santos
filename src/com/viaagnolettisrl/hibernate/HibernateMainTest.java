@@ -33,7 +33,7 @@ public class HibernateMainTest {
 			a0.setUsername("Username26");
 			a0.setPassword("Password28");
 			a0.setSurname("Surname31");
-			a0.setIsAdmin(false);
+			a0.setIsAdmin(true);
 			session.saveOrUpdate(a0);
 
 			User a1 = new User();
