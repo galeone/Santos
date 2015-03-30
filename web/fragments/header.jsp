@@ -11,7 +11,10 @@
 	href="<%= request.getContextPath() %>/styles/jquery-ui.css"
 	rel="stylesheet">
 <link type="text/css"
-	href="<%= request.getContextPath() %>/styles/datatables/jquery.dataTables.min.css"
+	href="<%= request.getContextPath() %>/styles/datatables/dataTables.jqueryui.css"
+	rel="stylesheet">
+<link type="text/css"
+	href="<%= request.getContextPath() %>/styles/theme.css"
 	rel="stylesheet">
 <link type="text/css"
 	href="<%= request.getContextPath() %>/styles/default.css"
@@ -28,10 +31,17 @@
 <script
 	src="<%= request.getContextPath() %>/scripts/datatables/jquery.dataTables.min.js"></script>
 <script
-	src="<%= request.getContextPath() %>/scripts/datatables/jquery.dataTables.editable.js"></script>
-<script
 	src="<%= request.getContextPath() %>/scripts/datatables/jquery.jeditable.js"></script>
 <script
+	src="<%= request.getContextPath() %>/scripts/datatables/jquery.jeditable.checkbox.js"></script>
+<script
+	src="<%= request.getContextPath() %>/scripts/datatables/dataTables.jqueryui.js"></script>
+<script
 	src="<%= request.getContextPath() %>/scripts/datatables/jquery.validate.js"></script>
+<script
+	src="<%= request.getContextPath() %>/scripts/datatables/jquery.dataTables.editable.js"></script>
+<script
+	src="<%= request.getContextPath() %>/scripts/common.js"></script>
 </head>
+
 <body>

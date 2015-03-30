@@ -128,16 +128,15 @@
 				name="user_password" id="user_password" value=""
 				class="text ui-widget-content ui-corner-all">
 
-			<!-- Allow form submission with keyboard without duplicating the dialog button -->
+			<!-- Allow form submistrueon with keyboard without duplicating the dialog button -->
 			<input type="submit" tabindex="-1"
-				style="position: absolute; top: -1000px">
+				style="potruetion: absolute; top: -1000px">
 		</fieldset>
 	</form>
 </div>
 
 
-<div class="contain ui-widget" style="max-width: 900px; margin: 0 auto">
-	<table id="users-table" class="ui-widget ui-widget-content">
+	<table id="users-table" class="display" cellspacing="0" width="100%">
 		<thead>
 			<tr class="ui-widget-header ">
 				<th>ID</th>
@@ -145,35 +144,91 @@
 				<th>Nome</th>
 				<th>Cognome</th>
 				<th>Password</th>
+				<th>Aggiunge Commesse</th>
+				<th>Aggiunge Macchine</th>
+				<th>Aggiunge Clienti</th>
 			</tr>
 		</thead>
 		<tbody>
 		</tbody>
 	</table>
-</div>
+
 <button id="create-user">Crea un nuovo utente</button>
 <button id="btnDeleteRow">Cancella utente</button>
 <script>
-<%
-Gson gson = new Gson();
-%>
-var users = <%= gson.toJson(GetList.Users()) %>;
+<%Gson gson = new Gson();%>
+var users = <%=gson.toJson(GetList.Users())%>;
 $("#users-table").dataTable({
+	"bJQueryUI": true,
+	"bProcestrueng": true,
+	"sPaginationType": "full_numbers",
 	"language": {
-		"url": "<%= request.getContextPath() %>/scripts/datatables/italian.js"
+		"url": "<%=request.getContextPath()%>/scripts/datatables/italian.js"
 	},
 	"data": users,
 	"createdRow": function ( row, data, index ) {
 		row.setAttribute('id', data.id);
+		row.setAttribute('class', 'read_only');
 	},
     columns: [
-              { data: 'id' },
-              { data: 'username' },
-              { data: 'name' },
-              { data: 'surname' },
-              { data: 'password' }
+              {
+            	  data: 'id',
+            	  name: 'id',
+            	  createdCell: function (td, cellData, rowData, row, col) {
+            			td.setAttribute('class', 'read_only');
+            	  }
+              },
+              { data: 'username', name: "username" },
+              { data: 'name', name: 'name' },
+              { data: 'surname', name: 'surname' },
+              { data: 'password', name: 'password' },
+              {
+            	  data: 'canAddJobOrder',
+            	  name: 'canaddjoborder',
+            	  render: dataTablesCheckbox
+			  },
+              {
+				  data: 'canAddMachine',
+				  name: 'canaddmachine',
+				  render: dataTablesCheckbox
+		      },
+              {
+		    	  data: 'canAddClient',
+		    	  name: 'canaddclient',
+		    	  render: dataTablesCheckbox
+		    }
           ]
 }).makeEditable({
-	sDeleteURL: "<%= request.getContextPath() %>/delete?what=user"
+	sDeleteURL: "<%=request.getContextPath()%>/delete?what=user",
+	sUpdateURL: "<%=request.getContextPath()%>/edit?what=user",
+	sReadOnlyCellClass : "read_only",
+	fnOnDeleting: function() {
+		return confirm("Vuoi davvero rimuovere questo utente?");
+	},
+    "aoColumns": [
+                  {},
+                  {},
+                  {},
+                  {},
+                  {},
+                  {
+                	  type: 'checkbox',
+                      submit    : 'Ok',
+                      cancel    : 'Cancel',
+                      checkbox: { trueValue: 'Si', falseValue: 'No' }
+                  },
+                  {
+                	  type: 'checkbox',
+                      submit    : 'Ok',
+                      cancel    : 'Cancel',
+                      checkbox: { trueValue: 'Si', falseValue: 'No' }
+    		      },
+                  {
+                	  type: 'checkbox',
+                      submit    : 'Ok',
+                      cancel    : 'Cancel',
+                      checkbox: { trueValue: 'Si', falseValue: 'No' }
+    		      }
+              ]
 });
 </script>
