@@ -1,6 +1,8 @@
 package com.viaagnolettisrl;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -11,16 +13,19 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.hibernate.Session;
+import org.hibernate.exception.ConstraintViolationException;
 
+import com.google.gson.Gson;
 import com.viaagnolettisrl.hibernate.Client;
 import com.viaagnolettisrl.hibernate.HibernateUtil;
+import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
 import com.viaagnolettisrl.hibernate.Machine;
 import com.viaagnolettisrl.hibernate.User;
 
-public class DeleteServlet extends HttpServlet {
+public class AddServlet extends HttpServlet {
 
-	private static final long serialVersionUID = 743707157203911L;
+	private static final long serialVersionUID = 74377157203911L;
 
 	@Override
 	public void init() throws ServletException {
@@ -45,78 +50,84 @@ public class DeleteServlet extends HttpServlet {
 		}
 
 		Map<String, String> params = ServletUtils.getParameters(request,
-				new String[] { "what", "id" });
+				new String[] { "what" });
 		String what;
-		Long id;
-		if ((what = params.get("what")) == null || params.get("id") == null) {
+		if ((what = params.get("what")) == null) {
 			out.println("error, invalid parameters");
 			return;
 		}
 
-		id = Long.parseLong(params.get("id"));
-
 		Session hibSession = HibernateUtil.getSessionFactory().openSession();
 		hibSession.beginTransaction();
 
-		Object toDelete;
 		String message = "ok";
+		Gson g = new Gson();
 
 		switch (what) {
 		case "user":
 			if (!user.getIsAdmin()) {
-				message = "Non sei amministratore";
+				message = "Non sei admin";
 			} else {
-				toDelete = hibSession.get(User.class, id);
-				if (toDelete != null) { // exists
-					if (((User) toDelete).getId() == user.getId()) {
-						message = "Non puoi eliminare l'amministratore";
-					} else {
-						hibSession.delete((User) toDelete);
-					}
+				String[] fields = new String[] { "name", "surname", "username",
+						"password", "canaddjoborder", "canaddclient",
+						"canaddmachine" };
+				Arrays.sort(fields);
+				params = ServletUtils.getParameters(request, fields);
+				if (params.containsValue(null) || params.containsValue("")) {
+					message = "Completare tutti i campi";
+				} else {
+					User u = new User();
+					u.setCanAddClient(params.get("canaddclient").equals("Si"));
+					u.setCanAddJobOrder(params.get("canaddjoborder").equals(
+							"Si"));
+					u.setCanAddMachine(params.get("canaddmachine").equals("Si"));
+					u.setIsAdmin(false);
+					u.setName(params.get("name"));
+					u.setPassword(params.get("password"));
+					u.setSurname(params.get("surname"));
+					u.setUsername(params.get("username"));
+					u.setHistory(new HashSet<History>());
+					hibSession.saveOrUpdate(u);
+
+					message = g.toJson(u);
 				}
-			}
+
+			}// isadmin
 			break;
 
 		case "client":
 			if (!user.getCanAddClient()) {
-				message = "Non puoi eliminare i clienti";
+				message = "Non puoi aggiungere clienti";
 			} else {
-				toDelete = hibSession.get(Client.class, id);
-				if (toDelete != null) { // exists
-					hibSession.delete((Client) toDelete);
-				}
+				Client c = new Client();
 			}
 			break;
 
 		case "machine":
 			if (!user.getCanAddMachine()) {
-				message = "Non puoi eliminare le macchine";
+				message = "Non puoi aggiungere macchine";
 			} else {
-				toDelete = hibSession.get(Machine.class, id);
-				if (toDelete != null) { // exists
-					hibSession.delete((Machine) toDelete);
-				}
+				Machine m = new Machine();
 			}
 			break;
 
 		case "joborder":
 			if (!user.getCanAddJobOrder()) {
-				message = "Non puoi eliminare le commesse";
+				message = "Non puoi aggiungere commesse";
 			} else {
-				toDelete = hibSession.get(JobOrder.class, id);
-				if (toDelete != null) { // exists
-					hibSession.delete((JobOrder) toDelete);
-				}
+				JobOrder j = new JobOrder();
 			}
 			break;
 		}
-		if ("ok".equals(message)) {
+
+		try {
 			hibSession.getTransaction().commit();
-		} else {
+		} catch (ConstraintViolationException e) {
+			message = "Esiste già un record con questo nome";
 			hibSession.getTransaction().rollback();
 		}
-		out.print(message);
 
+		out.print(message);
 		hibSession.close();
 	}
 

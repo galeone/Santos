@@ -62,3 +62,7 @@ div.contain table td, div.contain table th {
 .no-close .ui-dialog-titlebar-close {
 	display: none;
 }
+
+.error {
+	color: red;
+}

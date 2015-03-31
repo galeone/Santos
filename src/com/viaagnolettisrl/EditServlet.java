@@ -36,7 +36,6 @@ public class EditServlet extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request,
 			HttpServletResponse response) throws ServletException, IOException {
-
 		HttpSession session = request.getSession(true);
 		ServletOutputStream out = response.getOutputStream();
 		User user = (User) session.getAttribute(LoginServlet.USER);
@@ -51,7 +50,7 @@ public class EditServlet extends HttpServlet {
 		String what;
 		Long id;
 		if ((what = params.get("what")) == null || params.get("id") == null) {
-			out.println("message, invalid parameters");
+			out.println("error, invalid parameters");
 			return;
 		}
 
@@ -128,24 +127,8 @@ public class EditServlet extends HttpServlet {
 							break;
 						}// switch
 					}
-				} else { // add
-					params = ServletUtils.getParameters(request, fields);
-					if (params.containsValue(null) || params.containsValue("")) {
-						message = "Completare tutti i campi";
-					} else {
-						u.setCanAddClient(params.get("canaddclient").equals(
-								"Si"));
-						u.setCanAddJobOrder(params.get("canaddjoborder")
-								.equals("Si"));
-						u.setCanAddMachine(params.get("canaddmachine").equals(
-								"Si"));
-						u.setId(Long.parseLong(params.get("id")));
-						u.setIsAdmin(false);
-						u.setName(params.get("name"));
-						u.setPassword(params.get("password"));
-						u.setSurname(params.get("surname"));
-						u.setUsername(params.get("username"));
-					}
+				} else {
+					message = "Utente da modificare non trovato";
 				}
 
 				if (message.equals("ok")) {

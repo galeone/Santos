@@ -10,12 +10,10 @@ public class ServletUtils {
 		HashMap<String, String> map = new HashMap<String, String>();
 		
 		for(String param : parameters) {
-			map.put(param, request.getParameter(param));
+			String value = request.getParameter(param);
+			map.put(param, value != null ? value.trim() : value );
 		}
 		
 		return map;
 	}
-	
-	public static String topHTML = "<html><head><title>Servlet response</title><body>";
-	public static String bottomHTML = "</body></html>";
 }

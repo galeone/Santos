@@ -1,7 +1,6 @@
 package com.viaagnolettisrl;
 
 import java.util.List;
-import java.util.Set;
 
 import org.hibernate.Query;
 import org.hibernate.Session;

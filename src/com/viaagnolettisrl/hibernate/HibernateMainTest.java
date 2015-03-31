@@ -1,14 +1,8 @@
 package com.viaagnolettisrl.hibernate;
 
-import com.viaagnolettisrl.hibernate.*;
-
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
 import java.util.Calendar;
 import java.util.HashSet;
 
-import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 

@@ -39,6 +39,8 @@
 <script
 	src="<%= request.getContextPath() %>/scripts/datatables/jquery.validate.js"></script>
 <script
+	src="<%= request.getContextPath() %>/scripts/datatables/validate/it.js"></script>
+<script
 	src="<%= request.getContextPath() %>/scripts/datatables/jquery.dataTables.editable.js"></script>
 <script
 	src="<%= request.getContextPath() %>/scripts/common.js"></script>

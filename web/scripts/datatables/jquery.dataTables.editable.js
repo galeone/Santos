@@ -1,10 +1,15 @@
 /*
 * File:        jquery.dataTables.editable.js
 * Version:     2.3.3.
-* Author:      Jovan Popovic 
+* Author:      Jovan Popovic
+* Edited by: Paolo Galeone
 * 
+* This modification adds support for JSON response when adding new rows and
+* handle unchecked checkboxes.
+* 
+* Copyright 2015 by Paolo Galeone <nessuno@nerdz.eu>
 * Copyright 2010-2012 Jovan Popovic, all rights reserved.
-*
+* 
 * This source file is free software, under either the GPL v2 license or a
 * BSD style license, as supplied with this software.
 * 
@@ -424,7 +429,11 @@ returns true if plugin should continue with sending AJAX request, false will abo
 
                     } else {
 
-                        var params = oAddNewRowForm.serialize();
+                        var params = $.merge(oAddNewRowForm.serializeArray(),
+                        		oAddNewRowForm.find('input[type=checkbox]:not(:checked)').map(function() {
+                                	return {"name": this.name, "value": "No"}
+                                }).get());
+                        console.log(params);
                         $.ajax({ 'url': properties.sAddURL,
                             'data': params,
                             'type': properties.sAddHttpMethod,
@@ -461,17 +470,20 @@ returns true if plugin should continue with sending AJAX request, false will abo
             properties.fnEndProcessingMode();
 
             if (properties.fnOnNewRowPosted(data)) {
-
+            	//extract json
+            	data = JSON.parse(data);
                 var oSettings = oTable.fnSettings();
                 if (!oSettings.oFeatures.bServerSide) {
-                    jQuery.data(oAddNewRowForm, 'DT_RowId', data);
+                	console.log('data', data);
+                    jQuery.data(oAddNewRowForm, 'DT_RowId', data.id);
                     var values = fnTakeRowDataFromFormElements(oAddNewRowForm);
                    
 
                     var rtn;
                     //Add values from the form into the table
-                    if (oSettings.aoColumns != null && isNaN(parseInt(oSettings.aoColumns[0].mDataProp))) {
-                        rtn = oTable.fnAddData(rowData);
+                    var prop = oSettings.aoColumns[0].mDataProp !== undefined ? oSettings.aoColumns[0].mDataProp : oSettings.aoColumns[0].mData;
+                    if (oSettings.aoColumns != null && isNaN(parseInt(prop))) {
+                    	rtn = oTable.fnAddData(data);
                     }
                     else {
                         rtn = oTable.fnAddData(values);
@@ -479,7 +491,7 @@ returns true if plugin should continue with sending AJAX request, false will abo
 
                     var oTRAdded = oTable.fnGetNodes(rtn);
                     //add id returned by server page as an TR id attribute
-                    properties.fnSetRowID($(oTRAdded), data, true);
+                    properties.fnSetRowID($(oTRAdded), data.id, true);
                     //Apply editable plugin on the cells of the table
                     fnApplyEditable(oTRAdded);
 
@@ -865,26 +877,30 @@ returns true if plugin should continue with sending AJAX request, false will abo
                     else {
                         if (this.type == "checkbox") {
                             if (this.checked)
-                                sCellValue = (this.value != "on") ? this.value : "true";
+                                sCellValue = (this.value != "Si") ? this.value : "Si";
                             else
-                                sCellValue = (this.value != "on") ? "" : "false";
+                                sCellValue = (this.value != "Si") ? "" : "No";
                         } else
                             sCellValue = this.value;
                     }
                     //Deprecated
                     sCellValue = sCellValue.replace("DATAROWID", iDT_RowId);
                     sCellValue = sCellValue.replace(properties.sIDToken, iDT_RowId);
+                    // Fix #8 https://code.google.com/p/jquery-datatables-editable/issues/detail?id=114
+                    var prop = oSettings.aoColumns[rel].mDataProp !== undefined ? oSettings.aoColumns[rel].mDataProp : oSettings.aoColumns[rel].mData;
+                    
                     if (oSettings.aoColumns != null
                                 && oSettings.aoColumns[rel] != null
-                                && isNaN(parseInt(oSettings.aoColumns[0].mDataProp))) {
-                        rowData[oSettings.aoColumns[rel].mDataProp] = sCellValue;
+                                && isNaN(parseInt(prop))) {
+                    	rowData[prop] = sCellValue
                     } else {
                         values[rel] = sCellValue;
                     }
                 }
             });
 
-            if (oSettings.aoColumns != null && isNaN(parseInt(oSettings.aoColumns[0].mDataProp))) {
+            var prop = oSettings.aoColumns[0].mDataProp !== undefined ? oSettings.aoColumns[0].mDataProp : oSettings.aoColumns[0].mData;
+            if (oSettings.aoColumns != null && isNaN(parseInt(prop))) {
                 return rowData;
             }
             else {
@@ -936,7 +952,11 @@ returns true if plugin should continue with sending AJAX request, false will abo
                         $(oActionForm).ajaxSubmit(oAjaxSubmitOptions);
 
                     } else {
-                        var params = jActionForm.serialize();
+                        var params = $.merge(jActionForm.serializeArray(),
+                        		jActionForm.find('input[type=checkbox]:not(:checked)').map(function() {
+                        			return {"name": this.name, "value": "No"}
+                        		}).get());
+                                
                         $.ajax({ 'url': sActionURL,
                             'data': params,
                             'type': properties.sAddHttpMethod,
