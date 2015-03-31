@@ -433,7 +433,6 @@ returns true if plugin should continue with sending AJAX request, false will abo
                         		oAddNewRowForm.find('input[type=checkbox]:not(:checked)').map(function() {
                                 	return {"name": this.name, "value": "No"}
                                 }).get());
-                        console.log(params);
                         $.ajax({ 'url': properties.sAddURL,
                             'data': params,
                             'type': properties.sAddHttpMethod,
@@ -474,7 +473,6 @@ returns true if plugin should continue with sending AJAX request, false will abo
             	data = JSON.parse(data);
                 var oSettings = oTable.fnSettings();
                 if (!oSettings.oFeatures.bServerSide) {
-                	console.log('data', data);
                     jQuery.data(oAddNewRowForm, 'DT_RowId', data.id);
                     var values = fnTakeRowDataFromFormElements(oAddNewRowForm);
                    
