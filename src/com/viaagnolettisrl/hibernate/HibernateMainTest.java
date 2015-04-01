@@ -2,90 +2,89 @@ package com.viaagnolettisrl.hibernate;
 
 import java.util.Calendar;
 import java.util.HashSet;
-
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 public class HibernateMainTest {
-
 	public static void main(String[] args) {
-
-		Session session = null;
-		Transaction tx = null;
-
 		// Insert entries
+		Transaction tx = null;
+		Session session = HibernateUtil.getSessionFactory().openSession();
 		try {
-			session = HibernateUtil.getSessionFactory().openSession();
 			tx = session.beginTransaction();
 			Calendar cal = null;
 
 			User a0 = new User();
-			a0.setName("Name18");
+			a0.setName("Name9");
 			a0.setCanAddJobOrder(true);
 			a0.setCanAddClient(true);
 			a0.setCanAddMachine(true);
 			a0.setUsername("Username26");
 			a0.setPassword("Password28");
-			a0.setSurname("Surname31");
+			a0.setSurname("Surname22");
 			a0.setIsAdmin(true);
 			session.saveOrUpdate(a0);
 
 			User a1 = new User();
-			a1.setName("Name35");
-			a1.setCanAddJobOrder(false);
-			a1.setCanAddClient(false);
-			a1.setCanAddMachine(false);
-			a1.setUsername("Username43");
-			a1.setPassword("Password45");
-			a1.setSurname("Surname48");
-			a1.setIsAdmin(true);
+			a1.setName("Name26");
+			a1.setCanAddJobOrder(true);
+			a1.setCanAddClient(true);
+			a1.setCanAddMachine(true);
+			a1.setUsername("Username34");
+			a1.setPassword("Password36");
+			a1.setSurname("Surname39");
+			a1.setIsAdmin(false);
 			session.saveOrUpdate(a1);
 
 			Client b0 = new Client();
-			b0.setName("GABIBBO");
-			b0.setCode("Code18");
+			b0.setName("Name2");
+			b0.setCode("Code5");
 			session.saveOrUpdate(b0);
 
 			Client b1 = new Client();
-			b1.setName("Name20");
-			b1.setCode("Code23");
+			b1.setName("Name7");
+			b1.setCode("Code10");
 			session.saveOrUpdate(b1);
 
 			Machine c0 = new Machine();
-			c0.setName("Name18");
-			c0.setColor("Color21");
+			c0.setName("Name5");
+			c0.setType("Type7");
+			c0.setNicety(9F);
+			c0.setColor("Color12");
 			session.saveOrUpdate(c0);
 
 			Machine c1 = new Machine();
-			c1.setName("Name23");
-			c1.setColor("Color26");
+			c1.setName("Name14");
+			c1.setType("Type16");
+			c1.setNicety(18F);
+			c1.setColor("Color21");
 			session.saveOrUpdate(c1);
 
 			JobOrder d0 = new JobOrder();
 			d0.setIdClient(b0.getId());
-			d0.setLeadTime(5L);
+			d0.setLeadTime(20L);
 			session.saveOrUpdate(d0);
 
 			JobOrder d1 = new JobOrder();
 			d1.setIdClient(b1.getId());
-			d1.setLeadTime(8L);
+			d1.setLeadTime(23L);
 			session.saveOrUpdate(d1);
 
 			History e0 = new History();
 			cal = Calendar.getInstance();
-			cal.set(2014,Calendar.JUNE,12);
+			cal.set(2014,Calendar.JUNE,21);
 			e0.setTime(cal.getTime());
-			e0.setAction("Action18");
-			e0.setWhat("What20");
+			e0.setAction("Action5");
+			e0.setWhat("What7");
 			e0.setIdUser(a0.getId());
 			session.saveOrUpdate(e0);
 
 			History e1 = new History();
 			cal = Calendar.getInstance();
-			cal.set(2014,Calendar.JUNE,10);
+			cal.set(2014,Calendar.JUNE,20);
 			e1.setTime(cal.getTime());
-			e1.setAction("Action25");
-			e1.setWhat("What27");
+			e1.setAction("Action12");
+			e1.setWhat("What14");
 			e1.setIdUser(a1.getId());
 			session.saveOrUpdate(e1);
 
@@ -123,18 +122,6 @@ public class HibernateMainTest {
 					e2.printStackTrace();
 				}
 			}
-			e1.printStackTrace();
-		} finally {
-			session.close();
-		}
-
-		//Queries
-
-		//New session
-		session = HibernateUtil.getSessionFactory().openSession();
-
-		try {}
-		catch (Exception e1) {
 			e1.printStackTrace();
 		} finally {
 			session.close();

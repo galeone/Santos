@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="author" content="Paolo Galeone">
-<title>Santos -<%= request.getParameter("title") %></title>
+<title><%= request.getParameter("title") %> - Santos</title>
 <link type="text/css"
 	href="<%= request.getContextPath() %>/styles/fullcalendar/fullcalendar.css"
 	rel="stylesheet" />
@@ -15,6 +15,9 @@
 	rel="stylesheet">
 <link type="text/css"
 	href="<%= request.getContextPath() %>/styles/theme.css"
+	rel="stylesheet">
+<link type="text/css"
+	href="<%= request.getContextPath() %>/styles/farbtastic/farbtastic.css"
 	rel="stylesheet">
 <link type="text/css"
 	href="<%= request.getContextPath() %>/styles/default.css"
@@ -42,6 +45,10 @@
 	src="<%= request.getContextPath() %>/scripts/datatables/validate/it.js"></script>
 <script
 	src="<%= request.getContextPath() %>/scripts/datatables/jquery.dataTables.editable.js"></script>
+<script
+	src="<%= request.getContextPath() %>/scripts/farbtastic/farbtastic.js"></script>
+<script
+	src="<%= request.getContextPath() %>/scripts/datatables/jquery.jeditable.farbtastic.js"><</script>
 <script
 	src="<%= request.getContextPath() %>/scripts/common.js"></script>
 </head>

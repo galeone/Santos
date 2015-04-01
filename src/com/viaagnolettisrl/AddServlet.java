@@ -99,7 +99,19 @@ public class AddServlet extends HttpServlet {
 			if (!user.getCanAddClient()) {
 				message = "Non puoi aggiungere clienti";
 			} else {
-				Client c = new Client();
+				String[] fields = new String[] { "name", "code"};
+				Arrays.sort(fields);
+				params = ServletUtils.getParameters(request, fields);
+				if (params.containsValue(null) || params.containsValue("")) {
+					message = "Completare tutti i campi";
+				} else {
+					Client c = new Client();
+					c.setCode(params.get("code"));
+					c.setName(params.get("name"));
+					c.setJobOrders(new HashSet<JobOrder>());
+					hibSession.saveOrUpdate(c);
+					message = g.toJson(c);
+				}
 			}
 			break;
 
@@ -107,7 +119,25 @@ public class AddServlet extends HttpServlet {
 			if (!user.getCanAddMachine()) {
 				message = "Non puoi aggiungere macchine";
 			} else {
-				Machine m = new Machine();
+				String[] fields = new String[] { "name", "type", "nicety", "color"};
+				Arrays.sort(fields);
+				params = ServletUtils.getParameters(request, fields);
+				if (params.containsValue(null) || params.containsValue("")) {
+					message = "Completare tutti i campi";
+				} else {
+					try {
+						Machine m = new Machine();
+						m.setColor(params.get("color"));
+						m.setName(params.get("name"));
+						m.setNicety(Float.parseFloat(params.get("nicety")));
+						m.setType(params.get("type"));
+						m.setJobOrders(new HashSet<JobOrder>());
+						hibSession.saveOrUpdate(m);
+						message = g.toJson(m);
+					} catch(NumberFormatException e) {
+						message = "Valore della finezza non valido";
+					}
+				}
 			}
 			break;
 

@@ -61,10 +61,12 @@ public class EditServlet extends HttpServlet {
 
 		String message = "ok";
 		Object toEdit;
+		String[] fields = null;
+		String outputResult = "";
 
 		switch (what) {
 		case "user":
-			String[] fields = new String[] { "id", "name", "surname",
+			fields = new String[] { "id", "name", "surname",
 					"username", "password", "canaddjoborder", "canaddclient",
 					"canaddmachine" };
 			Arrays.sort(fields);
@@ -88,7 +90,7 @@ public class EditServlet extends HttpServlet {
 					}
 
 					String value = params.get("value");
-					boolean result = false; //checkbox
+					boolean result;
 					if (message.equals("ok")) {
 						switch (field) {
 						case "id":
@@ -108,17 +110,17 @@ public class EditServlet extends HttpServlet {
 							break;
 						case "canaddjoborder":
 							result = value.equals("Si");
-							message = Boolean.toString(result);
+							outputResult = Boolean.toString(result);
 							u.setCanAddJobOrder(result);
 							break;
 						case "canaddmachine":
 							result = value.equals("Si");
-							message = Boolean.toString(result);
+							outputResult = Boolean.toString(result);
 							u.setCanAddMachine(result);
 							break;
 						case "canaddclient":
 							result = value.equals("Si");
-							message = Boolean.toString(result);
+							outputResult = Boolean.toString(result);
 							u.setCanAddClient(result);
 							break;
 
@@ -141,11 +143,41 @@ public class EditServlet extends HttpServlet {
 			if (!user.getCanAddClient()) {
 				message = "Non puoi aggiungere clienti";
 			} else {
-				toEdit = hibSession.get(Client.class, id);
+				fields = new String[] { "name", "code" };
+				Arrays.sort(fields);
+				toEdit = (Client) hibSession.get(Client.class, id);
+				Client c = new Client();
 				if (toEdit != null) { // edit
-					hibSession.saveOrUpdate((Client) toEdit);
-				} else { // create
+					c = (Client)toEdit;
+					params = ServletUtils.getParameters(request, new String[] {
+							"columnName", "value" });
+					String field = params.get("columnName");
+					if (params.containsValue(null) || params.containsValue("")) {
+						message = "Richiesta di edit errata";
+					} else if (Arrays.binarySearch(fields, field) == -1) {
+						message = "Nome colonna non valido";
+					}
 
+					String value = params.get("value");
+					if (message.equals("ok")) {
+						switch (field) {
+						case "name":
+							c.setName(value);
+							break;
+						case "code":
+							c.setCode(value);
+							break;
+						default:
+							message = "Campo non riconosciuto";
+							break;
+						}// switch
+					}
+				} else {
+					message = "Cliente da modificare non trovatp";
+				}
+				
+				if (message.equals("ok")) {
+					hibSession.saveOrUpdate(c);
 				}
 			}
 			break;
@@ -154,11 +186,54 @@ public class EditServlet extends HttpServlet {
 			if (!user.getCanAddMachine()) {
 				message = "Non puoi aggiungere macchine";
 			} else {
-				toEdit = hibSession.get(Machine.class, id);
-				if (toEdit != null) { // edit
-					hibSession.saveOrUpdate((Machine) toEdit);
-				} else { // create
+				fields = new String[] { "name", "type", "nicety", "color" };
+				Arrays.sort(fields);
+				toEdit = (Machine) hibSession.get(Machine.class, id);
 
+				Machine m = new Machine();
+				if (toEdit != null) { // edit
+					m = (Machine) toEdit;
+					params = ServletUtils.getParameters(request, new String[] {
+							"columnName", "value" });
+					String field = params.get("columnName");
+					if (params.containsValue(null) || params.containsValue("")) {
+						message = "Richiesta di edit errata";
+					} else if (Arrays.binarySearch(fields, field) == -1) {
+						message = "Nome colonna non valido";
+					}
+
+					String value = params.get("value");
+					if (message.equals("ok")) {
+						switch (field) {
+						case "name":
+							m.setName(value);
+							break;
+						case "type":
+							m.setType(value);
+							break;
+						case "nicety":
+							try {
+								m.setNicety(Float.parseFloat(value));
+							} catch(NumberFormatException e) {
+								message = "Valore della finezza non valido";
+							}
+							break;
+						case "color":
+							outputResult = value;
+							m.setColor(value);
+							break;
+
+						default:
+							message = "Campo non riconosciuto";
+							break;
+						}// switch
+					}
+				} else {
+					message = "Macchina da modificare non trovata";
+				}
+
+				if (message.equals("ok")) {
+					hibSession.saveOrUpdate(m);
 				}
 			}
 			break;
@@ -181,7 +256,7 @@ public class EditServlet extends HttpServlet {
 		} else {
 			hibSession.getTransaction().rollback();
 		}
-		out.print(message);
+		out.print(outputResult.equals("")  ? message : outputResult);
 
 		hibSession.close();
 	}

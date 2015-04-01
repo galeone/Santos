@@ -17,17 +17,17 @@
 	<p class="validateTips">Tutti i campi sono necessari.</p>
 	<fieldset>
 		<input type="hidden" name="fakeid" id="fakeid" rel="0" value="0" />
-		<label for="username">Nome utente (almeno 2 caratteri)</label>
+		<label for="username">Nome utente (almeno 1 carattere)</label>
 		<input type="text"
-			name="username" id="username" value="" minlength="2" required
+			name="username" id="username" value="" minlength="1" required
 			class="text ui-widget-content ui-corner-all" rel="1">
 		<label
-			for="name">Nome (almeno 2 caratteri)</label>
-		<input type="text" name="name" minlength="2" required
+			for="name">Nome (almeno 1 carattere)</label>
+		<input type="text" name="name" minlength="1" required
 			id="name" value="" class="text ui-widget-content ui-corner-all" rel="2">
-		<label for="surname">Cognome (almeno 2 caratteri)</label>
+		<label for="surname">Cognome (almeno 1 carattere)</label>
 		<input type="text"
-			name="surname" id="surname" value="" minlength="2" required
+			name="surname" id="surname" value="" minlength="1" required
 			class="text ui-widget-content ui-corner-all" rel="3">
 		<label
 			for="password">Password (almeno 5 caratteri)</label>
@@ -70,87 +70,88 @@
 <button id="btnDeleteRow">Cancella utente</button>
 <script>
 <%Gson gson = new Gson();%>
-var users = <%=gson.toJson(GetList.Users())%>;
-$("#users-table").dataTable({
-	"bJQueryUI": true,
-	"bProcestrueng": true,
-	"sPaginationType": "full_numbers",
-	"language": {
-		"url": "<%=request.getContextPath()%>/scripts/datatables/italian.js"
-	},
-	"data": users,
-	"createdRow": function ( row, data, index ) {
-		row.setAttribute('id', data.id);
-	},
-    columns: [
-              {
-            	  data: 'id',
-            	  name: 'id',
-            	  createdCell: function (td, cellData, rowData, row, col) {
-            			td.setAttribute('class', 'read_only');
-            	  }
-              },
-              { data: 'username', name: "username" },
-              { data: 'name', name: 'name' },
-              { data: 'surname', name: 'surname' },
-              { data: 'password', name: 'password' },
-              {
-            	  data: 'canAddJobOrder',
-            	  name: 'canaddjoborder',
-            	  render: dataTablesCheckbox
-			  },
-              {
-				  data: 'canAddMachine',
-				  name: 'canaddmachine',
-				  render: dataTablesCheckbox
-		      },
-              {
-		    	  data: 'canAddClient',
-		    	  name: 'canaddclient',
-		    	  render: dataTablesCheckbox
-		    }
-          ]
-}).makeEditable({
-	sDeleteURL: "<%=request.getContextPath()%>/delete?what=user",
-	sUpdateURL: "<%=request.getContextPath()%>/edit?what=user",
-	sAddURL: "<%=request.getContextPath()%>/add?what=user",
-	sReadOnlyCellClass : "read_only",
-	fnOnDeleting: function() {
-		return confirm("Vuoi davvero rimuovere questo utente?");
-	},
-	"fnOnNewRowPosted": function(data) {
-		try {
-			JSON.parse(data);
-			return true;
-		}catch(e) {
-			alert(data);
-			return false;
-		}
-	},
-    "aoColumns": [
-                  {},
-                  {},
-                  {},
-                  {},
-                  {},
-                  {
-                	  type: 'checkbox',
-                      submit    : 'Ok',
-                      cancel    : 'Cancel',
-                      checkbox: { trueValue: 'Si', falseValue: 'No' }
-                  },
-                  {
-                	  type: 'checkbox',
-                      submit    : 'Ok',
-                      cancel    : 'Cancel',
-                      checkbox: { trueValue: 'Si', falseValue: 'No' }
-    		      },
-                  {
-                	  type: 'checkbox',
-                      submit    : 'Ok',
-                      cancel    : 'Cancel',
-                      checkbox: { trueValue: 'Si', falseValue: 'No' }
-    		      }
-              ]
+$(document).ready(function() {
+	$("#users-table").dataTable({
+		"bJQueryUI": true,
+		"bProcestrueng": true,
+		"sPaginationType": "full_numbers",
+		"language": {
+			"url": "<%=request.getContextPath()%>/scripts/datatables/italian.js"
+		},
+		"data": <%=gson.toJson(GetList.Users())%>,
+		"createdRow": function ( row, data, index ) {
+			row.setAttribute('id', data.id);
+		},
+	    columns: [
+	              {
+	            	  data: 'id',
+	            	  name: 'id',
+	            	  createdCell: function (td, cellData, rowData, row, col) {
+	            			td.setAttribute('class', 'read_only');
+	            	  }
+	              },
+	              { data: 'username', name: "username" },
+	              { data: 'name', name: 'name' },
+	              { data: 'surname', name: 'surname' },
+	              { data: 'password', name: 'password' },
+	              {
+	            	  data: 'canAddJobOrder',
+	            	  name: 'canaddjoborder',
+	            	  render: dataTablesCheckbox
+				  },
+	              {
+					  data: 'canAddMachine',
+					  name: 'canaddmachine',
+					  render: dataTablesCheckbox
+			      },
+	              {
+			    	  data: 'canAddClient',
+			    	  name: 'canaddclient',
+			    	  render: dataTablesCheckbox
+			    }
+	          ]
+	}).makeEditable({
+		sDeleteURL: "<%=request.getContextPath()%>/delete?what=user",
+		sUpdateURL: "<%=request.getContextPath()%>/edit?what=user",
+		sAddURL: "<%=request.getContextPath()%>/add?what=user",
+		sReadOnlyCellClass : "read_only",
+		fnOnDeleting: function() {
+			return confirm("Vuoi davvero rimuovere questo utente?");
+		},
+		"fnOnNewRowPosted": function(data) {
+			try {
+				JSON.parse(data);
+				return true;
+			}catch(e) {
+				alert(data);
+				return false;
+			}
+		},
+	    "aoColumns": [
+	                  {},
+	                  {},
+	                  {},
+	                  {},
+	                  {},
+	                  {
+	                	  type: 'checkbox',
+	                      submit    : 'Ok',
+	                      cancel    : 'Cancel',
+	                      checkbox: { trueValue: 'Si', falseValue: 'No' }
+	                  },
+	                  {
+	                	  type: 'checkbox',
+	                      submit    : 'Ok',
+	                      cancel    : 'Cancel',
+	                      checkbox: { trueValue: 'Si', falseValue: 'No' }
+	    		      },
+	                  {
+	                	  type: 'checkbox',
+	                      submit    : 'Ok',
+	                      cancel    : 'Cancel',
+	                      checkbox: { trueValue: 'Si', falseValue: 'No' }
+	    		      }
+	              ]
+	});
 });
 </script>

@@ -7,7 +7,7 @@ public class Client implements Serializable {
 	private String name;
 	private Long id;
 	private String code;
-	private Set<JobOrder> joborders;
+	transient private Set<JobOrder> joborders;
 
 	public void setJobOrders(Set<JobOrder> joborders) {
 		this.joborders = joborders;

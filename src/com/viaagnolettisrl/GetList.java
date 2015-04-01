@@ -7,6 +7,8 @@ import org.hibernate.Session;
 
 import com.viaagnolettisrl.hibernate.Client;
 import com.viaagnolettisrl.hibernate.HibernateUtil;
+import com.viaagnolettisrl.hibernate.JobOrder;
+import com.viaagnolettisrl.hibernate.Machine;
 import com.viaagnolettisrl.hibernate.User;
 
 public class GetList {
@@ -26,6 +28,16 @@ public class GetList {
 	@SuppressWarnings("unchecked")
 	public static List<Client> Clients() {
 		return (List<Client>)Get("Client");
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static List<Machine> Machines() {
+		return (List<Machine>)Get("Machine");
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static List<JobOrder> JobOrders() {
+		return (List<JobOrder>)Get("JobOrder");
 	}
 
 }

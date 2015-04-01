@@ -7,7 +7,7 @@ public class JobOrder implements Serializable {
 	private Long idClient;
 	private Long id;
 	private Long leadTime;
-	private Set<Machine> machines;
+	transient private Set<Machine> machines;
 
 	public void setMachines(Set<Machine> machines) {
 		this.machines = machines;
