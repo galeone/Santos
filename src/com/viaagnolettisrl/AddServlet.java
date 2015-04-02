@@ -16,6 +16,7 @@ import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
 
 import com.google.gson.Gson;
+import com.viaagnolettisrl.hibernate.AssignedJobOrder;
 import com.viaagnolettisrl.hibernate.Client;
 import com.viaagnolettisrl.hibernate.HibernateUtil;
 import com.viaagnolettisrl.hibernate.History;
@@ -131,7 +132,7 @@ public class AddServlet extends HttpServlet {
 						m.setName(params.get("name"));
 						m.setNicety(Float.parseFloat(params.get("nicety")));
 						m.setType(params.get("type"));
-						m.setJobOrders(new HashSet<JobOrder>());
+						m.setAssignedJobOrders(new HashSet<AssignedJobOrder>());
 						hibSession.saveOrUpdate(m);
 						message = g.toJson(m);
 					} catch(NumberFormatException e) {

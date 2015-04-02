@@ -9,6 +9,7 @@
 		<property column="TIME" name="time" type="date" />
 		<property column="ACTION" name="action" type="string" length="50" />
 		<property column="WHAT" name="what" type="string" length="50" />
-		<property column="IDUSER" name="idUser" type="long" />
+		<many-to-one name="User" class="com.viaagnolettisrl.hibernate.User"
+			column="IDUSER" unique="false" not-null="true" lazy="false" />
 	</class>
 </hibernate-mapping>

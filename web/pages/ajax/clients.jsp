@@ -40,8 +40,8 @@
 	</tbody>
 </table>
 <% String style = user.getCanAddClient() ? "" : "display:none"; %>
-<button id="btnAddNewRow" style="<%=style%>">Aggiungi cliente</button>
-<button id="btnDeleteRow" style="<%=style%>">Cancella cliente</button>
+<button id="btnAddNewRowClient" style="<%=style%>">Aggiungi cliente</button>
+<button id="btnDeleteRowClient" style="<%=style%>">Cancella cliente</button>
 <script>
 <%Gson gson = new Gson();%>
 $(document).ready(function() {
@@ -72,6 +72,8 @@ $(document).ready(function() {
 		sUpdateURL: "<%=request.getContextPath()%>/edit?what=client",
 		sAddURL: "<%=request.getContextPath()%>/add?what=client",
 		sReadOnlyCellClass : "read_only",
+		sAddNewRowButtonId: "btnAddNewRowClient",
+		sDeleteRowButtonId: "btnDeleteRowClient",
 		fnOnDeleting: function() {
 			return confirm("Vuoi davvero rimuovere questo cliente?");
 		},

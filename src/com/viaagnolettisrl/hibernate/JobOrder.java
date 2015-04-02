@@ -4,24 +4,16 @@ import java.util.Set;
 
 public class JobOrder implements Serializable {
 	private static final long serialVersionUID = 1L;
-	private Long idClient;
+	private Client client;
 	private Long id;
 	private Long leadTime;
-	transient private Set<Machine> machines;
+	transient private Set<AssignedJobOrder> assignedJobOrders;
 
-	public void setMachines(Set<Machine> machines) {
-		this.machines = machines;
+	public Set<AssignedJobOrder> getAssignedJobOrders() {
+		return assignedJobOrders;
 	}
-
-	public Set<Machine> getMachines() {
-		return this.machines;
-	}
-
-	public Long getIdClient(){
-		return idClient;
-	}
-	public void setIdClient(Long idClient) {
-		this.idClient = idClient;
+	public void setAssignedJobOrders(Set<AssignedJobOrder> assignedJobOrders) {
+		this.assignedJobOrders = assignedJobOrders;
 	}
 	public Long getId(){
 		return id;
@@ -35,6 +27,12 @@ public class JobOrder implements Serializable {
 	public void setLeadTime(Long LeadTime) {
 		this.leadTime = LeadTime;
 	}
+	public Client getClient() {
+		return client;
+	}
+	public void setClient(Client client) {
+		this.client = client;
+	}
 
 	@Override
 	public int hashCode() {
@@ -42,11 +40,7 @@ public class JobOrder implements Serializable {
 		int result = 1;
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		result = prime * result
-				+ ((idClient == null) ? 0 : idClient.hashCode());
-		result = prime * result
 				+ ((leadTime == null) ? 0 : leadTime.hashCode());
-		result = prime * result
-				+ ((machines == null) ? 0 : machines.hashCode());
 		return result;
 	}
 
@@ -64,21 +58,12 @@ public class JobOrder implements Serializable {
 				return false;
 		} else if (!id.equals(other.id))
 			return false;
-		if (idClient == null) {
-			if (other.idClient != null)
-				return false;
-		} else if (!idClient.equals(other.idClient))
-			return false;
 		if (leadTime == null) {
 			if (other.leadTime != null)
 				return false;
 		} else if (!leadTime.equals(other.leadTime))
 			return false;
-		if (machines == null) {
-			if (other.machines != null)
-				return false;
-		} else if (!machines.equals(other.machines))
-			return false;
 		return true;
 	}
+
 }

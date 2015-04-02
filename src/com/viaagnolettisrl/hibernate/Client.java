@@ -42,8 +42,6 @@ public class Client implements Serializable {
 		int result = 1;
 		result = prime * result + ((code == null) ? 0 : code.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result
-				+ ((joborders == null) ? 0 : joborders.hashCode());
 		result = prime * result + ((name == null) ? 0 : name.hashCode());
 		return result;
 	}
@@ -66,11 +64,6 @@ public class Client implements Serializable {
 			if (other.id != null)
 				return false;
 		} else if (!id.equals(other.id))
-			return false;
-		if (joborders == null) {
-			if (other.joborders != null)
-				return false;
-		} else if (!joborders.equals(other.joborders))
 			return false;
 		if (name == null) {
 			if (other.name != null)

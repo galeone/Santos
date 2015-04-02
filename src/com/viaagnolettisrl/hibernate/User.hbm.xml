@@ -9,9 +9,9 @@
 		<id column="id" name="id">
 			<generator class="increment" />
 		</id>
-		<set embed-xml="true" inverse="false" mutable="true" name="history"
+		<set embed-xml="true" inverse="true" mutable="true" name="history"
 			optimistic-lock="true" sort="unsorted">
-			<key column="idUser" on-delete="noaction" />
+			<key column="idUser" on-delete="cascade" />
 			<one-to-many class="com.viaagnolettisrl.hibernate.History"
 				embed-xml="true" not-found="exception" />
 		</set>

@@ -20,5 +20,6 @@
 		<mapping resource="com/viaagnolettisrl/hibernate/Client.hbm.xml" />
 		<mapping resource="com/viaagnolettisrl/hibernate/History.hbm.xml" />
 		<mapping resource="com/viaagnolettisrl/hibernate/JobOrder.hbm.xml" />
+		<mapping resource="com/viaagnolettisrl/hibernate/AssignedJobOrders.hbm.xml" />
 	</session-factory>
 </hibernate-configuration>

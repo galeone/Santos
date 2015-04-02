@@ -66,8 +66,8 @@
 	</tbody>
 </table>
 
-<button id="btnAddNewRow">Crea un nuovo utente</button>
-<button id="btnDeleteRow">Cancella utente</button>
+<button id="btnAddNewRowUser">Crea un nuovo utente</button>
+<button id="btnDeleteRowUser">Cancella utente</button>
 <script>
 <%Gson gson = new Gson();%>
 $(document).ready(function() {
@@ -115,6 +115,8 @@ $(document).ready(function() {
 		sUpdateURL: "<%=request.getContextPath()%>/edit?what=user",
 		sAddURL: "<%=request.getContextPath()%>/add?what=user",
 		sReadOnlyCellClass : "read_only",
+		sAddNewRowButtonId: "btnAddNewRowUser",
+		sDeleteRowButtonId: "btnDeleteRowUser",
 		fnOnDeleting: function() {
 			return confirm("Vuoi davvero rimuovere questo utente?");
 		},

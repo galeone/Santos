@@ -35,7 +35,7 @@
 		<input type="text"
 			name="color" id="color" value="" required
 			class="text ui-widget-content ui-corner-all" rel="4" readonly>
-		<div id="colorpicker"></div>	
+		<div id="colorpicker"></div>
 	</fieldset>
 </form>
 
@@ -53,12 +53,14 @@
 	</tbody>
 </table>
 <% String style = user.getCanAddMachine() ? "" : "display:none"; %>
-<button id="btnAddNewRow" style="<%=style%>">Aggiungi macchina</button>
-<button id="btnDeleteRow" style="<%=style%>">Cancella macchina</button>
+<button id="btnAddNewRowMachine" style="<%=style%>">Aggiungi macchina</button>
+<button id="btnDeleteRowMachine" style="<%=style%>">Cancella macchina</button>
 <script>
 <%Gson gson = new Gson();%>
 $(document).ready(function() {
-	picker = $.farbtastic('#colorpicker');
+	var randomID = "a" + parseInt(Math.random(100)*100).toString() + "b";
+	$("#colorpicker").append('<div id="'+randomID+'"></div>');
+	picker = $.farbtastic("#"+randomID);
 	picker.setColor("#FF0000");
 	picker.linkTo(function(color) {
 		var $in = $("#color");
@@ -100,6 +102,8 @@ $(document).ready(function() {
 		sUpdateURL: "<%=request.getContextPath()%>/edit?what=machine",
 		sAddURL: "<%=request.getContextPath()%>/add?what=machine",
 		sReadOnlyCellClass : "read_only",
+		sAddNewRowButtonId: "btnAddNewRowMachine",
+		sDeleteRowButtonId: "btnDeleteRowMachine",
 		fnOnDeleting: function() {
 			return confirm("Vuoi davvero rimuovere questa macchina?");
 		},

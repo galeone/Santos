@@ -9,15 +9,17 @@
 		<id column="id" name="id">
 			<generator class="increment" />
 		</id>
-		<set embed-xml="true" inverse="false" mutable="true" name="machines"
-			optimistic-lock="true" sort="unsorted" table="AssignedJobOrders">
-			<key column="idJobOrder" on-delete="noaction" />
-			<many-to-many class="com.viaagnolettisrl.hibernate.Machine"
-				column="idMachine" embed-xml="true" not-found="exception" unique="false" />
+		<set embed-xml="true" inverse="true" mutable="true" name="assignedJobOrders"
+			optimistic-lock="true" sort="unsorted">
+			<key column="idJobOrder" on-delete="cascade" />
+			<one-to-many class="com.viaagnolettisrl.hibernate.AssignedJobOrder"
+				embed-xml="true" not-found="exception" />
 		</set>
-		<property column="IDCLIENT" generated="never" lazy="false"
-			name="idClient" optimistic-lock="true" type="long" unique="false" />
 		<property column="LEADTIME" generated="never" lazy="false"
 			name="leadTime" optimistic-lock="true" type="long" unique="false" />
+			
+		<many-to-one name="Client" class="com.viaagnolettisrl.hibernate.Client"
+			column="IDCLIENT" unique="false" not-null="true" lazy="false" cascade="delete" />
+			
 	</class>
 </hibernate-mapping>

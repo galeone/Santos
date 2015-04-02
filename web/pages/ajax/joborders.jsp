@@ -26,8 +26,8 @@
 				<option value="${client.id}">${client.name}</option>
 			</c:forEach>
 		</select>
+		<!-- tempo in gg mesi ore -->
 		<input type="hidden" name="fakeid" id="fakeid" rel="2" value="0" />
-		
 	</fieldset>
 </form>
 
@@ -42,13 +42,14 @@
 	<tbody>
 	</tbody>
 </table>
-
-<button id="btnAddNewRow">Aggiungi commessa</button>
-<button id="btnDeleteRow">Cancella commessa</button>
+<% String style = user.getCanAddJobOrder() ? "" : "display:none"; %>
+<button id="btnAddNewRowJobOrder" style="<%=style%>">Aggiungi commessa</button>
+<button id="btnDeleteRowJobOrder" style="<%=style%>">Cancella commessa</button>
 <script>
 <%Gson gson = new Gson();%>
 $(document).ready(function() {
-	$("#client").selectmenu();
+	$("#btnAddNewRow").off(); // remove handlers (conflits with same id in other tabs)
+	$("#btnDeleteRow").off();
 	$("#joborders-table").dataTable({
 		"bJQueryUI": true,
 		"bProcestrueng": true,
@@ -68,7 +69,7 @@ $(document).ready(function() {
 	            			td.setAttribute('class', 'read_only');
 	            	  }
 	              },
-	              { data: 'idClient', name: "idClient" },
+	              { data: 'client.name', name: "client.name" },
 	              { data: 'leadTime', name: 'leadTime' }
 	          ]
 	}).makeEditable({
@@ -76,6 +77,8 @@ $(document).ready(function() {
 		sUpdateURL: "<%=request.getContextPath()%>/edit?what=joborder",
 		sAddURL: "<%=request.getContextPath()%>/add?what=joborder",
 		sReadOnlyCellClass : "read_only",
+		sAddNewRowButtonId: "btnAddNewRowJobOrder",
+		sDeleteRowButtonId: "btnDeleteRowJobOrder",
 		fnOnDeleting: function() {
 			return confirm("Vuoi davvero rimuovere questa commessa?");
 		},

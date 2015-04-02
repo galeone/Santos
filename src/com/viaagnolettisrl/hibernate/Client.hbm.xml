@@ -8,9 +8,9 @@
 		<id column="id" name="id">
 			<generator class="increment" />
 		</id>
-		<set embed-xml="true" inverse="false" mutable="true" name="JobOrders"
+		<set embed-xml="true" inverse="true" mutable="true" name="JobOrders"
 			optimistic-lock="true" sort="unsorted">
-			<key column="idClient" on-delete="noaction" />
+			<key column="idClient" on-delete="cascade" />
 			<one-to-many class="com.viaagnolettisrl.hibernate.JobOrder"
 				embed-xml="true" not-found="exception" />
 		</set>

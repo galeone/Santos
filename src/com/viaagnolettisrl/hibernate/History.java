@@ -11,7 +11,7 @@ public class History implements Serializable {
 	private Date time;
 	private String action;
 	private String what;
-	private Long idUser;
+	private User user;
 	private Long id;
 
 	public Date getTime(){
@@ -38,20 +38,8 @@ public class History implements Serializable {
 		this.what = What;
 	}
 
-	public Long getIdUser(){
-		return idUser;
-	}
-
-	public void setIdUser(Long idUser) {
-		this.idUser = idUser;
-	}
-
-	public Long getId(){
-		return id;
-	}
-
-	public void setId(Long Id) {
-		this.id = Id;
+	public User getUser(){
+		return user;
 	}
 
 	@Override
@@ -60,8 +48,8 @@ public class History implements Serializable {
 		int result = 1;
 		result = prime * result + ((action == null) ? 0 : action.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		result = prime * result + ((idUser == null) ? 0 : idUser.hashCode());
 		result = prime * result + ((time == null) ? 0 : time.hashCode());
+		result = prime * result + ((user == null) ? 0 : user.hashCode());
 		result = prime * result + ((what == null) ? 0 : what.hashCode());
 		return result;
 	}
@@ -85,15 +73,15 @@ public class History implements Serializable {
 				return false;
 		} else if (!id.equals(other.id))
 			return false;
-		if (idUser == null) {
-			if (other.idUser != null)
-				return false;
-		} else if (!idUser.equals(other.idUser))
-			return false;
 		if (time == null) {
 			if (other.time != null)
 				return false;
 		} else if (!time.equals(other.time))
+			return false;
+		if (user == null) {
+			if (other.user != null)
+				return false;
+		} else if (!user.equals(other.user))
 			return false;
 		if (what == null) {
 			if (other.what != null)
@@ -103,5 +91,16 @@ public class History implements Serializable {
 		return true;
 	}
 
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public Long getId(){
+		return id;
+	}
+
+	public void setId(Long Id) {
+		this.id = Id;
+	}
 
 }

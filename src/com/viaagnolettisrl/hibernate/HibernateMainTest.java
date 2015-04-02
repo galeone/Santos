@@ -1,7 +1,9 @@
 package com.viaagnolettisrl.hibernate;
 
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
+
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 
@@ -50,23 +52,23 @@ public class HibernateMainTest {
 			c0.setName("Name5");
 			c0.setType("Type7");
 			c0.setNicety(9F);
-			c0.setColor("Color12");
+			c0.setColor("#ffaaff");
 			session.saveOrUpdate(c0);
 
 			Machine c1 = new Machine();
 			c1.setName("Name14");
 			c1.setType("Type16");
 			c1.setNicety(18F);
-			c1.setColor("Color21");
+			c1.setColor("#008080");
 			session.saveOrUpdate(c1);
 
 			JobOrder d0 = new JobOrder();
-			d0.setIdClient(b0.getId());
+			d0.setClient(b0);
 			d0.setLeadTime(20L);
 			session.saveOrUpdate(d0);
 
 			JobOrder d1 = new JobOrder();
-			d1.setIdClient(b1.getId());
+			d1.setClient(b0);
 			d1.setLeadTime(23L);
 			session.saveOrUpdate(d1);
 
@@ -76,7 +78,7 @@ public class HibernateMainTest {
 			e0.setTime(cal.getTime());
 			e0.setAction("Action5");
 			e0.setWhat("What7");
-			e0.setIdUser(a0.getId());
+			e0.setUser(a0);
 			session.saveOrUpdate(e0);
 
 			History e1 = new History();
@@ -85,7 +87,7 @@ public class HibernateMainTest {
 			e1.setTime(cal.getTime());
 			e1.setAction("Action12");
 			e1.setWhat("What14");
-			e1.setIdUser(a1.getId());
+			e1.setUser(a1);
 			session.saveOrUpdate(e1);
 
 			//Relations
@@ -100,19 +102,15 @@ public class HibernateMainTest {
 			b0.getJobOrders().add(d1);
 			session.saveOrUpdate(b0);
 
-
 			//Set property (inverse="false") makes hibernate generate insert queries on the join table when saving the set
-			d0.setMachines(new HashSet<Machine>());
-			d0.getMachines().add(c0);
-			d0.getMachines().add(c1);
-			session.saveOrUpdate(d0);
+			AssignedJobOrder aj = new AssignedJobOrder();
+			aj.setBegin(new Date());
+			aj.setEnd(new Date());
+			aj.setJobOrder(d0);
+			aj.setMachine(c0);
+			session.saveOrUpdate(aj);
 
-			d1.setMachines(new HashSet<Machine>());
-			d1.getMachines().add(c0);
-			session.saveOrUpdate(d1);
 
-			session.saveOrUpdate(c0);
-			session.saveOrUpdate(c1);
 			tx.commit();
 		} catch(Exception e1) {
 			if (tx != null) {
