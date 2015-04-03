@@ -13,7 +13,7 @@
 				+ LoginServlet.LOGIN_FORM);
 	}
 %>
-<form id="formAddNewRow" action="#" title="Aggiungi macchina">
+<form id="formAddNewRowMachine" action="#" title="Aggiungi macchina">
 	<p class="validateTips">Tutti i campi sono necessari.</p>
 	<fieldset>
 		<input type="hidden" name="fakeid" id="fakeid" rel="0" value="0" />
@@ -33,9 +33,9 @@
 		
 		<label for="color">Colore</label>
 		<input type="text"
-			name="color" id="color" value="" required
+			name="color" class="color" value="" required
 			class="text ui-widget-content ui-corner-all" rel="4" readonly>
-		<div id="colorpicker"></div>
+		<div class="colorpicker"></div>
 	</fieldset>
 </form>
 
@@ -55,78 +55,75 @@
 <% String style = user.getCanAddMachine() ? "" : "display:none"; %>
 <button id="btnAddNewRowMachine" style="<%=style%>">Aggiungi macchina</button>
 <button id="btnDeleteRowMachine" style="<%=style%>">Cancella macchina</button>
-<script>
 <%Gson gson = new Gson();%>
-$(document).ready(function() {
-	var randomID = "a" + parseInt(Math.random(100)*100).toString() + "b";
-	$("#colorpicker").append('<div id="'+randomID+'"></div>');
-	picker = $.farbtastic("#"+randomID);
-	picker.setColor("#FF0000");
-	picker.linkTo(function(color) {
-		var $in = $("#color");
-		$in.prop('readonly', false);
-		$in.val(color);
-		$in.css('border-color', color);
-		$in.prop('readonly', true);
-	});
-	$("#machines-table").dataTable({
-		"bJQueryUI": true,
-		"bProcestrueng": true,
-		"sPaginationType": "full_numbers",
-		"language": {
-			"url": "<%=request.getContextPath()%>/scripts/datatables/italian.js"
-		},
-		"data": <%=gson.toJson(GetList.Machines())%>,
-		"createdRow": function ( row, data, index ) {
-			row.setAttribute('id', data.id);
-		},
-	    columns: [
-	              {
-	            	  data: 'id',
-	            	  name: 'id',
-	            	  createdCell: function (td, cellData, rowData, row, col) {
-	            			td.setAttribute('class', 'read_only');
-	            	  }
-	              },
-	              { data: 'name', name: 'name' },
-	              { data: 'type', name: 'type' },
-	              { data: 'nicety', name: 'nicety' },
-	              {
-	            	  data: 'color',
-	            	  name: 'color',
-	            	  render: dataTablesColor
-				  }
-	          ]
-	}).makeEditable({
-		sDeleteURL: "<%=request.getContextPath()%>/delete?what=machine",
-		sUpdateURL: "<%=request.getContextPath()%>/edit?what=machine",
-		sAddURL: "<%=request.getContextPath()%>/add?what=machine",
-		sReadOnlyCellClass : "read_only",
-		sAddNewRowButtonId: "btnAddNewRowMachine",
-		sDeleteRowButtonId: "btnDeleteRowMachine",
-		fnOnDeleting: function() {
-			return confirm("Vuoi davvero rimuovere questa macchina?");
-		},
-		"fnOnNewRowPosted": function(data) {
-			try {
-				JSON.parse(data);
-				return true;
-			}catch(e) {
-				alert(data);
-				return false;
-			}
-		},
-	    "aoColumns": [
-	                  {},//id
-	                  {},//name
-	                  {},//type
-	                  {},//nicety
-	                  {
-	                	  type: 'farbtastic',
-	                      submit    : 'Ok',
-	                      cancel    : 'Cancel',
-	                  } //color
-	              ]
-	});
+<script>
+picker = $.farbtastic("#formAddNewRowMachine .colorpicker");
+picker.setColor("#FF0000");
+picker.linkTo(function(color) {
+	var $in = $("#formAddNewRowMachine .color");
+	$in.prop('readonly', false);
+	$in.attr('value',color);
+	$in.css('border-color', color);
+	$in.prop('readonly', true);
+});
+$("#machines-table").dataTable({
+	"bJQueryUI": true,
+	"bProcestrueng": true,
+	"sPaginationType": "full_numbers",
+	"language": {
+		"url": "<%=request.getContextPath()%>/scripts/datatables/italian.js"
+	},
+	"data": <%=gson.toJson(GetList.Machines())%>,
+	"createdRow": function ( row, data, index ) {
+		row.setAttribute('id', data.id);
+	},
+    columns: [
+              {
+            	  data: 'id',
+            	  name: 'id',
+            	  createdCell: function (td, cellData, rowData, row, col) {
+            			td.setAttribute('class', 'read_only');
+            	  }
+              },
+              { data: 'name', name: 'name' },
+              { data: 'type', name: 'type' },
+              { data: 'nicety', name: 'nicety' },
+              {
+            	  data: 'color',
+            	  name: 'color',
+            	  render: dataTablesColor
+			  }
+          ]
+}).makeEditable({
+	sDeleteURL: "<%=request.getContextPath()%>/delete?what=machine",
+	sUpdateURL: "<%=request.getContextPath()%>/edit?what=machine",
+	sAddURL: "<%=request.getContextPath()%>/add?what=machine",
+	sReadOnlyCellClass : "read_only",
+	sAddNewRowButtonId: "btnAddNewRowMachine",
+	sDeleteRowButtonId: "btnDeleteRowMachine",
+	sAddNewRowFormId: "formAddNewRowMachine",
+	fnOnDeleting: function() {
+		return confirm("Vuoi davvero rimuovere questa macchina?");
+	},
+	"fnOnNewRowPosted": function(data) {
+		try {
+			JSON.parse(data);
+			return true;
+		}catch(e) {
+			alert(data);
+			return false;
+		}
+	},
+    "aoColumns": [
+                  {},//id
+                  {},//name
+                  {},//type
+                  {},//nicety
+                  {
+                	  type: 'farbtastic',
+                      submit    : 'Ok',
+                      cancel    : 'Cancel',
+                  } //color
+              ]
 });
 </script>

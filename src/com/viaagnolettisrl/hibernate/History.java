@@ -1,6 +1,9 @@
 package com.viaagnolettisrl.hibernate;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
+import java.text.Format;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
@@ -11,8 +14,19 @@ public class History implements Serializable {
 	private Date time;
 	private String action;
 	private String what;
+	private String dateTime;
 	private User user;
 	private Long id;
+	
+	public String getDateTime() {
+		return this.dateTime;
+	}
+	
+	public void setDateTime() {
+		Format f = new SimpleDateFormat("dd/MM/yyyy - HH:mm");
+		//hack -> hidden span with timestamp for js sorting
+		this.dateTime = "<span style='display:none'>" + new Long(new Timestamp(getTime().getTime()).getTime()).toString() + "</span>" + f.format(getTime());
+	}
 
 	public Date getTime(){
 		return time;

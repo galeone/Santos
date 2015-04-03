@@ -13,7 +13,7 @@
 				+ LoginServlet.LOGIN_FORM);
 	}
 %>
-<form id="formAddNewRow" action="#" title="Aggiungi cliente">
+<form id="formAddNewRowClient" action="#" title="Aggiungi cliente">
 	<p class="validateTips">Tutti i campi sono necessari.</p>
 	<fieldset>
 		<input type="hidden" name="fakeid" id="fakeid" rel="0" value="0" />
@@ -44,53 +44,52 @@
 <button id="btnDeleteRowClient" style="<%=style%>">Cancella cliente</button>
 <script>
 <%Gson gson = new Gson();%>
-$(document).ready(function() {
-	$("#clients-table").dataTable({
-		"bJQueryUI": true,
-		"bProcestrueng": true,
-		"sPaginationType": "full_numbers",
-		"language": {
-			"url": "<%=request.getContextPath()%>/scripts/datatables/italian.js"
-		},
-		"data": <%=gson.toJson(GetList.Clients())%>,
-		"createdRow": function ( row, data, index ) {
-			row.setAttribute('id', data.id);
-		},
-	    columns: [
-	              {
-	            	  data: 'id',
-	            	  name: 'id',
-	            	  createdCell: function (td, cellData, rowData, row, col) {
-	            			td.setAttribute('class', 'read_only');
-	            	  }
-	              },
-	              { data: 'name', name: 'name' },
-	              { data: 'code', name: 'code' }
-	          ]
-	}).makeEditable({
-		sDeleteURL: "<%=request.getContextPath()%>/delete?what=client",
-		sUpdateURL: "<%=request.getContextPath()%>/edit?what=client",
-		sAddURL: "<%=request.getContextPath()%>/add?what=client",
-		sReadOnlyCellClass : "read_only",
-		sAddNewRowButtonId: "btnAddNewRowClient",
-		sDeleteRowButtonId: "btnDeleteRowClient",
-		fnOnDeleting: function() {
-			return confirm("Vuoi davvero rimuovere questo cliente?");
-		},
-		"fnOnNewRowPosted": function(data) {
-			try {
-				JSON.parse(data);
-				return true;
-			}catch(e) {
-				alert(data);
-				return false;
-			}
-		},
-	    "aoColumns": [
-	                  {},//id
-	                  {},//name
-	                  {}//code
-	              ]
-	});
+$("#clients-table").dataTable({
+	"bJQueryUI": true,
+	"bProcestrueng": true,
+	"sPaginationType": "full_numbers",
+	"language": {
+		"url": "<%=request.getContextPath()%>/scripts/datatables/italian.js"
+	},
+	"data": <%=gson.toJson(GetList.Clients())%>,
+	"createdRow": function ( row, data, index ) {
+		row.setAttribute('id', data.id);
+	},
+    columns: [
+              {
+            	  data: 'id',
+            	  name: 'id',
+            	  createdCell: function (td, cellData, rowData, row, col) {
+            			td.setAttribute('class', 'read_only');
+            	  }
+              },
+              { data: 'name', name: 'name' },
+              { data: 'code', name: 'code' }
+          ]
+}).makeEditable({
+	sDeleteURL: "<%=request.getContextPath()%>/delete?what=client",
+	sUpdateURL: "<%=request.getContextPath()%>/edit?what=client",
+	sAddURL: "<%=request.getContextPath()%>/add?what=client",
+	sReadOnlyCellClass : "read_only",
+	sAddNewRowButtonId: "btnAddNewRowClient",
+	sDeleteRowButtonId: "btnDeleteRowClient",
+	sAddNewRowFormId: "formAddNewRowClient",
+	fnOnDeleting: function() {
+		return confirm("Vuoi davvero rimuovere questo cliente?");
+	},
+	"fnOnNewRowPosted": function(data) {
+		try {
+			JSON.parse(data);
+			return true;
+		}catch(e) {
+			alert(data);
+			return false;
+		}
+	},
+    "aoColumns": [
+                  {},//id
+                  {},//name
+                  {}//code
+              ]
 });
 </script>

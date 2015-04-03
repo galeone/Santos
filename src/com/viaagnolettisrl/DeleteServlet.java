@@ -1,6 +1,7 @@
 package com.viaagnolettisrl;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -14,6 +15,7 @@ import org.hibernate.Session;
 
 import com.viaagnolettisrl.hibernate.Client;
 import com.viaagnolettisrl.hibernate.HibernateUtil;
+import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
 import com.viaagnolettisrl.hibernate.Machine;
 import com.viaagnolettisrl.hibernate.User;
@@ -58,7 +60,7 @@ public class DeleteServlet extends HttpServlet {
 		Session hibSession = HibernateUtil.getSessionFactory().openSession();
 		hibSession.beginTransaction();
 
-		Object toDelete;
+		Object toDelete = null;
 		String message = "ok";
 
 		switch (what) {
@@ -111,6 +113,12 @@ public class DeleteServlet extends HttpServlet {
 			break;
 		}
 		if ("ok".equals(message)) {
+			History h = new History();
+			h.setAction("DELETE");
+			h.setTime(new Date());
+			h.setUser(user);
+			h.setWhat(toDelete.toString());
+			hibSession.saveOrUpdate(h);
 			hibSession.getTransaction().commit();
 		} else {
 			hibSession.getTransaction().rollback();

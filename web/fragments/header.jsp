@@ -48,7 +48,7 @@
 <script
 	src="<%= request.getContextPath() %>/scripts/farbtastic/farbtastic.js"></script>
 <script
-	src="<%= request.getContextPath() %>/scripts/datatables/jquery.jeditable.farbtastic.js"><</script>
+	src="<%= request.getContextPath() %>/scripts/datatables/jquery.jeditable.farbtastic.js"></script>
 <script
 	src="<%= request.getContextPath() %>/scripts/common.js"></script>
 </head>

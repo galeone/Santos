@@ -51,7 +51,11 @@
 
 <script>
 $(document).ready(function() {
-	$("#menu").tabs();
+	$("#menu").tabs({
+		activate: function( event, ui ) {
+			ui.oldPanel.empty();
+		}
+	});
 	
 	$("#globalCalendar").fullCalendar({
 		lang: 'it'

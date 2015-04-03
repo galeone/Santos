@@ -2,6 +2,7 @@ package com.viaagnolettisrl;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 
@@ -63,6 +64,7 @@ public class AddServlet extends HttpServlet {
 
 		String message = "ok";
 		Gson g = new Gson();
+		Object savedObject = null; // for logging
 
 		switch (what) {
 		case "user":
@@ -89,6 +91,7 @@ public class AddServlet extends HttpServlet {
 					u.setUsername(params.get("username"));
 					u.setHistory(new HashSet<History>());
 					hibSession.saveOrUpdate(u);
+					savedObject = u;
 
 					message = g.toJson(u);
 				}
@@ -111,6 +114,8 @@ public class AddServlet extends HttpServlet {
 					c.setName(params.get("name"));
 					c.setJobOrders(new HashSet<JobOrder>());
 					hibSession.saveOrUpdate(c);
+					savedObject = c;
+					
 					message = g.toJson(c);
 				}
 			}
@@ -134,6 +139,8 @@ public class AddServlet extends HttpServlet {
 						m.setType(params.get("type"));
 						m.setAssignedJobOrders(new HashSet<AssignedJobOrder>());
 						hibSession.saveOrUpdate(m);
+						savedObject = m;
+						
 						message = g.toJson(m);
 					} catch(NumberFormatException e) {
 						message = "Valore della finezza non valido";
@@ -146,12 +153,55 @@ public class AddServlet extends HttpServlet {
 			if (!user.getCanAddJobOrder()) {
 				message = "Non puoi aggiungere commesse";
 			} else {
-				JobOrder j = new JobOrder();
+				String[] fields = new String[] { "leadtime", "client"};
+				Arrays.sort(fields);
+				params = ServletUtils.getParameters(request, fields);
+				if (params.containsValue(null) || params.containsValue("")) {
+					message = "Completare tutti i campi";
+				} else {
+					try {
+						JobOrder j = new JobOrder();
+						Long id = null;
+						try {
+							id = Long.parseLong(params.get("client"));
+						}catch(NumberFormatException e) {
+							message = "Valore cliente non valido";
+							break;
+						}
+						Client c = (Client)hibSession.get(Client.class, id);
+						if(c == null) {
+							message = "Cliente non trovato";
+							break;
+						}
+						
+						j.setAssignedJobOrders(new HashSet<AssignedJobOrder>());
+						j.setClient(c);
+						Long leadTime = Long.parseLong(params.get("leadtime"));
+						if(leadTime <= 0) {
+							message = "Tempo di produzione <= 0";
+							break;
+						}
+						j.setLeadTime(leadTime);
+						hibSession.saveOrUpdate(j);
+						
+						savedObject = j;
+					}catch(NumberFormatException e) {
+						message = "Tempo di produzione non valido";
+					}
+				}
 			}
 			break;
 		}
 
 		try {
+			if( savedObject != null) {
+				History h = new History();
+				h.setAction("CREATE");
+				h.setTime(new Date());
+				h.setUser(user);
+				h.setWhat(savedObject.toString());
+				hibSession.saveOrUpdate(h);
+			}
 			hibSession.getTransaction().commit();
 		} catch (ConstraintViolationException e) {
 			message = "Esiste già un record con questo nome";
