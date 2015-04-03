@@ -53,7 +53,9 @@
 $(document).ready(function() {
 	$("#menu").tabs({
 		activate: function( event, ui ) {
-			ui.oldPanel.empty();
+			// REMOVE DIALOGS created by datatables.editable
+			// P.S: fuck you.
+			$("div[aria-describedby^=formAddNewRow]").remove();
 		}
 	});
 	
