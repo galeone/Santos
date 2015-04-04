@@ -27,9 +27,9 @@
 			</c:forEach>
 		</select>
 		<label for="giorni">Giorni</label>
-		<input type="number" name="giorni" />
+		<input type="number" name="giorni" id="giorni" />
 		<label for="ore">Ore</label>
-		<input type="number" name="ore" />
+		<input type="number" name="ore" id="ore" />
 		<!-- tempo in gg e ore -->
 		<input type="hidden" name="leadtime" id="leadtime" rel="2" value="0" />
 	</fieldset>

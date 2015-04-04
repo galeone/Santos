@@ -7,10 +7,10 @@ function dataTablesColor( data, type, full, meta ) {
 };
 
 function dataTablesLeadTime( data, type, full, meta ) {
-	var leadTime = parseInt(data),
-		hours = leadTime % 24,
-		days  = Math.floor(leadTime / 24),
-		daysString = days === 0 ? "" : days == 1 ? "1 giorno" : days + " giorni",
-		hoursString = hours === 0 ? "" : hours == 1 ? "1 ora" : hours + " ore";
-	return daysString + (hoursString !== "" ? " e " + hoursString : "" );
+	var leadTime    = parseInt(data),
+		hours       = leadTime % 24,
+		days        = Math.floor(leadTime / 24),
+		daysString  = days === 0  ? "" : days  === 1 ? "1 giorno" : days  + " giorni",
+		hoursString = hours === 0 ? "" : hours === 1 ? "1 ora"    : hours + " ore";
+	return daysString + (daysString !== "" && hoursString !== "" ? " e " : "") + hoursString;
 };
