@@ -1,3 +1,4 @@
+<%@page import="java.util.HashMap"%>
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@ page errorPage="../../errors/exception.jsp"%>
 <%@ page session="true"%>
@@ -5,6 +6,7 @@
 <%@ page import="com.viaagnolettisrl.*"%>
 <%@ page import="com.google.gson.*"%>
 <%@ page import="java.util.List"%>
+<%@ page import="java.util.Map"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%
 	User user = (User) session.getAttribute(LoginServlet.USER);
@@ -49,7 +51,14 @@
 <% String style = user.getCanAddJobOrder() ? "" : "display:none"; %>
 <button id="btnAddNewRowJobOrder" style="<%=style%>">Aggiungi commessa</button>
 <button id="btnDeleteRowJobOrder" style="<%=style%>">Cancella commessa</button>
-<%Gson gson = new Gson();%>
+<%
+Gson gson = new Gson();
+List<Client> clients = GetList.Clients();
+Map<Long, String> mapClient = new HashMap<Long, String>();
+for(Client c : clients) {
+	   mapClient.put(c.getId(), c.getName());
+}
+%>
 <script>
 $("#ore").on('keyup mouseup', function() {
 	var days = parseInt($("#giorni").val()),
@@ -87,7 +96,7 @@ $("#joborders-table").dataTable({
             			td.setAttribute('class', 'read_only');
             	  }
               },
-              { data: 'client.name', name: "client.name" },
+              { data: 'client.name', name: "client" },
               {
             	  data: 'leadTime',
             	  name: 'leadTime',
@@ -116,8 +125,17 @@ $("#joborders-table").dataTable({
 	},
     "aoColumns": [
                   {},
-                  {},
-                  {}
+                  {
+                	  type: 'select',
+                	  submit: 'Ok',
+                	  cancel: 'Cancel',
+                	  data: '<%=gson.toJson(mapClient) %>'
+                  }, // client
+                  {
+                	  type: 'leadtime',
+                      submit    : 'Ok',
+                      cancel    : 'Cancel',
+                  } //leadtime
               ]
 });
 </script>

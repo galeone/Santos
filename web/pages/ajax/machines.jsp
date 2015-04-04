@@ -33,8 +33,8 @@
 		
 		<label for="color">Colore</label>
 		<input type="text"
-			name="color" class="color" value="" required
-			class="text ui-widget-content ui-corner-all" rel="4" readonly>
+			name="color" value="" required
+			class="color text ui-widget-content ui-corner-all" rel="4" readonly>
 		<div class="colorpicker"></div>
 	</fieldset>
 </form>

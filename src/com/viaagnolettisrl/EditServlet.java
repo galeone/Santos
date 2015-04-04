@@ -2,6 +2,7 @@ package com.viaagnolettisrl;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -15,6 +16,7 @@ import org.hibernate.Session;
 
 import com.viaagnolettisrl.hibernate.Client;
 import com.viaagnolettisrl.hibernate.HibernateUtil;
+import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
 import com.viaagnolettisrl.hibernate.Machine;
 import com.viaagnolettisrl.hibernate.User;
@@ -242,16 +244,70 @@ public class EditServlet extends HttpServlet {
 			if (!user.getCanAddJobOrder()) {
 				message = "Non puoi aggiungere commesse";
 			} else {
-				toEdit = hibSession.get(JobOrder.class, id);
-				if (toEdit != null) { // edit
-					hibSession.saveOrUpdate((JobOrder) toEdit);
-				} else { // create
+				fields = new String[] { "client", "leadTime" };
+				Arrays.sort(fields);
+				toEdit = (JobOrder) hibSession.get(JobOrder.class, id);
 
+				JobOrder j = new JobOrder();
+				if (toEdit != null) { // edit
+					j = (JobOrder) toEdit;
+					params = ServletUtils.getParameters(request, new String[] {
+							"columnName", "value" });
+					String field = params.get("columnName");
+					if (params.containsValue(null) || params.containsValue("")) {
+						message = "Richiesta di edit errata";
+					} else if (Arrays.binarySearch(fields, field) == -1) {
+						message = "Nome colonna non valido";
+					}
+
+					String value = params.get("value");
+					if (message.equals("ok")) {
+						switch (field) {
+						case "client":
+							try {
+								Client c = (Client) hibSession.get(Client.class, Long.parseLong(value));
+								if(c == null) {
+									throw new NumberFormatException();
+								}
+								j.setClient(c);
+							} catch(NumberFormatException e) {
+								message = "Cliente non trovato";
+							}
+							break;
+						case "leadTime":
+							try {
+								Long lt = Long.parseLong(value);
+								if(lt <= 0) {
+									throw new NumberFormatException();
+								}
+								j.setLeadTime(lt);
+								outputResult = value;
+							} catch(NumberFormatException e) {
+								message = "Tempo di produzione errato";
+							}
+							break;
+						default:
+							message = "Campo non riconosciuto";
+							break;
+						}// switch
+					}
+				} else {
+					message = "Commessa da modificare non trovata";
+				}
+
+				if (message.equals("ok")) {
+					hibSession.saveOrUpdate(j);
 				}
 			}
 			break;
 		}
 		if (message.equals("ok")) {
+			History h = new History();
+			h.setAction("EDIT");
+			h.setTime(new Date());
+			h.setUser(user);
+			h.setWhat(what + "(" + id + "): " + params.get("columnName") + " = " + params.get("value"));
+			hibSession.saveOrUpdate(h);
 			hibSession.getTransaction().commit();
 		} else {
 			hibSession.getTransaction().rollback();

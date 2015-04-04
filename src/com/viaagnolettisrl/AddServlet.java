@@ -184,6 +184,7 @@ public class AddServlet extends HttpServlet {
 						j.setLeadTime(leadTime);
 						hibSession.saveOrUpdate(j);
 						
+						message = g.toJson(j);
 						savedObject = j;
 					}catch(NumberFormatException e) {
 						message = "Tempo di produzione non valido";
