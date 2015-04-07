@@ -27,6 +27,9 @@
 		<li class="ui-state-default ui-corner-all"><a
 			href="<%= request.getContextPath() %>/pages/ajax/machines.jsp">Macchine</a>
 		</li>
+		<li class="ui-state-default ui-corner-all"><a
+			href="<%= request.getContextPath() %>/pages/ajax/program.jsp">Programma</a>
+		</li>
 		<li class="ui-state-default ui-corner-all" style="float: right">
 			<a href='<%= request.getContextPath() %>/pages/ajax/logout.jsp'>Esci</a>
 		</li>
@@ -55,12 +58,17 @@ $(document).ready(function() {
 		activate: function( event, ui ) {
 			// REMOVE DIALOGS created by datatables.editable
 			// P.S: fuck you.
-			$("div[aria-describedby^=formAddNewRow]").remove();
+			$("div[aria-describedby^=formAddNew]").remove();
 		}
 	});
 	
 	$("#globalCalendar").fullCalendar({
-		lang: 'it'
+		lang: 'it',
+		header: {
+			left: 'prev,next today',
+			center: 'title',
+			right: 'month,agendaWeek,agendaDay'
+		}
 	});
 });
 </script>

@@ -66,3 +66,32 @@ div.contain table td, div.contain table th {
 .error {
 	color: red;
 }
+
+.ui-tab-content, .ui-tabs-panel {
+	overflow: hidden;
+}
+
+.fc-event {
+	width: 75px;
+	height: 75px;
+	display: table-cell;
+	vertical-align: middle;
+	background-color: #3a87ad;
+	font-weight: bold;
+	border: 1pt solid #000;
+}
+
+#leftc {
+	float: left;
+	width: 30%;
+}
+
+#rightc {
+	float:right;
+	width: 70%;
+}
+
+#wrap {
+	width: 100%;
+	margin: 0 auto;
+}

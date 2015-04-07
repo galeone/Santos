@@ -102,14 +102,22 @@ public class HibernateMainTest {
 			b0.getJobOrders().add(d1);
 			session.saveOrUpdate(b0);
 
-			//Set property (inverse="false") makes hibernate generate insert queries on the join table when saving the set
 			AssignedJobOrder aj = new AssignedJobOrder();
-			aj.setBegin(new Date());
-			aj.setEnd(new Date());
+			aj.setBegins(new Date());
+			aj.setEnds(new Date());
 			aj.setJobOrder(d0);
 			aj.setMachine(c0);
 			session.saveOrUpdate(aj);
-
+			
+			NonWorkingDay nd = new NonWorkingDay();
+			cal = Calendar.getInstance(); 
+			cal.setTime(new Date()); 
+			cal.add(Calendar.DATE, 1);
+			Date tomorrow = cal.getTime();
+			nd.setBegins(tomorrow);
+			nd.setEnds(tomorrow);
+			
+			session.saveOrUpdate(nd);
 
 			tx.commit();
 		} catch(Exception e1) {

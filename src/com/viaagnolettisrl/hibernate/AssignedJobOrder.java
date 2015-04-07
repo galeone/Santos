@@ -9,7 +9,7 @@ public class AssignedJobOrder implements Serializable {
 
 	private Long id;
 
-	private Date begin, end;
+	private Date begins, ends;
 	private Machine machine;
 	private JobOrder jobOrder;
 	@Override
@@ -21,15 +21,15 @@ public class AssignedJobOrder implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		AssignedJobOrder other = (AssignedJobOrder) obj;
-		if (begin == null) {
-			if (other.begin != null)
+		if (begins == null) {
+			if (other.begins != null)
 				return false;
-		} else if (!begin.equals(other.begin))
+		} else if (!begins.equals(other.begins))
 			return false;
-		if (end == null) {
-			if (other.end != null)
+		if (ends == null) {
+			if (other.ends != null)
 				return false;
-		} else if (!end.equals(other.end))
+		} else if (!ends.equals(other.ends))
 			return false;
 		if (id == null) {
 			if (other.id != null)
@@ -49,12 +49,12 @@ public class AssignedJobOrder implements Serializable {
 		return true;
 	}
 
-	public Date getBegin() {
-		return begin;
+	public Date getBegins() {
+		return begins;
 	}
 
-	public Date getEnd() {
-		return end;
+	public Date getEnds() {
+		return ends;
 	}
 
 	public Long getId() {
@@ -73,8 +73,8 @@ public class AssignedJobOrder implements Serializable {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((begin == null) ? 0 : begin.hashCode());
-		result = prime * result + ((end == null) ? 0 : end.hashCode());
+		result = prime * result + ((begins == null) ? 0 : begins.hashCode());
+		result = prime * result + ((ends == null) ? 0 : ends.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		result = prime * result
 				+ ((jobOrder == null) ? 0 : jobOrder.hashCode());
@@ -82,12 +82,12 @@ public class AssignedJobOrder implements Serializable {
 		return result;
 	}
 
-	public void setBegin(Date begin) {
-		this.begin = begin;
+	public void setBegins(Date begin) {
+		this.begins = begin;
 	}
 
-	public void setEnd(Date end) {
-		this.end = end;
+	public void setEnds(Date end) {
+		this.ends = end;
 	}
 
 	public void setId(Long id) {
@@ -104,8 +104,8 @@ public class AssignedJobOrder implements Serializable {
 
 	@Override
 	public String toString() {
-		return "AssignedJobOrder [id=" + id + ", begin=" + begin + ", end="
-				+ end + ", machine=" + machine + ", jobOrder=" + jobOrder + "]";
+		return "AssignedJobOrder [id=" + id + ", begins=" + begins + ", ends="
+				+ ends + ", machine=" + machine + ", jobOrder=" + jobOrder + "]";
 	}
 
 }
