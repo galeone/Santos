@@ -1,6 +1,5 @@
 body {
-	font-family: "Trebuchet MS", "Helvetica", "Arial", "Verdana",
-		"sans-serif";
+	font-family: "Trebuchet MS", "Helvetica", "Arial", "Verdana", "sans-serif";
 	font-size: 62.5%;
 }
 
@@ -71,7 +70,7 @@ div.contain table td, div.contain table th {
 	overflow: hidden;
 }
 
-.fc-event {
+.fc-draggable-event {
 	width: 75px;
 	height: 75px;
 	display: table-cell;
@@ -79,19 +78,28 @@ div.contain table td, div.contain table th {
 	background-color: #3a87ad;
 	font-weight: bold;
 	border: 1pt solid #000;
+	cursor: pointer;
 }
 
 #leftc {
 	float: left;
-	width: 30%;
+	width: 23%;
 }
 
 #rightc {
-	float:right;
-	width: 70%;
+	float: right;
+	width: 76%;
 }
 
 #wrap {
 	width: 100%;
 	margin: 0 auto;
+}
+
+html {
+	box-sizing: border-box
+}
+
+*, :before, :after {
+	box-sizing: inherit
 }

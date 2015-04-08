@@ -18,6 +18,7 @@ import com.viaagnolettisrl.hibernate.HibernateUtil;
 import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
 import com.viaagnolettisrl.hibernate.Machine;
+import com.viaagnolettisrl.hibernate.NonWorkingDay;
 import com.viaagnolettisrl.hibernate.User;
 
 public class DeleteServlet extends HttpServlet {
@@ -61,7 +62,7 @@ public class DeleteServlet extends HttpServlet {
 		hibSession.beginTransaction();
 
 		Object toDelete = null;
-		String message = "ok";
+		String message = "Impossibile eliminare. Elemento già eliminato o non esistente";
 
 		switch (what) {
 		case "user":
@@ -74,7 +75,20 @@ public class DeleteServlet extends HttpServlet {
 						message = "Non puoi eliminare l'amministratore";
 					} else {
 						hibSession.delete((User) toDelete);
+						message = "ok";
 					}
+				}
+			}
+			break;
+
+		case "nonworkingday":
+			if (!user.getIsAdmin()) {
+				message = "Non sei amministratore";
+			} else {
+				toDelete = hibSession.get(NonWorkingDay.class, id);
+				if (toDelete != null) { // exists
+					hibSession.delete((NonWorkingDay) toDelete);
+					message = "ok";
 				}
 			}
 			break;
@@ -86,6 +100,7 @@ public class DeleteServlet extends HttpServlet {
 				toDelete = hibSession.get(Client.class, id);
 				if (toDelete != null) { // exists
 					hibSession.delete((Client) toDelete);
+					message = "ok";
 				}
 			}
 			break;
@@ -97,6 +112,7 @@ public class DeleteServlet extends HttpServlet {
 				toDelete = hibSession.get(Machine.class, id);
 				if (toDelete != null) { // exists
 					hibSession.delete((Machine) toDelete);
+					message = "ok";
 				}
 			}
 			break;
@@ -108,6 +124,7 @@ public class DeleteServlet extends HttpServlet {
 				toDelete = hibSession.get(JobOrder.class, id);
 				if (toDelete != null) { // exists
 					hibSession.delete((JobOrder) toDelete);
+					message = "ok";
 				}
 			}
 			break;

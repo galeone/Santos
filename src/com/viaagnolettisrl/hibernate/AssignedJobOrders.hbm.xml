@@ -6,8 +6,8 @@
 		<id name="id" column="id">
 			<generator class="increment" />
 		</id>
-		<property column="begins" name="begins" type="timestamp" />
-		<property column="ends" name="ends" type="timestamp" />
+		<property column="starts" name="start" type="timestamp" />
+		<property column="ends" name="end" type="timestamp" />
 		<many-to-one name="Machine" class="com.viaagnolettisrl.hibernate.Machine"
 			column="idMachine" unique="false" not-null="true" lazy="false" />
 		<many-to-one name="JobOrder" class="com.viaagnolettisrl.hibernate.JobOrder"

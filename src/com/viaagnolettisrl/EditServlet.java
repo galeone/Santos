@@ -1,8 +1,11 @@
 package com.viaagnolettisrl;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -19,6 +22,7 @@ import com.viaagnolettisrl.hibernate.HibernateUtil;
 import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
 import com.viaagnolettisrl.hibernate.Machine;
+import com.viaagnolettisrl.hibernate.NonWorkingDay;
 import com.viaagnolettisrl.hibernate.User;
 
 public class EditServlet extends HttpServlet {
@@ -141,6 +145,41 @@ public class EditServlet extends HttpServlet {
 			}// isadmin
 			break;
 
+		case "nonworkingday":
+			if (!user.getIsAdmin()) {
+				message = "Non sei admin";
+			} else {
+				toEdit = (NonWorkingDay) hibSession.get(NonWorkingDay.class, id);
+
+				NonWorkingDay nw = new NonWorkingDay();
+
+				if (toEdit != null) { // edit
+					nw = (NonWorkingDay)toEdit;
+					String dateS = request.getParameter("date");
+					if (dateS == null || "".equals(dateS)) {
+						message = "Data non valida (vuota)";
+					} else {
+						try {
+							SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
+							Date d = sdf.parse(dateS);
+							nw.setStart(d);
+							nw.setEnd(d);
+							hibSession.saveOrUpdate(nw);
+						} catch(ParseException e) {
+							message = "formato data non valido";
+						}
+					}
+				}
+				else {
+					message = "Giorno non lavorativo da modificare non trovato";
+				}
+
+				if (message.equals("ok")) {
+					hibSession.saveOrUpdate(nw);
+				}
+			}
+			break;
+			
 		case "client":
 			if (!user.getCanAddClient()) {
 				message = "Non puoi aggiungere clienti";

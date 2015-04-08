@@ -1,9 +1,12 @@
 package com.viaagnolettisrl;
 
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -23,6 +26,7 @@ import com.viaagnolettisrl.hibernate.HibernateUtil;
 import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
 import com.viaagnolettisrl.hibernate.Machine;
+import com.viaagnolettisrl.hibernate.NonWorkingDay;
 import com.viaagnolettisrl.hibernate.User;
 
 public class AddServlet extends HttpServlet {
@@ -188,6 +192,31 @@ public class AddServlet extends HttpServlet {
 						savedObject = j;
 					}catch(NumberFormatException e) {
 						message = "Tempo di produzione non valido";
+					}
+				}
+			}
+			break;
+			
+		case "nonworkingday":
+			if (!user.getIsAdmin()) {
+				message = "Non puoi aggiungere giorni non lavorativi";
+			} else {
+				String dateS = request.getParameter("date");
+				if (dateS == null || "".equals(dateS)) {
+					message = "Completare tutti i campi";
+				} else {
+					try {
+						NonWorkingDay nw = new NonWorkingDay();
+						SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
+						Date d = sdf.parse(dateS);
+						nw.setStart(d);
+						nw.setEnd(d);
+						
+						hibSession.saveOrUpdate(nw);
+						message = g.toJson(nw);
+						savedObject = nw;
+					} catch(ParseException e) {
+						message = "formato data non valido";
 					}
 				}
 			}

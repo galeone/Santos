@@ -9,14 +9,19 @@ public class NonWorkingDay implements Serializable {
 
 	private Long id;
 
-	private Date begins, ends;
+	private Date start, end;
+	
+	public String title = "Giorno non lavorativo",
+			color = "#ff9f89";
+	public boolean overlap = false, // can't drop events on a non working day
+			allDay = true;
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((begins == null) ? 0 : begins.hashCode());
-		result = prime * result + ((ends == null) ? 0 : ends.hashCode());
+		result = prime * result + ((start == null) ? 0 : start.hashCode());
+		result = prime * result + ((end == null) ? 0 : end.hashCode());
 		result = prime * result + ((id == null) ? 0 : id.hashCode());
 		return result;
 	}
@@ -30,15 +35,15 @@ public class NonWorkingDay implements Serializable {
 		if (getClass() != obj.getClass())
 			return false;
 		NonWorkingDay other = (NonWorkingDay) obj;
-		if (begins == null) {
-			if (other.begins != null)
+		if (start == null) {
+			if (other.start != null)
 				return false;
-		} else if (!begins.equals(other.begins))
+		} else if (!start.equals(other.start))
 			return false;
-		if (ends == null) {
-			if (other.ends != null)
+		if (end == null) {
+			if (other.end != null)
 				return false;
-		} else if (!ends.equals(other.ends))
+		} else if (!end.equals(other.end))
 			return false;
 		if (id == null) {
 			if (other.id != null)
@@ -56,20 +61,20 @@ public class NonWorkingDay implements Serializable {
 		this.id = id;
 	}
 
-	public Date getBegins() {
-		return begins;
+	public Date getStart() {
+		return start;
 	}
 
-	public void setBegins(Date begins) {
-		this.begins = begins;
+	public void setStart(Date start) {
+		this.start = start;
 	}
 
-	public Date getEnds() {
-		return ends;
+	public Date getEnd() {
+		return end;
 	}
 
-	public void setEnds(Date ends) {
-		this.ends = ends;
+	public void setEnd(Date end) {
+		this.end = end;
 	}
 
 }

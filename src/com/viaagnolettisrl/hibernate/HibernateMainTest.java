@@ -103,8 +103,8 @@ public class HibernateMainTest {
 			session.saveOrUpdate(b0);
 
 			AssignedJobOrder aj = new AssignedJobOrder();
-			aj.setBegins(new Date());
-			aj.setEnds(new Date());
+			aj.setStart(new Date());
+			aj.setEnd(new Date());
 			aj.setJobOrder(d0);
 			aj.setMachine(c0);
 			session.saveOrUpdate(aj);
@@ -113,9 +113,13 @@ public class HibernateMainTest {
 			cal = Calendar.getInstance(); 
 			cal.setTime(new Date()); 
 			cal.add(Calendar.DATE, 1);
+			cal.set(Calendar.HOUR, 0);
+			cal.set(Calendar.MINUTE, 0);
+			cal.set(Calendar.SECOND, 0);
+			cal.set(Calendar.MILLISECOND, 0);
 			Date tomorrow = cal.getTime();
-			nd.setBegins(tomorrow);
-			nd.setEnds(tomorrow);
+			nd.setStart(tomorrow);
+			nd.setEnd(tomorrow);
 			
 			session.saveOrUpdate(nd);
 

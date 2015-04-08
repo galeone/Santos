@@ -6,7 +6,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -17,6 +16,7 @@ import com.viaagnolettisrl.hibernate.HibernateUtil;
 import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
 import com.viaagnolettisrl.hibernate.Machine;
+import com.viaagnolettisrl.hibernate.NonWorkingDay;
 import com.viaagnolettisrl.hibernate.User;
 
 public class GetList {
@@ -37,11 +37,11 @@ public class GetList {
 			map.put(j, j.getLeadTime());
 		}
 		
-		List<AssignedJobOrder> ajo = AssignedJobOrder();
+		List<AssignedJobOrder> ajo = AssignedJobOrders();
 		
 		for(AssignedJobOrder a : ajo) {
 			JobOrder j = a.getJobOrder();
-			map.put(j, map.get(j) - (a.getEnds().getTime() - a.getBegins().getTime())/(1000*60*60));
+			map.put(j, map.get(j) - (a.getEnd().getTime() - a.getStart().getTime())/(1000*60*60));
 		}
 		Iterator<Entry<JobOrder, Long>> it = map.entrySet().iterator();
 		while(it.hasNext()) {
@@ -75,8 +75,13 @@ public class GetList {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static List<AssignedJobOrder> AssignedJobOrder() {
+	public static List<AssignedJobOrder> AssignedJobOrders() {
 		return (List<AssignedJobOrder>) Get("AssignedJobOrder");
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static List<NonWorkingDay> NonWorkingDays() {
+		return (List<NonWorkingDay>) Get("NonWorkingDay");
 	}
 
 	@SuppressWarnings("unchecked")

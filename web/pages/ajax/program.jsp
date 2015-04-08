@@ -63,7 +63,7 @@ $("#todoJobOrders").selectmenu({
 			$block.draggable({
 				zIndex: 999
 			});
-			$block.addClass("fc-event");
+			$block.addClass("fc-draggable-event");
 			if(c == 3) {
 				c = 0;
 				$("#jobordersummary").append("<br />");

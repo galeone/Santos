@@ -4,11 +4,13 @@
 <%@ page import="java.util.*"%>
 <%@ page import="com.viaagnolettisrl.*"%>
 <%@ page import="com.viaagnolettisrl.hibernate.*"%>
+<%@ page import="com.google.gson.*"%>
 <%
 	User user = (User)session.getAttribute(LoginServlet.USER);
 	if( user == null ) {
 		response.sendRedirect(request.getContextPath() + LoginServlet.LOGIN_FORM);
 	}
+	Gson gson = new Gson();
 %>
 <jsp:include page="../fragments/header.jsp">
 	<jsp:param name="title" value="Gestione macchine" />
@@ -16,7 +18,8 @@
 <div id="menu">
 	<!-- menu(main) -->
 	<ol>
-		<li class="ui-state-default ui-corner-all"><a href="#home">Home</a>
+		<li class="ui-state-default ui-corner-all"><a
+			href="<%= request.getContextPath() %>/pages/ajax/home.jsp">Home</a>
 		</li>
 		<li class="ui-state-default ui-corner-all"><a
 			href="<%= request.getContextPath() %>/pages/ajax/clients.jsp">Clienti</a>
@@ -46,28 +49,14 @@
 	}
 %>
 	</ol>
-	<div id="home">
-		<div id="globalCalendar" style="max-width: 900px; margin: 0 auto"></div>
-	</div>
-</div>
-<!-- /menu (main) -->
-
 <script>
 $(document).ready(function() {
+	window.user = <%= gson.toJson(user) %>;
 	$("#menu").tabs({
 		activate: function( event, ui ) {
 			// REMOVE DIALOGS created by datatables.editable
 			// P.S: fuck you.
 			$("div[aria-describedby^=formAddNew]").remove();
-		}
-	});
-	
-	$("#globalCalendar").fullCalendar({
-		lang: 'it',
-		header: {
-			left: 'prev,next today',
-			center: 'title',
-			right: 'month,agendaWeek,agendaDay'
 		}
 	});
 });
