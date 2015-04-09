@@ -16,25 +16,19 @@
 <form id="formAddNewRowMachine" action="#" title="Aggiungi macchina">
 	<p class="validateTips">Tutti i campi sono necessari.</p>
 	<fieldset>
-		<input type="hidden" name="fakeid" id="fakeid" rel="0" value="0" />
-		<label
-			for="name">Nome (almeno 1 carattere)</label>
-		<input type="text" name="name" minlength="1" required
-			id="name" value="" class="text ui-widget-content ui-corner-all" rel="1">
-		<label for="type">Tipo (almeno 1 carattere)</label>
-		<input type="text"
+		<input type="hidden" name="fakeid" id="fakeid" rel="0" value="0" /> <label
+			for="name">Nome (almeno 1 carattere)</label> <input type="text"
+			name="name" minlength="1" required id="name" value=""
+			class="text ui-widget-content ui-corner-all" rel="1"> <label
+			for="type">Tipo (almeno 1 carattere)</label> <input type="text"
 			name="type" id="type" value="" minlength="1" required
-			class="text ui-widget-content ui-corner-all" rel="2">
-			
-		<label for="nicety">Finezza (decimale)</label>
-		<input type="text"
+			class="text ui-widget-content ui-corner-all" rel="2"> <label
+			for="nicety">Finezza (decimale)</label> <input type="text"
 			name="nicety" id="nicety" value="" required
-			class="text ui-widget-content ui-corner-all" rel="3">
-		
-		<label for="color">Colore</label>
-		<input type="text"
-			name="color" value="" required
-			class="color text ui-widget-content ui-corner-all" rel="4" readonly>
+			class="text ui-widget-content ui-corner-all" rel="3"> <label
+			for="color">Colore</label> <input type="text" name="color" value=""
+			required class="color text ui-widget-content ui-corner-all" rel="4"
+			readonly>
 		<div class="colorpicker"></div>
 	</fieldset>
 </form>
@@ -53,8 +47,10 @@
 	</tbody>
 </table>
 <% String style = user.getCanAddMachine() ? "" : "display:none"; %>
-<button id="btnAddNewRowMachine" style="<%=style%>">Aggiungi macchina</button>
-<button id="btnDeleteRowMachine" style="<%=style%>">Cancella macchina</button>
+<button id="btnAddNewRowMachine" style="<%=style%>">Aggiungi
+	macchina</button>
+<button id="btnDeleteRowMachine" style="<%=style%>">Cancella
+	macchina</button>
 <%Gson gson = new Gson();%>
 <script>
 picker = $.farbtastic("#formAddNewRowMachine .colorpicker");

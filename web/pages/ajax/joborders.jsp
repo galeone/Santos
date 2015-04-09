@@ -18,20 +18,18 @@
 <form id="formAddNewRowJobOrder" action="#" title="Aggiunti commessa">
 	<p class="validateTips">Tutti i campi sono necessari.</p>
 	<fieldset>
-		<input type="hidden" name="fakeid" id="fakeid" rel="0" value="0" />
-		<label for="client">Cliente</label>
-		<select name="client" id="client" required rel="1">
+		<input type="hidden" name="fakeid" id="fakeid" rel="0" value="0" /> <label
+			for="client">Cliente</label> <select name="client" id="client"
+			required rel="1">
 			<%
 			application.setAttribute("clients", GetList.Clients());
 			%>
 			<c:forEach var="client" items="${clients}">
 				<option value="${client.id}">${client.name}</option>
 			</c:forEach>
-		</select>
-		<label for="giorni">Giorni</label>
-		<input type="number" name="giorni" id="giorni" />
-		<label for="ore">Ore</label>
-		<input type="number" name="ore" id="ore" />
+		</select> <label for="giorni">Giorni</label> <input type="number" name="giorni"
+			id="giorni" /> <label for="ore">Ore</label> <input type="number"
+			name="ore" id="ore" />
 		<!-- tempo in gg e ore -->
 		<input type="hidden" name="leadtime" id="leadtime" rel="2" value="0" />
 	</fieldset>
@@ -49,8 +47,10 @@
 	</tbody>
 </table>
 <% String style = user.getCanAddJobOrder() ? "" : "display:none"; %>
-<button id="btnAddNewRowJobOrder" style="<%=style%>">Aggiungi commessa</button>
-<button id="btnDeleteRowJobOrder" style="<%=style%>">Cancella commessa</button>
+<button id="btnAddNewRowJobOrder" style="<%=style%>">Aggiungi
+	commessa</button>
+<button id="btnDeleteRowJobOrder" style="<%=style%>">Cancella
+	commessa</button>
 <%
 Gson gson = new Gson();
 List<Client> clients = GetList.Clients();

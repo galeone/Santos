@@ -1,5 +1,6 @@
 body {
-	font-family: "Trebuchet MS", "Helvetica", "Arial", "Verdana", "sans-serif";
+	font-family: "Trebuchet MS", "Helvetica", "Arial", "Verdana",
+		"sans-serif";
 	font-size: 62.5%;
 }
 
@@ -70,15 +71,25 @@ div.contain table td, div.contain table th {
 	overflow: hidden;
 }
 
-.fc-draggable-event {
-	width: 75px;
-	height: 75px;
-	display: table-cell;
-	vertical-align: middle;
-	background-color: #3a87ad;
-	font-weight: bold;
-	border: 1pt solid #000;
+.fc-event, .fc-draggable-event {
+	text-align: center;
+	height: 22px;
+	font-size: 11px;
+	border-radius: 5px;
 	cursor: pointer;
+	font-weight: bold;
+	padding-top: 5px;
+}
+
+.fc-draggable-event {
+	width: 135px;
+	background-color: #3a87ad;
+	margin-bottom: 5px;
+}
+
+.nonworkingday {
+	background-color: #ff9f89;
+	color: #fff;
 }
 
 #leftc {

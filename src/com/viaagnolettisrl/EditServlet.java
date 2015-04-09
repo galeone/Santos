@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.hibernate.Session;
+import org.hibernate.exception.ConstraintViolationException;
 
 import com.viaagnolettisrl.hibernate.Client;
 import com.viaagnolettisrl.hibernate.HibernateUtil;
@@ -347,7 +348,12 @@ public class EditServlet extends HttpServlet {
 			h.setUser(user);
 			h.setWhat(what + "(" + id + "): " + params.get("columnName") + " = " + params.get("value"));
 			hibSession.saveOrUpdate(h);
-			hibSession.getTransaction().commit();
+			try {
+			    hibSession.getTransaction().commit();
+			}catch(ConstraintViolationException e) {
+                message = "Identificativo duplicato";
+                hibSession.getTransaction().rollback();
+            }
 		} else {
 			hibSession.getTransaction().rollback();
 		}

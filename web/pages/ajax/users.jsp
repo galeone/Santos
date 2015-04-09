@@ -16,35 +16,28 @@
 <form id="formAddNewRowUser" action="#" title="Crea un nuovo utente">
 	<p class="validateTips">Tutti i campi sono necessari.</p>
 	<fieldset>
-		<input type="hidden" name="fakeid" id="fakeid" rel="0" value="0" />
-		<label for="username">Nome utente (almeno 1 carattere)</label>
-		<input type="text"
-			name="username" id="username" value="" minlength="1" required
-			class="text ui-widget-content ui-corner-all" rel="1">
-		<label
-			for="name">Nome (almeno 1 carattere)</label>
-		<input type="text" name="name" minlength="1" required
-			id="name" value="" class="text ui-widget-content ui-corner-all" rel="2">
-		<label for="surname">Cognome (almeno 1 carattere)</label>
-		<input type="text"
+		<input type="hidden" name="fakeid" id="fakeid" rel="0" value="0" /> <label
+			for="username">Nome utente (almeno 1 carattere)</label> <input
+			type="text" name="username" id="username" value="" minlength="1"
+			required class="text ui-widget-content ui-corner-all" rel="1">
+		<label for="name">Nome (almeno 1 carattere)</label> <input type="text"
+			name="name" minlength="1" required id="name" value=""
+			class="text ui-widget-content ui-corner-all" rel="2"> <label
+			for="surname">Cognome (almeno 1 carattere)</label> <input type="text"
 			name="surname" id="surname" value="" minlength="1" required
-			class="text ui-widget-content ui-corner-all" rel="3">
-		<label
-			for="password">Password (almeno 5 caratteri)</label>
-		<input type="password"
-			name="password" id="password" value="" minlength="5" required
-			class="text ui-widget-content ui-corner-all" rel="4">
-			
-		<label for="canaddjoborder">Può aggiungere commesse</label>
-		<input type="checkbox" name="canaddjoborder" id="canaddjoborder" value="Si"
-			class="text ui-widget-content ui-corner-all" rel="5">
-			
-		<label for="canaddclient">Può aggiungere macchine</label>
-		<input type="checkbox" name="canaddmachine" id="canaddmachine" value="Si"
-			class="text ui-widget-content ui-corner-all" rel="6">
-			
-		<label for="canaddclient">Può aggiungere clienti</label>
-		<input type="checkbox" name="canaddclient" id="canaddclient" value="Si"
+			class="text ui-widget-content ui-corner-all" rel="3"> <label
+			for="password">Password (almeno 5 caratteri)</label> <input
+			type="password" name="password" id="password" value="" minlength="5"
+			required class="text ui-widget-content ui-corner-all" rel="4">
+
+		<label for="canaddjoborder">Può aggiungere commesse</label> <input
+			type="checkbox" name="canaddjoborder" id="canaddjoborder" value="Si"
+			class="text ui-widget-content ui-corner-all" rel="5"> <label
+			for="canaddclient">Può aggiungere macchine</label> <input
+			type="checkbox" name="canaddmachine" id="canaddmachine" value="Si"
+			class="text ui-widget-content ui-corner-all" rel="6"> <label
+			for="canaddclient">Può aggiungere clienti</label> <input
+			type="checkbox" name="canaddclient" id="canaddclient" value="Si"
 			class="text ui-widget-content ui-corner-all" rel="7">
 	</fieldset>
 </form>

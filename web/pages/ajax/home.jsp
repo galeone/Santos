@@ -13,22 +13,23 @@
 	Gson gson = new Gson();
 %>
 <div id="wrap">
-<%
+	<%
 if(user.getIsAdmin()) { %>
 	<div id="leftc" style="background: #eee">
 		<h4>Giorni non lavorativi</h4>
 		<div id="nonworkingevent"></div>
 		<h4>Cestino</h4>
-		<div id="calendarTrash" class="calendar-trash">
-			<img src="<%=request.getContextPath()%>/styles/fullcalendar/trash.png"></img>
+		<div id="homeTrash" class="calendar-trash">
+			<img
+				src="<%=request.getContextPath()%>/styles/fullcalendar/trash.png"></img>
 		</div>
 	</div>
 	<div id="rightc">
 		<div id='globalCalendar'></div>
-	</div> 
-<% } else { %>
+	</div>
+	<% } else { %>
 	<div id='globalCalendar'></div>
-<% } %>
+	<% } %>
 
 	<div style='clear: both'></div>
 </div>
@@ -47,7 +48,7 @@ $block.draggable({
 	revert: true,
 	revertduration: 0
 });
-$block.addClass("fc-draggable-event");
+$block.addClass("fc-draggable-event nonworkingday");
 
 
 $("#globalCalendar").fullCalendar({
@@ -94,10 +95,10 @@ $("#globalCalendar").fullCalendar({
 	],
 	eventDragStop: function(event,jsEvent) {
 		if(window.user.isAdmin) {
-		    var trashEl = $('#calendarTrash'), ofs = trashEl.offset(),
+		    var trashEl = $('#homeTrash'), ofs = trashEl.offset(),
 		    x1 = ofs.left, x2 = ofs.left + trashEl.outerWidth(true),
 		    y1 = ofs.top, y2 = ofs.top + trashEl.outerHeight(true);
-	
+
 		    if (jsEvent.pageX >= x1 && jsEvent.pageX<= x2 &&
 		        jsEvent.pageY>= y1 && jsEvent.pageY <= y2) {
 			    $.post("<%=request.getContextPath()%>/delete?what=nonworkingday", { id: event.id }, function(data) {

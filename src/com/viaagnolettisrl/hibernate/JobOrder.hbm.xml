@@ -17,9 +17,9 @@
 		</set>
 		<property column="LEADTIME" generated="never" lazy="false"
 			name="leadTime" optimistic-lock="true" type="long" unique="false" />
-			
+
 		<many-to-one name="Client" class="com.viaagnolettisrl.hibernate.Client"
 			column="IDCLIENT" unique="false" not-null="true" lazy="false" />
-			
+
 	</class>
 </hibernate-mapping>

@@ -16,13 +16,11 @@
 <form id="formAddNewRowClient" action="#" title="Aggiungi cliente">
 	<p class="validateTips">Tutti i campi sono necessari.</p>
 	<fieldset>
-		<input type="hidden" name="fakeid" id="fakeid" rel="0" value="0" />
-		<label
-			for="name">Nome (almeno 1 carattere)</label>
-		<input type="text" name="name" minlength="1" required
-			id="name" value="" class="text ui-widget-content ui-corner-all" rel="1">
-		<label for="code">Codice (almeno 1 carattere)</label>
-		<input type="text"
+		<input type="hidden" name="fakeid" id="fakeid" rel="0" value="0" /> <label
+			for="name">Nome (almeno 1 carattere)</label> <input type="text"
+			name="name" minlength="1" required id="name" value=""
+			class="text ui-widget-content ui-corner-all" rel="1"> <label
+			for="code">Codice (almeno 1 carattere)</label> <input type="text"
 			name="code" id="code" value="" minlength="1" required
 			class="text ui-widget-content ui-corner-all" rel="2">
 	</fieldset>
@@ -40,8 +38,10 @@
 	</tbody>
 </table>
 <% String style = user.getCanAddClient() ? "" : "display:none"; %>
-<button id="btnAddNewRowClient" style="<%=style%>">Aggiungi cliente</button>
-<button id="btnDeleteRowClient" style="<%=style%>">Cancella cliente</button>
+<button id="btnAddNewRowClient" style="<%=style%>">Aggiungi
+	cliente</button>
+<button id="btnDeleteRowClient" style="<%=style%>">Cancella
+	cliente</button>
 <script>
 <%Gson gson = new Gson();%>
 $("#clients-table").dataTable({

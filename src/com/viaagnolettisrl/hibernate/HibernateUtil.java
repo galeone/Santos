@@ -10,7 +10,14 @@ public class HibernateUtil {
       static {
           try {
               // Create the SessionFactory from hibernate.cfg.xml
-              sessionFactory = new Configuration().configure().buildSessionFactory();
+              Configuration c = new Configuration().configure();
+              if(c.getProperty("hibernate.connection.url") == null) {
+                  System.out.println("Using h2 embedded connection string");
+                  c.setProperty("hibernate.connection.url", "jdbc:h2:" + System.getProperty("user.home") + "/santos/db;MVCC=TRUE");
+              } else {
+                  System.out.println("Using hibernate.xml connection url");
+              }
+              sessionFactory = c.buildSessionFactory();
           } catch (Throwable ex) {
               // Make sure you log the exception, as it might be swallowed
               System.err.println("Initial SessionFactory creation failed." + ex);

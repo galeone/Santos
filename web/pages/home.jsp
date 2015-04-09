@@ -19,8 +19,7 @@
 	<!-- menu(main) -->
 	<ol>
 		<li class="ui-state-default ui-corner-all"><a
-			href="<%= request.getContextPath() %>/pages/ajax/home.jsp">Home</a>
-		</li>
+			href="<%= request.getContextPath() %>/pages/ajax/home.jsp">Home</a></li>
 		<li class="ui-state-default ui-corner-all"><a
 			href="<%= request.getContextPath() %>/pages/ajax/clients.jsp">Clienti</a>
 		</li>
@@ -49,7 +48,7 @@
 	}
 %>
 	</ol>
-<script>
+	<script>
 $(document).ready(function() {
 	window.user = <%= gson.toJson(user) %>;
 	$("#menu").tabs({
@@ -61,4 +60,4 @@ $(document).ready(function() {
 	});
 });
 </script>
-<%@ include file="../fragments/footer.jsp"%>
+	<%@ include file="../fragments/footer.jsp"%>
