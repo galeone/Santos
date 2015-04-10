@@ -4,7 +4,7 @@
 <%@ page import="com.viaagnolettisrl.hibernate.*"%>
 <%@ page import="com.viaagnolettisrl.*"%>
 <%@ page import="com.google.gson.*"%>
-<%@ page import="java.util.List"%>
+<%@ page import="java.util.Collection"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%
 	User user = (User) session.getAttribute(LoginServlet.USER);
@@ -51,7 +51,7 @@ $("#clients-table").dataTable({
 	"language": {
 		"url": "<%=request.getContextPath()%>/scripts/datatables/italian.js"
 	},
-	"data": <%=gson.toJson(GetList.Clients())%>,
+	"data": <%=gson.toJson(GetCollection.Clients())%>,
 	"createdRow": function ( row, data, index ) {
 		row.setAttribute('id', data.id);
 	},

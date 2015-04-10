@@ -11,8 +11,9 @@ function dataTablesLeadTime( data, type, full, meta ) {
 		hours       = leadTime % 24,
 		days        = Math.floor(leadTime / 24),
 		daysString  = days === 0  ? "" : days  === 1 ? "1 giorno" : days  + " giorni",
-		hoursString = hours === 0 ? "" : hours === 1 ? "1 ora"    : hours + " ore";
-	return isNaN(leadTime) ? data : daysString + (daysString !== "" && hoursString !== "" ? " e " : "") + hoursString;
+		hoursString = hours === 0 ? "" : hours === 1 ? "1 ora"    : hours + " ore",
+		ret = isNaN(leadTime) ? data : daysString + (daysString !== "" && hoursString !== "" ? " e " : "") + hoursString;
+	return ret === "" ? "Ore completamente assegnate" : ret;
 };
 
 

@@ -1,7 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@ page errorPage="../errors/exception.jsp"%>
 <%@ page session="true"%>
-<%@ page import="java.util.*"%>
+<%@ page import="java.util.Collection"%>
 <%@ page import="com.google.gson.*"%>
 <%@ page import="com.viaagnolettisrl.*"%>
 <%@ page import="com.viaagnolettisrl.hibernate.*"%>
@@ -12,19 +12,14 @@
 	}
 	Gson gson = new Gson();
 %>
-<div id="wrap">
+<div class="wrap">
 	<%
 if(user.getIsAdmin()) { %>
-	<div id="leftc" style="background: #eee">
+	<div class="leftc" style="background: #eee">
 		<h4>Giorni non lavorativi</h4>
 		<div id="nonworkingevent"></div>
-		<h4>Cestino</h4>
-		<div id="homeTrash" class="calendar-trash">
-			<img
-				src="<%=request.getContextPath()%>/styles/fullcalendar/trash.png"></img>
-		</div>
 	</div>
-	<div id="rightc">
+	<div class="rightc">
 		<div id='globalCalendar'></div>
 	</div>
 	<% } else { %>
@@ -90,7 +85,7 @@ $("#globalCalendar").fullCalendar({
 		right: 'month,agendaWeek,agendaDay'
 	},
 	eventSources:[ {
-	        events: <%=gson.toJson(GetList.NonWorkingDays())%>
+	        events: <%=gson.toJson(GetCollection.NonWorkingDays())%>
 	    }
 	],
 	eventDragStop: function(event,jsEvent) {
@@ -111,5 +106,6 @@ $("#globalCalendar").fullCalendar({
 		    }
 		}
 	}
-});
+}).find(".fc-left").append('<div id="homeTrash" class="calendar-trash">' +
+'<img src="<%=request.getContextPath()%>/styles/fullcalendar/trash.png"></img></div>');
 </script>

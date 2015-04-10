@@ -5,7 +5,7 @@
 <%@ page import="com.viaagnolettisrl.hibernate.*"%>
 <%@ page import="com.viaagnolettisrl.*"%>
 <%@ page import="com.google.gson.*"%>
-<%@ page import="java.util.List"%>
+<%@ page import="java.util.Collection"%>
 <%@ page import="java.util.Map"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%
@@ -22,7 +22,7 @@
 			for="client">Cliente</label> <select name="client" id="client"
 			required rel="1">
 			<%
-			application.setAttribute("clients", GetList.Clients());
+			application.setAttribute("clients", GetCollection.Clients());
 			%>
 			<c:forEach var="client" items="${clients}">
 				<option value="${client.id}">${client.name}</option>
@@ -32,6 +32,7 @@
 			name="ore" id="ore" />
 		<!-- tempo in gg e ore -->
 		<input type="hidden" name="leadtime" id="leadtime" rel="2" value="0" />
+		<input type="hidden" name="missingtime" id="missingtime" rel="3" value="0" />
 	</fieldset>
 </form>
 
@@ -41,6 +42,7 @@
 			<th>ID</th>
 			<th>Cliente</th>
 			<th>Tempo di produzione</th>
+			<th>Ore non assegnate</th>
 		</tr>
 	</thead>
 	<tbody>
@@ -53,7 +55,7 @@
 	commessa</button>
 <%
 Gson gson = new Gson();
-List<Client> clients = GetList.Clients();
+Collection<Client> clients = GetCollection.Clients();
 Map<Long, String> mapClient = new HashMap<Long, String>();
 for(Client c : clients) {
 	   mapClient.put(c.getId(), c.getName());
@@ -67,6 +69,7 @@ $("#ore").on('keyup mouseup', function() {
 	days  = isNaN(days) ? 0 : days;
 	hours = isNaN(hours) ? 0 : hours;
 	$("#leadtime").val(days * 24 + hours);
+	$("#missingtime").val($("#leadtime").val());
 });
 $("#giorni").on('keyup mouseup', function() {
 	var days = parseInt($(this).val()),
@@ -75,6 +78,7 @@ $("#giorni").on('keyup mouseup', function() {
 	days  = isNaN(days) ? 0 : days;
 	hours = isNaN(hours) ? 0 : hours;
 	$("#leadtime").val(days * 24 + hours);
+	$("#missingtime").val($("#leadtime").val());
 });
 
 $("#joborders-table").dataTable({
@@ -84,7 +88,7 @@ $("#joborders-table").dataTable({
 	"language": {
 		"url": "<%=request.getContextPath()%>/scripts/datatables/italian.js"
 	},
-	"data": <%=gson.toJson(GetList.JobOrders())%>,
+	"data": <%=gson.toJson(GetCollection.JobOrders())%>,
 	"createdRow": function ( row, data, index ) {
 		row.setAttribute('id', data.id);
 	},
@@ -101,6 +105,14 @@ $("#joborders-table").dataTable({
             	  data: 'leadTime',
             	  name: 'leadTime',
             	  render: dataTablesLeadTime
+              },
+              {
+        	  	  data: 'missingTime',
+        	  	  name: 'missingTime',
+        	  	  render: dataTablesLeadTime,
+                  createdCell: function (td, cellData, rowData, row, col) {
+                      td.setAttribute('class', 'read_only');
+          	  	  }
               }
           ]
 }).makeEditable({

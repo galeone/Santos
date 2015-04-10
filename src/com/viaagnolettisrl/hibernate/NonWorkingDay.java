@@ -14,7 +14,8 @@ public class NonWorkingDay implements Serializable {
 	public String title = "Giorno non lavorativo",
 			color = "#ff9f89";
 	public boolean overlap = false, // can't drop events on a non working day
-			allDay = true;
+			allDay = true,
+			editable = true;
 
 	@Override
 	public int hashCode() {

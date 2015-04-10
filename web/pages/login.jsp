@@ -1,7 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@ page errorPage="../errors/exception.jsp"%>
 <%@ page session="true"%>
-<%@ page import="java.util.*"%>
 <%@ page import="com.viaagnolettisrl.*"%>
 <%@ page import="com.viaagnolettisrl.hibernate.*"%>
 <%

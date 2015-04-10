@@ -73,7 +73,7 @@ div.contain table td, div.contain table th {
 
 .fc-event, .fc-draggable-event {
 	text-align: center;
-	height: 22px;
+	height: 32px;
 	font-size: 11px;
 	border-radius: 5px;
 	cursor: pointer;
@@ -92,19 +92,24 @@ div.contain table td, div.contain table th {
 	color: #fff;
 }
 
-#leftc {
+.leftc {
 	float: left;
 	width: 23%;
 }
 
-#rightc {
+.rightc {
 	float: right;
 	width: 76%;
 }
 
-#wrap {
+.wrap {
 	width: 100%;
 	margin: 0 auto;
+}
+
+.to-trash {
+	background-color: #EAEAEA;
+	border-radius: 5em;
 }
 
 html {

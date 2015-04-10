@@ -12,6 +12,13 @@ public class AssignedJobOrder implements Serializable {
 	private Date start, end;
 	private Machine machine;
 	private JobOrder jobOrder;
+	private String title, color;
+	private boolean overlap, editable, allDay;
+	
+	public Long getLast() {
+        return (getEnd().getTime() - getStart().getTime())/ (60 * 60 * 1000);
+	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -107,5 +114,45 @@ public class AssignedJobOrder implements Serializable {
 		return "AssignedJobOrder [id=" + id + ", start=" + start + ", end="
 				+ end + ", machine=" + machine + ", jobOrder=" + jobOrder + "]";
 	}
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public boolean getOverlap() {
+        return this.overlap;
+    }
+    
+    public void setOverlap(boolean overlap) {
+        this.overlap = overlap;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public boolean getEditable() {
+        return editable;
+    }
+
+    public void setEditable(boolean editable) {
+        this.editable = editable;
+    }
+
+    public boolean getAllDay() {
+        return allDay;
+    }
+
+    public void setAllDay(boolean allDay) {
+        this.allDay = allDay;
+    }
 
 }

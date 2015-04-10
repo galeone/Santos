@@ -4,7 +4,7 @@
 <%@ page import="com.viaagnolettisrl.hibernate.*"%>
 <%@ page import="com.viaagnolettisrl.*"%>
 <%@ page import="com.google.gson.*"%>
-<%@ page import="java.util.List"%>
+<%@ page import="java.util.Collection"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%
 	User user = (User) session.getAttribute(LoginServlet.USER);
@@ -12,16 +12,11 @@
 		response.sendRedirect(request.getContextPath()
 				+ LoginServlet.LOGIN_FORM);
 	}
-	application.setAttribute("todojoborders",GetList.notCompletelyAssignedJobOrders());
-	application.setAttribute("machines", GetList.Machines());
+	application.setAttribute("todojoborders",GetCollection.notCompletelyAssignedJobOrders());
+	application.setAttribute("machines", GetCollection.Machines());
 %>
-<div id="wrap">
-	<div id="leftc" style="background: #eee">
-		<h4>Cestino</h4>
-		<div id="programTrash" class="calendar-trash">
-			<img
-				src="<%=request.getContextPath()%>/styles/fullcalendar/trash.png"></img>
-		</div>
+<div class="wrap">
+	<div class="leftc" style="background: #eee">
 		<h4>
 			<label for="todoJobOrders">Commesse non assegnate o
 				parzialmente assegnate<br />
@@ -35,11 +30,12 @@
 		</select>
 		<div id="jobordersummary"></div>
 	</div>
-	<div id="rightc">
+	<div class="rightc">
 		<h1>Calendario per macchina</h1>
 		<div id="accordion">
 			<c:forEach var="machine" items="${machines}">
-				<h3 style="color: ${machine.color}">ID: ${machine.id} - ${machine.name} - ${machine.type} - Finezza: ${machine.nicety}</h3>
+				<h3 style="color: ${machine.color}">ID: ${machine.id} -
+					${machine.name} - ${machine.type} - Finezza: ${machine.nicety}</h3>
 				<div id="mcal${machine.id}"></div>
 			</c:forEach>
 		</div>
@@ -67,16 +63,17 @@ $("#todoJobOrders").selectmenu({
 					"\n" + last + " ore";
 			$block.html(title);
 			event = {
+				joborder: window.todojoborders[ui.item.element.data('arrayindex')].key.id,
 				title: title,
-				allDay: last === 24
+				allDay: last === 24,
+				last: last,
+				me: $block
 			};
 			$block.data('event', event);
 			console.log(event);
 			
 			$block.draggable({
-				zIndex: 999,
-				revert: true,
-				revertduration: 0
+				zIndex: 999
 			});
 			$block.addClass("fc-draggable-event");
 			if(c == 3) {
@@ -99,25 +96,38 @@ $("#todoJobOrders").selectmenu({
 	        return !stillEvent.allDay;
 	    },
 		eventReceive: function(event) {
+		    console.log(event);
+		    var me = $(this);
 			if(window.user.isAdmin) {
+			    var end = new Date(event._start._d);
+			    end.setHours(end.getHours() +  event.last);
 			    $.post(
 			            "<%=request.getContextPath()%>/add?what=assignedjoborder",
 			            {
-			            	date: event._start._d.toUTCString()
+			            	start: event._start._d.toUTCString(),
+			            	end:   end.toUTCString(),
+			            	machine: ${machine.id},
+			            	joborder: event.joborder
 			            }, function(data){
 			            	var id = jQuery.parseJSON(data).id;
 			            	event.id = id;
-			                $("#globalCalendar").fullCalendar('updateEvent',event , false);
+			                $("#mcal${machine.id}").fullCalendar('updateEvent',event , false);
+			                console.log(event.me);
+			                event.me.remove();
 			    });
 			}
 		},
 		eventDrop: function(event, delta, revertFunc) {
 			if(window.user.isAdmin) {
+			    console.log(event);
 			    $.post(
 			            "<%=request.getContextPath()%>/edit?what=assignedjoborder",
 			            {
 			            	id: event.id,
-			            	date: event._start._d.toUTCString()
+			            	start: event._start._d.toUTCString(),
+			            	end:   event._end._d.toUTCString(),
+			            	machine: event.machine.id,
+			            	joborder: event.jobOrder.id
 			            },
 						function(data){
 			            	if(data != 'ok') { alert(data); revertFunc(); } 
@@ -130,29 +140,37 @@ $("#todoJobOrders").selectmenu({
 			right: 'month,agendaWeek,agendaDay'
 		},
 		eventSources:[ {
-		        events: $.merge(<%=gson.toJson(GetList.AssignedJobOrders((Machine)pageContext.findAttribute("machine")))%>,
-		        	<%=gson.toJson(GetList.NonWorkingDays())%>)
+		        events: $.merge(<%=gson.toJson(GetCollection.setAssignedJobOrderAttr(((Machine)pageContext.findAttribute("machine")).getAssignedJobOrders())) %>,
+		        	<%=gson.toJson(GetCollection.NonWorkingDays(false))%>)
 		    }
 		],
 		eventDragStop: function(event,jsEvent) {
 			if(window.user.isAdmin) {
-			    var trashEl = $('#programTrash'), ofs = trashEl.offset(),
+			    var trashEl = $('#programTrashM${machine.id}'), ofs = trashEl.offset(),
 			    x1 = ofs.left, x2 = ofs.left + trashEl.outerWidth(true),
 			    y1 = ofs.top, y2 = ofs.top + trashEl.outerHeight(true);
 
 			    if (jsEvent.pageX >= x1 && jsEvent.pageX<= x2 &&
 			        jsEvent.pageY>= y1 && jsEvent.pageY <= y2) {
+		            if (!trashEl.hasClass("to-trash")) {
+		        		trashEl.addClass("to-trash");
+		            }
+
 				    $.post("<%=request.getContextPath()%>/delete?what=assignedjoborder", { id: event.id }, function(data) {
 				    	if(data == 'ok') {
-				    		$('#globalCalendar').fullCalendar('removeEvents', event.id);
+				    		$('#mcal${machine.id}').fullCalendar('removeEvents', event.id);
+							trashEl.removeClass("to-trash");
 				    	} else {
 				    		alert(data);
 				    	}
 				    });
-			    }
+			    } else if (trashEl.hasClass("to-trash")) {
+					trashEl.removeClass("to-trash");
+	            }
 			}
 		}
-	});
+	}).find(".fc-left").append('<div id="programTrashM${machine.id}" class="calendar-trash">' +
+		'<img src="<%=request.getContextPath()%>/styles/fullcalendar/trash.png"></img></div>');
 </c:forEach>
 
 $("#accordion").accordion({

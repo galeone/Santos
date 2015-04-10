@@ -10,7 +10,7 @@
 			<generator class="increment" />
 		</id>
 		<set embed-xml="true" inverse="true" mutable="true" name="assignedJobOrders"
-			optimistic-lock="true" sort="unsorted">
+			optimistic-lock="true" sort="unsorted" lazy="false">
 			<key column="idJobOrder" on-delete="cascade" />
 			<one-to-many class="com.viaagnolettisrl.hibernate.AssignedJobOrder"
 				embed-xml="true" not-found="exception" />

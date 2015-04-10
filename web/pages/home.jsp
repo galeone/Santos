@@ -1,7 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@ page errorPage="../errors/exception.jsp"%>
 <%@ page session="true"%>
-<%@ page import="java.util.*"%>
 <%@ page import="com.viaagnolettisrl.*"%>
 <%@ page import="com.viaagnolettisrl.hibernate.*"%>
 <%@ page import="com.google.gson.*"%>
@@ -48,7 +47,8 @@
 	}
 %>
 	</ol>
-	<script>
+</div>
+<script>
 $(document).ready(function() {
 	window.user = <%= gson.toJson(user) %>;
 	$("#menu").tabs({
@@ -56,6 +56,7 @@ $(document).ready(function() {
 			// REMOVE DIALOGS created by datatables.editable
 			// P.S: fuck you.
 			$("div[aria-describedby^=formAddNew]").remove();
+			ui.oldPanel.empty();
 		}
 	});
 });

@@ -8,7 +8,7 @@ public class JobOrder implements Serializable {
 
 	private Client client;
 	private Long id;
-	private Long leadTime;
+	private Long leadTime, missingTime;
 	transient private Set<AssignedJobOrder> assignedJobOrders;
 	@Override
 	public boolean equals(Object obj) {
@@ -79,5 +79,13 @@ public class JobOrder implements Serializable {
 		return "JobOrder [client=" + client + ", id=" + id + ", leadTime="
 				+ leadTime + "]";
 	}
+
+    public Long getMissingTime() {
+        return missingTime;
+    }
+
+    public void setMissingTime(Long missingTime) {
+        this.missingTime = missingTime;
+    }
 
 }

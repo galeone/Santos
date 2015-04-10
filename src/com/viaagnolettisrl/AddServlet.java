@@ -182,6 +182,7 @@ public class AddServlet extends HttpServlet {
                                 break;
                             }
                             j.setLeadTime(leadTime);
+                            j.setMissingTime(leadTime);
                             hibSession.saveOrUpdate(j);
                             
                             message = g.toJson(j);
