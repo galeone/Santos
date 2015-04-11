@@ -18,6 +18,8 @@ if(user.getIsAdmin()) { %>
 	<div class="leftc" style="background: #eee">
 		<h4>Giorni non lavorativi</h4>
 		<div id="nonworkingevent"></div>
+		<h4>Campionamento</h4>
+		<div id="sampling"></div>
 	</div>
 	<div class="rightc">
 		<div id='globalCalendar'></div>
@@ -31,9 +33,10 @@ if(user.getIsAdmin()) { %>
 <script>
 var $block = $("#nonworkingevent"), title = 'Giorno non lavorativo',
 event = {
-		title: title,
-		allDay: true,
-		color: '#ff9f89'
+	title: title,
+	allDay: true,
+	color: '#ff9f89',
+	type: 'nonworkingday'
 };
 $block.html(title);
 $block.data('event', event);
@@ -45,6 +48,23 @@ $block.draggable({
 });
 $block.addClass("fc-draggable-event nonworkingday");
 
+var $block = $("#sampling"), title = 'Campionamento',
+event = {
+		title: title,
+		allDay: true,
+		color: '#00E',
+		type: 'samplingday'
+};
+$block.html(title);
+$block.data('event', event);
+
+$block.draggable({
+	zIndex: 999,
+	revert: true,
+	revertduration: 0
+});
+$block.addClass("fc-draggable-event sampling");
+
 
 $("#globalCalendar").fullCalendar({
 	lang: 'it',
@@ -55,21 +75,19 @@ $("#globalCalendar").fullCalendar({
     },
 	eventReceive: function(event) {
 		if(window.user.isAdmin) {
-		    $.post(
-		            "<%=request.getContextPath()%>/add?what=nonworkingday",
+		    $.post("<%=request.getContextPath()%>/add?what=" + event.type,
 		            {
 		            	date: event._start._d.toUTCString()
-		            }, function(data){
-		            	var id = jQuery.parseJSON(data).id;
-		            	event.id = id;
+		            }, function(data) {
+		        		var id = jQuery.parseJSON(data).id;
+		                event.id = id;
 		                $("#globalCalendar").fullCalendar('updateEvent',event , false);
 		    });
 		}
 	},
 	eventDrop: function(event, delta, revertFunc) {
 		if(window.user.isAdmin) {
-		    $.post(
-		            "<%=request.getContextPath()%>/edit?what=nonworkingday",
+		    $.post("<%=request.getContextPath()%>/edit?what=" + event.type,
 		            {
 		            	id: event.id,
 		            	date: event._start._d.toUTCString()
@@ -85,7 +103,8 @@ $("#globalCalendar").fullCalendar({
 		right: 'month,agendaWeek,agendaDay'
 	},
 	eventSources:[ {
-	        events: <%=gson.toJson(GetCollection.NonWorkingDays())%>
+	        events: $.merge(<%=gson.toJson(GetCollection.NonWorkingDays(user.getIsAdmin()))%>,
+	        	<%=gson.toJson(GetCollection.SamplingDays(user.getIsAdmin()))%>)
 	    }
 	],
 	eventDragStop: function(event,jsEvent) {
@@ -96,7 +115,7 @@ $("#globalCalendar").fullCalendar({
 
 		    if (jsEvent.pageX >= x1 && jsEvent.pageX<= x2 &&
 		        jsEvent.pageY>= y1 && jsEvent.pageY <= y2) {
-			    $.post("<%=request.getContextPath()%>/delete?what=nonworkingday", { id: event.id }, function(data) {
+			    $.post("<%=request.getContextPath()%>/delete?what=" + event.type, { id: event.id }, function(data) {
 			    	if(data == 'ok') {
 			    		$('#globalCalendar').fullCalendar('removeEvents', event.id);
 			    	} else {

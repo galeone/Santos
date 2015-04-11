@@ -61,4 +61,4 @@ $(document).ready(function() {
 	});
 });
 </script>
-	<%@ include file="../fragments/footer.jsp"%>
+<%@ include file="../fragments/footer.jsp"%>

@@ -20,6 +20,7 @@ import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
 import com.viaagnolettisrl.hibernate.Machine;
 import com.viaagnolettisrl.hibernate.NonWorkingDay;
+import com.viaagnolettisrl.hibernate.SamplingDay;
 import com.viaagnolettisrl.hibernate.User;
 
 public class DeleteServlet extends HttpServlet {
@@ -87,6 +88,18 @@ public class DeleteServlet extends HttpServlet {
                     toDelete = hibSession.get(NonWorkingDay.class, id);
                     if (toDelete != null) { // exists
                         hibSession.delete((NonWorkingDay) toDelete);
+                        message = "ok";
+                    }
+                }
+            break;
+            
+            case "samplingday":
+                if (!user.getIsAdmin()) {
+                    message = "Non sei amministratore";
+                } else {
+                    toDelete = hibSession.get(SamplingDay.class, id);
+                    if (toDelete != null) { // exists
+                        hibSession.delete((SamplingDay) toDelete);
                         message = "ok";
                     }
                 }

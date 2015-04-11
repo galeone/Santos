@@ -1,6 +1,8 @@
 package com.viaagnolettisrl;
 
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -18,6 +20,7 @@ import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
 import com.viaagnolettisrl.hibernate.Machine;
 import com.viaagnolettisrl.hibernate.NonWorkingDay;
+import com.viaagnolettisrl.hibernate.SamplingDay;
 import com.viaagnolettisrl.hibernate.User;
 
 public class GetCollection {
@@ -30,7 +33,87 @@ public class GetCollection {
         return ret;
     }
     
-    public static Collection<Map.Entry<JobOrder, Long>> notCompletelyAssignedJobOrders() {
+    @SuppressWarnings("unchecked")
+    public static Collection<AssignedJobOrder> assignedJobOrdersInConflictWith(SamplingDay s) {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(s.getStart());
+        cal.set(Calendar.HOUR, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        
+        Date begin = cal.getTime();
+        cal.add(Calendar.DATE, 1);
+        Date end = cal.getTime();
+        
+        Query q = session.createQuery("from AssignedJobOrder where starts between :begin AND :end").
+                setDate("begin", begin).setDate("end", end);
+        List<AssignedJobOrder> ret = (List<AssignedJobOrder>)q.list();
+        session.close();
+        return ret;
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<AssignedJobOrder> assignedJobOrdersAfterSampling(SamplingDay s) {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(s.getStart());
+        cal.set(Calendar.HOUR, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        
+        Date begin = cal.getTime();
+        
+        Query q = session.createQuery("from AssignedJobOrder where starts > :begin").
+                setDate("begin", begin);
+        List<AssignedJobOrder> ret = (List<AssignedJobOrder>)q.list();
+        session.close();
+        return ret;
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<NonWorkingDay> nonWorkingDaysAfterSampling(SamplingDay s) {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(s.getStart());
+        cal.set(Calendar.HOUR, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        
+        Date begin = cal.getTime();
+        
+        Query q = session.createQuery("from NonWorkingDay where starts > :begin").setDate("begin", begin);
+        List<NonWorkingDay> ret = (List<NonWorkingDay>)q.list();
+        session.close();
+        return ret;
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<SamplingDay> samplingDaysAfterSampling(SamplingDay s) {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(s.getStart());
+        cal.set(Calendar.HOUR, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        
+        Date begin = cal.getTime();
+        
+        Query q = session.createQuery("from SamplingDay where starts > :begin").setDate("begin", begin);
+        List<SamplingDay> ret = (List<SamplingDay>)q.list();
+        session.close();
+        return ret;
+    }
+    
+    public static Collection<Map.Entry<JobOrder, Long>> notCompletelyAssignedJobOrders(User user) {
         Collection<JobOrder> joborders = JobOrders();
         Map<JobOrder, Long> map = new HashMap<JobOrder, Long>();
         
@@ -38,7 +121,7 @@ public class GetCollection {
             map.put(j, j.getLeadTime());
         }
         
-        Collection<AssignedJobOrder> ajo = AssignedJobOrders();
+        Collection<AssignedJobOrder> ajo = AssignedJobOrders(user);
         
         for (AssignedJobOrder a : ajo) {
             JobOrder j = a.getJobOrder();
@@ -76,13 +159,13 @@ public class GetCollection {
         return setJobOrderAttr(ret);
     }
     
-    public static Collection<AssignedJobOrder> setAssignedJobOrderAttr(Collection<AssignedJobOrder> l) {
+    public static Collection<AssignedJobOrder> setAssignedJobOrderAttr(Collection<AssignedJobOrder> l, User user) {
         for(AssignedJobOrder aj : l) {
             aj.setTitle("Commessa " + aj.getJobOrder().getId() + "\n" + aj.getLast() + " ore");
             aj.setOverlap(!aj.getLast().equals(24L));
             aj.setAllDay(aj.getLast().equals(24L));
             aj.setColor(aj.getMachine().getColor());
-            aj.setEditable(true);
+            aj.setEditable(user.getCanAddJobOrder());
         }
         return l;
     }
@@ -100,9 +183,9 @@ public class GetCollection {
     }
     
     @SuppressWarnings("unchecked")
-    public static Collection<AssignedJobOrder> AssignedJobOrders() {
+    public static Collection<AssignedJobOrder> AssignedJobOrders(User user) {
         Collection<AssignedJobOrder> ret = (Collection<AssignedJobOrder>) Get("AssignedJobOrder");
-        return setAssignedJobOrderAttr(ret);
+        return setAssignedJobOrderAttr(ret, user);
     }
    
     @SuppressWarnings("unchecked")
@@ -115,6 +198,20 @@ public class GetCollection {
         Collection<NonWorkingDay> l = NonWorkingDays();
         for(NonWorkingDay nw : l) {
             nw.editable = editable;
+        }
+        return l;
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<SamplingDay> SamplingDays() {
+        return (Collection<SamplingDay>) Get("SamplingDay");
+    }
+    
+    
+    public static Collection<SamplingDay> SamplingDays(Boolean editable) {
+        Collection<SamplingDay> l = SamplingDays();
+        for(SamplingDay sd : l) {
+            sd.editable = editable;
         }
         return l;
     }

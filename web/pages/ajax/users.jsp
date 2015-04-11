@@ -30,7 +30,7 @@
 			type="password" name="password" id="password" value="" minlength="5"
 			required class="text ui-widget-content ui-corner-all" rel="4">
 
-		<label for="canaddjoborder">Può aggiungere commesse</label> <input
+		<label for="canaddjoborder">Può gestire le commesse</label> <input
 			type="checkbox" name="canaddjoborder" id="canaddjoborder" value="Si"
 			class="text ui-widget-content ui-corner-all" rel="5"> <label
 			for="canaddclient">Può aggiungere macchine</label> <input
@@ -50,7 +50,7 @@
 			<th>Nome</th>
 			<th>Cognome</th>
 			<th>Password</th>
-			<th>Aggiunge Commesse</th>
+			<th>Gestisce Commesse</th>
 			<th>Aggiunge Macchine</th>
 			<th>Aggiunge Clienti</th>
 		</tr>

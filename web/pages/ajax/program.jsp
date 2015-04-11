@@ -12,7 +12,7 @@
 		response.sendRedirect(request.getContextPath()
 				+ LoginServlet.LOGIN_FORM);
 	}
-	application.setAttribute("todojoborders",GetCollection.notCompletelyAssignedJobOrders());
+	application.setAttribute("todojoborders",GetCollection.notCompletelyAssignedJobOrders(user));
 	application.setAttribute("machines", GetCollection.Machines());
 %>
 <div class="wrap">
@@ -22,12 +22,20 @@
 				parzialmente assegnate<br />
 			</label>
 		</h4>
-		<select id="todoJobOrders">
-			<c:forEach var="entry" items="${todojoborders}" varStatus="loop">
-				<option data-arrayindex="${loop.index}" value="${entry.key.id}">${entry.key.id}
-					- Tempo mancante: ${entry.value} ore</option>
-			</c:forEach>
-		</select>
+		<c:choose>
+			<c:when test="${empty todojoborders}">
+				Non esistono commesse non assegnate o parzilamente assegnate 
+			</c:when>
+			<c:otherwise>
+				<select id="todoJobOrders">
+					<c:forEach var="entry" items="${todojoborders}" varStatus="loop">
+						<option data-arrayindex="${loop.index}" value="${entry.key.id}">${entry.key.id}
+							- Tempo mancante: ${entry.value} ore</option>
+					</c:forEach>
+				</select>
+			</c:otherwise>
+		</c:choose>
+
 		<div id="jobordersummary"></div>
 	</div>
 	<div class="rightc">
@@ -50,8 +58,8 @@ $("#todoJobOrders").selectmenu({
 		$("#jobordersummary").html(
 				"Nome cliente: " + window.todojoborders[ui.item.element.data('arrayindex')].key.client.name + "<br />" +
 				"Codice cliente: " + window.todojoborders[ui.item.element.data('arrayindex')].key.client.code + "<br /><br />" +
-				"Tempo totale (ore): " + window.todojoborders[ui.item.element.data('arrayindex')].key.leadTime + "<br />" +
-				"Tempo rimanente (ore): " + window.todojoborders[ui.item.element.data('arrayindex')].value + "<br /><br />" +
+				"Tempo totale (ore): <div><b>" + window.todojoborders[ui.item.element.data('arrayindex')].key.leadTime + "</b></div><br />" +
+				"Tempo rimanente (ore): <div id='remainingTime'><b>" + window.todojoborders[ui.item.element.data('arrayindex')].value + "</div></b><br /><br />" +
 				"<b>Blocchetti orari (giornalieri):</b><br /><br />");
 		
 		var hours = parseInt(window.todojoborders[ui.item.element.data('arrayindex')].value), c = 0;
@@ -70,7 +78,6 @@ $("#todoJobOrders").selectmenu({
 				me: $block
 			};
 			$block.data('event', event);
-			console.log(event);
 			
 			$block.draggable({
 				zIndex: 999
@@ -90,15 +97,14 @@ $("#todoJobOrders").selectmenu({
 <c:forEach var="machine" items="${machines}">
 	$("#mcal${machine.id}").fullCalendar({
 		lang: 'it',
-		editable: window.user.isAdmin,
-		droppable: window.user.isAdmin,
+		editable: window.user.canAddJobOrder,
+		droppable: window.user.canAddJobOrder,
 	    eventOverlap: function(stillEvent, movingEvent) {
 	        return !stillEvent.allDay;
 	    },
 		eventReceive: function(event) {
-		    console.log(event);
 		    var me = $(this);
-			if(window.user.isAdmin) {
+			if(window.user.canAddJobOrder) {
 			    var end = new Date(event._start._d);
 			    end.setHours(end.getHours() +  event.last);
 			    $.post(
@@ -112,14 +118,13 @@ $("#todoJobOrders").selectmenu({
 			            	var id = jQuery.parseJSON(data).id;
 			            	event.id = id;
 			                $("#mcal${machine.id}").fullCalendar('updateEvent',event , false);
-			                console.log(event.me);
+			                $("#remainingTime").html(parseInt($("#remainingTime").html()) - event.last);
 			                event.me.remove();
 			    });
 			}
 		},
 		eventDrop: function(event, delta, revertFunc) {
-			if(window.user.isAdmin) {
-			    console.log(event);
+			if(window.user.canAddJobOrder) {
 			    $.post(
 			            "<%=request.getContextPath()%>/edit?what=assignedjoborder",
 			            {
@@ -140,12 +145,13 @@ $("#todoJobOrders").selectmenu({
 			right: 'month,agendaWeek,agendaDay'
 		},
 		eventSources:[ {
-		        events: $.merge(<%=gson.toJson(GetCollection.setAssignedJobOrderAttr(((Machine)pageContext.findAttribute("machine")).getAssignedJobOrders())) %>,
-		        	<%=gson.toJson(GetCollection.NonWorkingDays(false))%>)
+		        events: $.merge( $.merge(<%=gson.toJson(GetCollection.setAssignedJobOrderAttr(((Machine)pageContext.findAttribute("machine")).getAssignedJobOrders(),user)) %>,
+		        	<%=gson.toJson(GetCollection.NonWorkingDays(false))%>),
+			        <%=gson.toJson(GetCollection.SamplingDays(false))%> )
 		    }
 		],
 		eventDragStop: function(event,jsEvent) {
-			if(window.user.isAdmin) {
+			if(window.user.canAddJobOrder) {
 			    var trashEl = $('#programTrashM${machine.id}'), ofs = trashEl.offset(),
 			    x1 = ofs.left, x2 = ofs.left + trashEl.outerWidth(true),
 			    y1 = ofs.top, y2 = ofs.top + trashEl.outerHeight(true);

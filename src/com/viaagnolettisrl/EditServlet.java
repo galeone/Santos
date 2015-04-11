@@ -25,6 +25,7 @@ import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
 import com.viaagnolettisrl.hibernate.Machine;
 import com.viaagnolettisrl.hibernate.NonWorkingDay;
+import com.viaagnolettisrl.hibernate.SamplingDay;
 import com.viaagnolettisrl.hibernate.User;
 
 public class EditServlet extends HttpServlet {
@@ -176,6 +177,42 @@ public class EditServlet extends HttpServlet {
                     
                     if (message.equals("ok")) {
                         hibSession.saveOrUpdate(nw);
+                    }
+                }
+            break;
+            
+            case "samplingday":
+                if (!user.getIsAdmin()) {
+                    message = "Non sei admin";
+                } else {
+                    toEdit = (SamplingDay) hibSession.get(SamplingDay.class, id);
+                    
+                    SamplingDay sd = new SamplingDay();
+                    
+                    if (toEdit != null) { // edit
+                        sd = (SamplingDay) toEdit;
+                        String dateS = request.getParameter("date");
+                        if (dateS == null || "".equals(dateS)) {
+                            message = "Data non valida (vuota)";
+                        } else {
+                            try {
+                                SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z",
+                                        Locale.ENGLISH);
+                                Date d = sdf.parse(dateS);
+                                sd.setStart(d);
+                                sd.setEnd(d);
+                                hibSession.saveOrUpdate(sd);
+                                SamplingDay.handle(sd, hibSession);
+                            } catch (ParseException e) {
+                                message = "formato data non valido";
+                            }
+                        }
+                    } else {
+                        message = "Giorno di campionamento da modificare non trovato";
+                    }
+                    
+                    if (message.equals("ok")) {
+                        hibSession.saveOrUpdate(sd);
                     }
                 }
             break;

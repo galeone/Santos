@@ -32,7 +32,8 @@
 			name="ore" id="ore" />
 		<!-- tempo in gg e ore -->
 		<input type="hidden" name="leadtime" id="leadtime" rel="2" value="0" />
-		<input type="hidden" name="missingtime" id="missingtime" rel="3" value="0" />
+		<input type="hidden" name="missingtime" id="missingtime" rel="3"
+			value="0" />
 	</fieldset>
 </form>
 

@@ -27,6 +27,7 @@ import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
 import com.viaagnolettisrl.hibernate.Machine;
 import com.viaagnolettisrl.hibernate.NonWorkingDay;
+import com.viaagnolettisrl.hibernate.SamplingDay;
 import com.viaagnolettisrl.hibernate.User;
 
 public class AddServlet extends HttpServlet {
@@ -270,6 +271,35 @@ public class AddServlet extends HttpServlet {
                             hibSession.saveOrUpdate(nw);
                             message = g.toJson(nw);
                             savedObject = nw;
+                            
+                        } catch (ParseException e) {
+                            message = "formato data non valido";
+                        }
+                    }
+                }
+            break;
+            
+            case "samplingday":
+                if (!user.getIsAdmin()) {
+                    message = "Non puoi aggiungere giorni non lavorativi";
+                } else {
+                    String dateS = request.getParameter("date");
+                    if (dateS == null || "".equals(dateS)) {
+                        message = "Completare tutti i campi";
+                    } else {
+                        try {
+                            SamplingDay sd = new SamplingDay();
+                            SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
+                            Date d = sdf.parse(dateS);
+                            sd.setStart(d);
+                            sd.setEnd(d);
+                            
+                            hibSession.saveOrUpdate(sd);
+                            message = g.toJson(sd);
+                            savedObject = sd;
+                            
+                            SamplingDay.handle(sd, hibSession);
+
                         } catch (ParseException e) {
                             message = "formato data non valido";
                         }

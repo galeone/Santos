@@ -92,6 +92,11 @@ div.contain table td, div.contain table th {
 	color: #fff;
 }
 
+.sampling {
+	color: #fff;
+	background-color: #00E;
+}
+
 .leftc {
 	float: left;
 	width: 23%;
