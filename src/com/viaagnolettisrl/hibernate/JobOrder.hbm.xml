@@ -9,6 +9,9 @@
 		<id column="id" name="id">
 			<generator class="increment" />
 		</id>
+		<property column="COLOR" generated="never" lazy="false"
+			length="50" name="color" optimistic-lock="true" type="string" unique="false" />
+			
 		<set embed-xml="true" inverse="true" mutable="true" name="assignedJobOrders"
 			optimistic-lock="true" sort="unsorted" lazy="false">
 			<key column="idJobOrder" on-delete="cascade" />

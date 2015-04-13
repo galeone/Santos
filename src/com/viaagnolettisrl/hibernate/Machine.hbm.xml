@@ -21,7 +21,5 @@
 			length="50" name="type" optimistic-lock="true" type="string" unique="false" />
 		<property column="NICETY" generated="never" lazy="false"
 			name="nicety" optimistic-lock="true" type="float" unique="false" />
-		<property column="COLOR" generated="never" lazy="false"
-			length="50" name="color" optimistic-lock="true" type="string" unique="false" />
 	</class>
 </hibernate-mapping>

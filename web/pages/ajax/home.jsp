@@ -99,8 +99,7 @@ $("#globalCalendar").fullCalendar({
 	},
 	header: {
 		left: 'prev,next today',
-		center: 'title',
-		right: 'month,agendaWeek,agendaDay'
+		center: 'title'
 	},
 	eventSources:[ {
 	        events: $.merge(<%=gson.toJson(GetCollection.NonWorkingDays(user.getIsAdmin()))%>,

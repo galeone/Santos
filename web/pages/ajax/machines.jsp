@@ -25,11 +25,8 @@
 			class="text ui-widget-content ui-corner-all" rel="2"> <label
 			for="nicety">Finezza (decimale)</label> <input type="text"
 			name="nicety" id="nicety" value="" required
-			class="text ui-widget-content ui-corner-all" rel="3"> <label
-			for="color">Colore</label> <input type="text" name="color" value=""
-			required class="color text ui-widget-content ui-corner-all" rel="4"
-			readonly>
-		<div class="colorpicker"></div>
+			class="text ui-widget-content ui-corner-all" rel="3">
+			<input type="submit" value="ok" class="inner">
 	</fieldset>
 </form>
 
@@ -40,12 +37,11 @@
 			<th>Nome</th>
 			<th>Tipo</th>
 			<th>Finezza</th>
-			<th>Colore</th>
 		</tr>
 	</thead>
 	<tbody>
 	</tbody>
-</table>
+</table><br />
 <% String style = user.getCanAddMachine() ? "" : "display:none"; %>
 <button id="btnAddNewRowMachine" style="<%=style%>">Aggiungi
 	macchina</button>
@@ -53,15 +49,6 @@
 	macchina</button>
 <%Gson gson = new Gson();%>
 <script>
-picker = $.farbtastic("#formAddNewRowMachine .colorpicker");
-picker.setColor("#FF0000");
-picker.linkTo(function(color) {
-	var $in = $("#formAddNewRowMachine .color");
-	$in.prop('readonly', false);
-	$in.attr('value',color);
-	$in.css('border-color', color);
-	$in.prop('readonly', true);
-});
 $("#machines-table").dataTable({
 	"bJQueryUI": true,
 	"bProcestrueng": true,
@@ -83,12 +70,7 @@ $("#machines-table").dataTable({
               },
               { data: 'name', name: 'name' },
               { data: 'type', name: 'type' },
-              { data: 'nicety', name: 'nicety' },
-              {
-            	  data: 'color',
-            	  name: 'color',
-            	  render: dataTablesColor
-			  }
+              { data: 'nicety', name: 'nicety' }
           ]
 }).makeEditable({
 	sDeleteURL: "<%=request.getContextPath()%>/delete?what=machine",
@@ -99,7 +81,8 @@ $("#machines-table").dataTable({
 	sDeleteRowButtonId: "btnDeleteRowMachine",
 	sAddNewRowFormId: "formAddNewRowMachine",
 	fnOnDeleting: function() {
-		return confirm("Vuoi davvero rimuovere questa macchina?");
+		return confirm("Vuoi davvero rimuovere questa macchina?\n" +
+			"Cancellandola cancellerai tutte le assegnazioni delle commesse a questa macchina.");
 	},
 	"fnOnNewRowPosted": function(data) {
 		try {
@@ -114,12 +97,7 @@ $("#machines-table").dataTable({
                   {},//id
                   {},//name
                   {},//type
-                  {},//nicety
-                  {
-                	  type: 'farbtastic',
-                      submit    : 'Ok',
-                      cancel    : 'Cancel',
-                  } //color
+                  {}//nicety
               ]
 });
 </script>

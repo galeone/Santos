@@ -126,7 +126,7 @@ public class AddServlet extends HttpServlet {
                 if (!user.getCanAddMachine()) {
                     message = "Non puoi aggiungere macchine";
                 } else {
-                    String[] fields = new String[] { "name", "type", "nicety", "color" };
+                    String[] fields = new String[] { "name", "type", "nicety" };
                     Arrays.sort(fields);
                     params = ServletUtils.getParameters(request, fields);
                     if (params.containsValue(null) || params.containsValue("")) {
@@ -134,7 +134,6 @@ public class AddServlet extends HttpServlet {
                     } else {
                         try {
                             Machine m = new Machine();
-                            m.setColor(params.get("color"));
                             m.setName(params.get("name"));
                             m.setNicety(Float.parseFloat(params.get("nicety")));
                             m.setType(params.get("type"));
@@ -154,7 +153,7 @@ public class AddServlet extends HttpServlet {
                 if (!user.getCanAddJobOrder()) {
                     message = "Non puoi aggiungere commesse";
                 } else {
-                    String[] fields = new String[] { "leadtime", "client" };
+                    String[] fields = new String[] { "leadtime", "client", "color" };
                     Arrays.sort(fields);
                     params = ServletUtils.getParameters(request, fields);
                     if (params.containsValue(null) || params.containsValue("")) {
@@ -184,6 +183,7 @@ public class AddServlet extends HttpServlet {
                             }
                             j.setLeadTime(leadTime);
                             j.setMissingTime(leadTime);
+                            j.setColor(params.get("color"));
                             hibSession.saveOrUpdate(j);
                             
                             message = g.toJson(j);

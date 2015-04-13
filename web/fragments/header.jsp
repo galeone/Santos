@@ -22,6 +22,7 @@
 <link type="text/css"
 	href="<%= request.getContextPath() %>/styles/default.css"
 	rel="stylesheet">
+<link rel="shortcut icon" href="<%= request.getContextPath() %>/styles/favicon.ico" />
 <script src="<%= request.getContextPath() %>/scripts/jquery/jquery.js"></script>
 <script
 	src="<%= request.getContextPath() %>/scripts/jquery/jquery-ui.js"></script>
@@ -54,4 +55,4 @@
 <script src="<%= request.getContextPath() %>/scripts/common.js"></script>
 </head>
 
-<body>
+<body onselectstart="return false">

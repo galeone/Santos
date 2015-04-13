@@ -39,6 +39,7 @@
 			for="canaddclient">Può aggiungere clienti</label> <input
 			type="checkbox" name="canaddclient" id="canaddclient" value="Si"
 			class="text ui-widget-content ui-corner-all" rel="7">
+			<input type="submit" value="ok" class="inner">
 	</fieldset>
 </form>
 
@@ -57,8 +58,7 @@
 	</thead>
 	<tbody>
 	</tbody>
-</table>
-
+</table><br />
 <button id="btnAddNewRowUser">Crea un nuovo utente</button>
 <button id="btnDeleteRowUser">Cancella utente</button>
 <%Gson gson = new Gson();%>

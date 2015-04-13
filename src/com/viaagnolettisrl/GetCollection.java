@@ -119,12 +119,14 @@ public class GetCollection {
         
         for (JobOrder j : joborders) {
             map.put(j, j.getLeadTime());
+            System.out.println(j.equals(j));
         }
         
         Collection<AssignedJobOrder> ajo = AssignedJobOrders(user);
         
         for (AssignedJobOrder a : ajo) {
             JobOrder j = a.getJobOrder();
+            System.out.println(map.get(j) + " " + j + " " + a.getEnd() + " " + a.getStart());
             map.put(j, map.get(j) - (a.getEnd().getTime() - a.getStart().getTime()) / (1000 * 60 * 60));
         }
         Iterator<Entry<JobOrder, Long>> it = map.entrySet().iterator();
@@ -161,10 +163,10 @@ public class GetCollection {
     
     public static Collection<AssignedJobOrder> setAssignedJobOrderAttr(Collection<AssignedJobOrder> l, User user) {
         for(AssignedJobOrder aj : l) {
-            aj.setTitle("Commessa " + aj.getJobOrder().getId() + "\n" + aj.getLast() + " ore");
+            aj.setTitle("[" + aj.getJobOrder().getId() + "] " + aj.getJobOrder().getClient().getCode() + " - " + aj.getJobOrder().getClient().getName() + "\n" + aj.getLast() + " ore");
             aj.setOverlap(!aj.getLast().equals(24L));
             aj.setAllDay(aj.getLast().equals(24L));
-            aj.setColor(aj.getMachine().getColor());
+            aj.setColor(aj.getJobOrder().getColor());
             aj.setEditable(user.getCanAddJobOrder());
         }
         return l;

@@ -30,8 +30,8 @@
 		action="<%= request.getContextPath() %>/login">
 		<label for="username">Nome utente:</label> <input type="text"
 			name="username" id="username"> <label for="password">Password:</label>
-		<input type="password" name="password" id="password"> <input
-			type="submit" value="Login">
+		<input type="password" name="password" id="password">
+		<input type="submit" value="Login" class="inner">
 	</form>
 </div>
 <script>
@@ -40,16 +40,11 @@ $( "#loginfrm" ).dialog({
    	modal:true,
    	dialogClass: "no-close",
    	closeOnEscape: false,
-    open: function() {
-           // On open, hide the original submit button
-           $( this ).find( "[type=submit]" ).hide();
-    },
     buttons: [
            {
                text: "Login",
-               click: $.noop,
-               type: "submit",
-               form: "loginfrm" // <-- Make the association
+               click: function() {$("form").submit();},
+               type: "submit"
            }
     ]
 });

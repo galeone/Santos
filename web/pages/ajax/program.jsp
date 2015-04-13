@@ -42,9 +42,9 @@
 		<h1>Calendario per macchina</h1>
 		<div id="accordion">
 			<c:forEach var="machine" items="${machines}">
-				<h3 style="color: ${machine.color}">ID: ${machine.id} -
+				<h3>ID: ${machine.id} -
 					${machine.name} - ${machine.type} - Finezza: ${machine.nicety}</h3>
-				<div id="mcal${machine.id}"></div>
+				<div id="m${machine.id}Calendar"></div>
 			</c:forEach>
 		</div>
 	</div>
@@ -52,7 +52,6 @@
 <% Gson gson = new Gson(); %>
 <script>
 window.todojoborders = <%= gson.toJson(application.getAttribute("todojoborders")) %>;
-
 $("#todoJobOrders").selectmenu({
 	select: function(event, ui) {
 		$("#jobordersummary").html(
@@ -67,15 +66,19 @@ $("#todoJobOrders").selectmenu({
 		while(hours > 0) {
 			var $block = $(document.createElement("div")),
 			last = hours >= 24 ? 24 : hours,
-			title = 'Commessa ' + window.todojoborders[ui.item.element.data('arrayindex')].key.id +
-					"\n" + last + " ore";
+			title = '[' + window.todojoborders[ui.item.element.data('arrayindex')].key.id + "] " +
+					window.todojoborders[ui.item.element.data('arrayindex')].key.client.code +  " - " +
+					window.todojoborders[ui.item.element.data('arrayindex')].key.client.name + 
+					"\n" + last + " ore",
+			color = window.todojoborders[ui.item.element.data('arrayindex')].key.color;
 			$block.html(title);
 			event = {
 				joborder: window.todojoborders[ui.item.element.data('arrayindex')].key.id,
 				title: title,
 				allDay: last === 24,
 				last: last,
-				me: $block
+				me: $block,
+				color: color
 			};
 			$block.data('event', event);
 			
@@ -83,6 +86,7 @@ $("#todoJobOrders").selectmenu({
 				zIndex: 999
 			});
 			$block.addClass("fc-draggable-event");
+			$block.css('background-color', color);
 			if(c == 3) {
 				c = 0;
 				$("#jobordersummary").append("<br />");
@@ -95,7 +99,7 @@ $("#todoJobOrders").selectmenu({
 });
 
 <c:forEach var="machine" items="${machines}">
-	$("#mcal${machine.id}").fullCalendar({
+	$("#m${machine.id}Calendar").fullCalendar({
 		lang: 'it',
 		editable: window.user.canAddJobOrder,
 		droppable: window.user.canAddJobOrder,
@@ -103,21 +107,21 @@ $("#todoJobOrders").selectmenu({
 	        return !stillEvent.allDay;
 	    },
 		eventReceive: function(event) {
-		    var me = $(this);
 			if(window.user.canAddJobOrder) {
 			    var end = new Date(event._start._d);
 			    end.setHours(end.getHours() +  event.last);
-			    $.post(
-			            "<%=request.getContextPath()%>/add?what=assignedjoborder",
+			    $.post("<%=request.getContextPath()%>/add?what=assignedjoborder",
 			            {
 			            	start: event._start._d.toUTCString(),
 			            	end:   end.toUTCString(),
 			            	machine: ${machine.id},
 			            	joborder: event.joborder
 			            }, function(data){
-			            	var id = jQuery.parseJSON(data).id;
-			            	event.id = id;
-			                $("#mcal${machine.id}").fullCalendar('updateEvent',event , false);
+			        		var ret = jQuery.parseJSON(data);
+			            	event.id = ret.id;
+			            	event.machine = ret.machine;
+			            	event.jobOrder = ret.jobOrder;
+			                $("#m${machine.id}Calendar").fullCalendar('updateEvent',event , false);
 			                $("#remainingTime").html(parseInt($("#remainingTime").html()) - event.last);
 			                event.me.remove();
 			    });
@@ -125,8 +129,13 @@ $("#todoJobOrders").selectmenu({
 		},
 		eventDrop: function(event, delta, revertFunc) {
 			if(window.user.canAddJobOrder) {
-			    $.post(
-			            "<%=request.getContextPath()%>/edit?what=assignedjoborder",
+			    var end = null;
+			    if(!event._end) {
+					end =  new Date(event._start._d);
+					end.setHours(end.getHours() +  event.last);
+					event._end = moment(end);
+			    } 
+			    $.post("<%=request.getContextPath()%>/edit?what=assignedjoborder",
 			            {
 			            	id: event.id,
 			            	start: event._start._d.toUTCString(),
@@ -141,8 +150,7 @@ $("#todoJobOrders").selectmenu({
 		},
 		header: {
 			left: 'prev,next today',
-			center: 'title',
-			right: 'month,agendaWeek,agendaDay'
+			center: 'title'
 		},
 		eventSources:[ {
 		        events: $.merge( $.merge(<%=gson.toJson(GetCollection.setAssignedJobOrderAttr(((Machine)pageContext.findAttribute("machine")).getAssignedJobOrders(),user)) %>,
@@ -164,7 +172,7 @@ $("#todoJobOrders").selectmenu({
 
 				    $.post("<%=request.getContextPath()%>/delete?what=assignedjoborder", { id: event.id }, function(data) {
 				    	if(data == 'ok') {
-				    		$('#mcal${machine.id}').fullCalendar('removeEvents', event.id);
+				    		$('#m${machine.id}Calendar').fullCalendar('removeEvents', event.id);
 							trashEl.removeClass("to-trash");
 				    	} else {
 				    		alert(data);

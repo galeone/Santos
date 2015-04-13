@@ -52,24 +52,24 @@ public class HibernateMainTest {
 			c0.setName("Name5");
 			c0.setType("Type7");
 			c0.setNicety(9F);
-			c0.setColor("#ffaaff");
 			session.saveOrUpdate(c0);
 
 			Machine c1 = new Machine();
 			c1.setName("Name14");
 			c1.setType("Type16");
 			c1.setNicety(18F);
-			c1.setColor("#008080");
 			session.saveOrUpdate(c1);
 
 			JobOrder d0 = new JobOrder();
 			d0.setClient(b0);
 			d0.setLeadTime(20L);
+			d0.setColor("#ffaaff");
 			session.saveOrUpdate(d0);
 
 			JobOrder d1 = new JobOrder();
 			d1.setClient(b0);
 			d1.setLeadTime(23L);
+			d1.setColor("#008080");
 			session.saveOrUpdate(d1);
 
 			History e0 = new History();

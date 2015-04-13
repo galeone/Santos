@@ -294,10 +294,6 @@ public class EditServlet extends HttpServlet {
                                         message = "Valore della finezza non valido";
                                     }
                                 break;
-                                case "color":
-                                    outputResult = value;
-                                    m.setColor(value);
-                                break;
                                 
                                 default:
                                     message = "Campo non riconosciuto";
@@ -354,6 +350,10 @@ public class EditServlet extends HttpServlet {
                                     } catch (NumberFormatException e) {
                                         message = "Tempo di produzione errato";
                                     }
+                                break;
+                                case "color":
+                                    outputResult = value;
+                                    j.setColor(value);
                                 break;
                                 default:
                                     message = "Campo non riconosciuto";

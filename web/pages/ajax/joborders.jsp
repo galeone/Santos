@@ -34,6 +34,12 @@
 		<input type="hidden" name="leadtime" id="leadtime" rel="2" value="0" />
 		<input type="hidden" name="missingtime" id="missingtime" rel="3"
 			value="0" />
+		<label
+			for="color">Colore</label> <input type="text" name="color" value=""
+			required class="color text ui-widget-content ui-corner-all" rel="4"
+			readonly>
+		<input type="submit" value="ok" class="inner">
+		<div class="colorpicker"></div>
 	</fieldset>
 </form>
 
@@ -44,11 +50,12 @@
 			<th>Cliente</th>
 			<th>Tempo di produzione</th>
 			<th>Ore non assegnate</th>
+			<th>Colore</th>
 		</tr>
 	</thead>
 	<tbody>
 	</tbody>
-</table>
+</table><br />
 <% String style = user.getCanAddJobOrder() ? "" : "display:none"; %>
 <button id="btnAddNewRowJobOrder" style="<%=style%>">Aggiungi
 	commessa</button>
@@ -63,6 +70,15 @@ for(Client c : clients) {
 }
 %>
 <script>
+picker = $.farbtastic("#formAddNewRowJobOrder .colorpicker");
+picker.setColor("#FF0000");
+picker.linkTo(function(color) {
+	var $in = $("#formAddNewRowJobOrder .color");
+	$in.prop('readonly', false);
+	$in.attr('value',color);
+	$in.css('border-color', color);
+	$in.prop('readonly', true);
+});
 $("#ore").on('keyup mouseup', function() {
 	var days = parseInt($("#giorni").val()),
 		hours =  parseInt($(this).val());
@@ -114,7 +130,12 @@ $("#joborders-table").dataTable({
                   createdCell: function (td, cellData, rowData, row, col) {
                       td.setAttribute('class', 'read_only');
           	  	  }
-              }
+              },
+              {
+            	  data: 'color',
+            	  name: 'color',
+            	  render: dataTablesColor
+			  }
           ]
 }).makeEditable({
 	sDeleteURL: "<%=request.getContextPath()%>/delete?what=joborder",
@@ -148,7 +169,13 @@ $("#joborders-table").dataTable({
                 	  type: 'leadtime',
                       submit    : 'Ok',
                       cancel    : 'Cancel',
-                  } //leadtime
+                  }, //leadtime
+                  {}, //missing
+                  {
+            	  	type: 'farbtastic',
+                  	submit    : 'Ok',
+                  	cancel    : 'Cancel',
+              	  } //color
               ]
 });
 </script>

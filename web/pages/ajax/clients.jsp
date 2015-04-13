@@ -23,6 +23,7 @@
 			for="code">Codice (almeno 1 carattere)</label> <input type="text"
 			name="code" id="code" value="" minlength="1" required
 			class="text ui-widget-content ui-corner-all" rel="2">
+			<input type="submit" value="ok" class="inner">
 	</fieldset>
 </form>
 
@@ -36,7 +37,7 @@
 	</thead>
 	<tbody>
 	</tbody>
-</table>
+</table><br />
 <% String style = user.getCanAddClient() ? "" : "display:none"; %>
 <button id="btnAddNewRowClient" style="<%=style%>">Aggiungi
 	cliente</button>
@@ -75,7 +76,8 @@ $("#clients-table").dataTable({
 	sDeleteRowButtonId: "btnDeleteRowClient",
 	sAddNewRowFormId: "formAddNewRowClient",
 	fnOnDeleting: function() {
-		return confirm("Vuoi davvero rimuovere questo cliente?");
+		return confirm("Vuoi davvero rimuovere questo cliente?\n" + 
+			"Cancellandolo eliminerai tutte le sue commesse (e quindi tutte le ore di lavoro associate alle macchine)");
 	},
 	"fnOnNewRowPosted": function(data) {
 		try {
