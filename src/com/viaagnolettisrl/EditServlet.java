@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
 import com.viaagnolettisrl.hibernate.Machine;
 import com.viaagnolettisrl.hibernate.NonWorkingDay;
-import com.viaagnolettisrl.hibernate.SamplingDay;
+import com.viaagnolettisrl.hibernate.Sampling;
 import com.viaagnolettisrl.hibernate.User;
 
 public class EditServlet extends HttpServlet {
@@ -166,7 +167,6 @@ public class EditServlet extends HttpServlet {
                                 Date d = sdf.parse(dateS);
                                 nw.setStart(d);
                                 nw.setEnd(d);
-                                hibSession.saveOrUpdate(nw);
                             } catch (ParseException e) {
                                 message = "formato data non valido";
                             }
@@ -177,20 +177,21 @@ public class EditServlet extends HttpServlet {
                     
                     if (message.equals("ok")) {
                         hibSession.saveOrUpdate(nw);
+                        NonWorkingDay.handle(nw, hibSession);
                     }
                 }
             break;
             
-            case "samplingday":
+            case "sampling":
                 if (!user.getIsAdmin()) {
                     message = "Non sei admin";
                 } else {
-                    toEdit = (SamplingDay) hibSession.get(SamplingDay.class, id);
+                    toEdit = (Sampling) hibSession.get(Sampling.class, id);
                     
-                    SamplingDay sd = new SamplingDay();
+                    Sampling sd = new Sampling();
                     
                     if (toEdit != null) { // edit
-                        sd = (SamplingDay) toEdit;
+                        sd = (Sampling) toEdit;
                         String dateS = request.getParameter("date");
                         if (dateS == null || "".equals(dateS)) {
                             message = "Data non valida (vuota)";
@@ -201,8 +202,6 @@ public class EditServlet extends HttpServlet {
                                 Date d = sdf.parse(dateS);
                                 sd.setStart(d);
                                 sd.setEnd(d);
-                                hibSession.saveOrUpdate(sd);
-                                SamplingDay.handle(sd, hibSession);
                             } catch (ParseException e) {
                                 message = "formato data non valido";
                             }
@@ -213,6 +212,7 @@ public class EditServlet extends HttpServlet {
                     
                     if (message.equals("ok")) {
                         hibSession.saveOrUpdate(sd);
+                        Sampling.handle(sd, hibSession);
                     }
                 }
             break;
@@ -250,7 +250,7 @@ public class EditServlet extends HttpServlet {
                             }// switch
                         }
                     } else {
-                        message = "Cliente da modificare non trovatp";
+                        message = "Cliente da modificare non trovato";
                     }
                     
                     if (message.equals("ok")) {
@@ -414,9 +414,6 @@ public class EditServlet extends HttpServlet {
                             } catch (NumberFormatException e) {
                                 message = e.getMessage();
                             }
-                            
-                            hibSession.saveOrUpdate(aj);
-         
                         }
                     } else {
                         message = "Commessa da modificare non trovata";
@@ -424,6 +421,7 @@ public class EditServlet extends HttpServlet {
                     
                     if (message.equals("ok")) {
                         hibSession.saveOrUpdate(aj);
+                        AssignedJobOrder.handle(aj, hibSession);
                     }
                 }
             break;
@@ -433,7 +431,21 @@ public class EditServlet extends HttpServlet {
             h.setAction("EDIT");
             h.setTime(new Date());
             h.setUser(user);
-            h.setWhat(what + "(" + id + "): " + params.get("columnName") + " = " + params.get("value"));
+
+            String updatedField = params.get("columnName");
+            // not table but event dragging
+            if(updatedField == null) {
+                Enumeration<String> parameterNames = request.getParameterNames();
+                updatedField = "";
+                while (parameterNames.hasMoreElements()) {
+                    String paramName =  parameterNames.nextElement();
+                    updatedField += paramName + " = " + request.getParameterValues(paramName)[0] + "; ";
+                }
+
+            } else {
+                updatedField = updatedField + " = " + params.get("value");
+            }
+            h.setWhat(what + "(" + id + "): " + updatedField);
             hibSession.saveOrUpdate(h);
             try {
                 hibSession.getTransaction().commit();

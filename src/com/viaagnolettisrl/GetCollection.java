@@ -15,12 +15,13 @@ import org.hibernate.Session;
 
 import com.viaagnolettisrl.hibernate.AssignedJobOrder;
 import com.viaagnolettisrl.hibernate.Client;
+import com.viaagnolettisrl.hibernate.Event;
 import com.viaagnolettisrl.hibernate.HibernateUtil;
 import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
 import com.viaagnolettisrl.hibernate.Machine;
 import com.viaagnolettisrl.hibernate.NonWorkingDay;
-import com.viaagnolettisrl.hibernate.SamplingDay;
+import com.viaagnolettisrl.hibernate.Sampling;
 import com.viaagnolettisrl.hibernate.User;
 
 public class GetCollection {
@@ -34,11 +35,11 @@ public class GetCollection {
     }
     
     @SuppressWarnings("unchecked")
-    public static Collection<AssignedJobOrder> assignedJobOrdersInConflictWith(SamplingDay s) {
+    public static Collection<AssignedJobOrder> assignedJobOrdersInConflictWith(Event e) {
         Session session = HibernateUtil.getSessionFactory().openSession();
 
         Calendar cal = Calendar.getInstance();
-        cal.setTime(s.getStart());
+        cal.setTime(e.getStart());
         cal.set(Calendar.HOUR, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
@@ -47,20 +48,23 @@ public class GetCollection {
         Date begin = cal.getTime();
         cal.add(Calendar.DATE, 1);
         Date end = cal.getTime();
-        
-        Query q = session.createQuery("from AssignedJobOrder where starts between :begin AND :end").
+        Machine m = e.getMachine();
+        Query q = session.createQuery("from AssignedJobOrder where starts between :begin AND :end" + (m != null ? " AND machineid = :machine" : "")).
                 setDate("begin", begin).setDate("end", end);
+        if(m != null) {
+            q.setLong("machine", m.getId());
+        }
         List<AssignedJobOrder> ret = (List<AssignedJobOrder>)q.list();
         session.close();
         return ret;
     }
     
     @SuppressWarnings("unchecked")
-    public static Collection<AssignedJobOrder> assignedJobOrdersAfterSampling(SamplingDay s) {
+    public static Collection<AssignedJobOrder> assignedJobOrdersAfterEvent(Event e) {
         Session session = HibernateUtil.getSessionFactory().openSession();
 
         Calendar cal = Calendar.getInstance();
-        cal.setTime(s.getStart());
+        cal.setTime(e.getStart());
         cal.set(Calendar.HOUR, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
@@ -76,11 +80,11 @@ public class GetCollection {
     }
     
     @SuppressWarnings("unchecked")
-    public static Collection<NonWorkingDay> nonWorkingDaysAfterSampling(SamplingDay s) {
+    public static Collection<NonWorkingDay> nonWorkingDaysAfterEvent(Event e) {
         Session session = HibernateUtil.getSessionFactory().openSession();
 
         Calendar cal = Calendar.getInstance();
-        cal.setTime(s.getStart());
+        cal.setTime(e.getStart());
         cal.set(Calendar.HOUR, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
@@ -95,11 +99,11 @@ public class GetCollection {
     }
     
     @SuppressWarnings("unchecked")
-    public static Collection<SamplingDay> samplingDaysAfterSampling(SamplingDay s) {
+    public static Collection<Sampling> samplingAfterEvent(Event e) {
         Session session = HibernateUtil.getSessionFactory().openSession();
 
         Calendar cal = Calendar.getInstance();
-        cal.setTime(s.getStart());
+        cal.setTime(e.getStart());
         cal.set(Calendar.HOUR, 0);
         cal.set(Calendar.MINUTE, 0);
         cal.set(Calendar.SECOND, 0);
@@ -107,8 +111,8 @@ public class GetCollection {
         
         Date begin = cal.getTime();
         
-        Query q = session.createQuery("from SamplingDay where starts > :begin").setDate("begin", begin);
-        List<SamplingDay> ret = (List<SamplingDay>)q.list();
+        Query q = session.createQuery("from Sampling where starts > :begin").setDate("begin", begin);
+        List<Sampling> ret = (List<Sampling>)q.list();
         session.close();
         return ret;
     }
@@ -205,14 +209,14 @@ public class GetCollection {
     }
     
     @SuppressWarnings("unchecked")
-    public static Collection<SamplingDay> SamplingDays() {
-        return (Collection<SamplingDay>) Get("SamplingDay");
+    public static Collection<Sampling> Sampling() {
+        return (Collection<Sampling>) Get("Sampling");
     }
     
     
-    public static Collection<SamplingDay> SamplingDays(Boolean editable) {
-        Collection<SamplingDay> l = SamplingDays();
-        for(SamplingDay sd : l) {
+    public static Collection<Sampling> Sampling(Boolean editable) {
+        Collection<Sampling> l = Sampling();
+        for(Sampling sd : l) {
             sd.editable = editable;
         }
         return l;

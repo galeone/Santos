@@ -1,6 +1,5 @@
 package com.viaagnolettisrl.hibernate;
 
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collection;
@@ -12,107 +11,26 @@ import org.hibernate.Session;
 
 import com.viaagnolettisrl.GetCollection;
 
-public class SamplingDay implements Serializable {
-
-	private static final long serialVersionUID = 1L;
-
-	private Long id;
-
-	private Date start, end;
-	
-	public String title = "Campionamento",
-			color = "#00E",
-			type = "samplingday";
-	public boolean overlap = false, // can't drop events on a non working day
-			allDay = true,
-			editable = true;
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((start == null) ? 0 : start.hashCode());
-		result = prime * result + ((end == null) ? 0 : end.hashCode());
-		result = prime * result + ((id == null) ? 0 : id.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		SamplingDay other = (SamplingDay) obj;
-		if (start == null) {
-			if (other.start != null)
-				return false;
-		} else if (!start.equals(other.start))
-			return false;
-		if (end == null) {
-			if (other.end != null)
-				return false;
-		} else if (!end.equals(other.end))
-			return false;
-		if (id == null) {
-			if (other.id != null)
-				return false;
-		} else if (!id.equals(other.id))
-			return false;
-		return true;
-	}
-
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public Date getStart() {
-		return start;
-	}
-
-	public void setStart(Date start) {
-		this.start = start;
-	}
-
-	public Date getEnd() {
-		return end;
-	}
-
-	public void setEnd(Date end) {
-		this.end = end;
-	}
-
-    @Override
-    public String toString() {
-        return "SamplingDay [id=" + id + ", start=" + start + ", title=" + title + "]";
-    }
-    
-    public static void handle(SamplingDay sd, Session hibSession) {
+public abstract class DraggableEvent implements Event {
+    public static void handle(Event e, Session hibSession) {
         
         // Cerca assigned job order nel giorno di
         // campionamento e fai slittare ai giorni lavorativi
         // successivi
-        // lavorativi = non di campionamento e non non
-        // lavorativi
+        // lavorativi = non di campionamento e non non lavorativi
         Collection<AssignedJobOrder> assignedJobOrderConflict = GetCollection
-                .assignedJobOrdersInConflictWith(sd);
+                .assignedJobOrdersInConflictWith(e);
         // ottieni la lista dei giorni di non lavoro
         // successivi al sampling
-        Collection<NonWorkingDay> nonworkingDaysAfterSampling = GetCollection
-                .nonWorkingDaysAfterSampling(sd);
+        Collection<NonWorkingDay> nonworkingDaysAfterEvent = GetCollection
+                .nonWorkingDaysAfterEvent(e);
         // ottieni la lista degli ajo successivi al sampling
-        Collection<AssignedJobOrder> assignedJobOrdersAfterSampling = GetCollection
-                .assignedJobOrdersAfterSampling(sd);
-        // ottieni la lista dei giori di samplig successivi
+        Collection<AssignedJobOrder> assignedJobOrdersAfterEvent = GetCollection
+                .assignedJobOrdersAfterEvent(e);
+        // ottieni la lista dei giorni di samplig successivi
         // a questo sampling
-        Collection<SamplingDay> sampligDaysAfterSampling = GetCollection
-                .samplingDaysAfterSampling(sd);
+        Collection<Sampling> sampligDaysAfterEvent = GetCollection
+                .samplingAfterEvent(e);
         
         // per ogni ajo in confitto con il sampling
         Calendar cal = Calendar.getInstance();
@@ -134,7 +52,7 @@ public class SamplingDay implements Serializable {
             while (!canMove) {
                 
                 boolean collision = false;
-                for (NonWorkingDay nw : nonworkingDaysAfterSampling) {
+                for (NonWorkingDay nw : nonworkingDaysAfterEvent) {
                     if (sdf.format(nw.getStart()).equals(nextDateString)) {
                         collision = true;
                         break;
@@ -142,7 +60,7 @@ public class SamplingDay implements Serializable {
                 }
                 
                 if (!collision) {
-                    for (SamplingDay s : sampligDaysAfterSampling) {
+                    for (Sampling s : sampligDaysAfterEvent) {
                         if (sdf.format(s.getStart()).equals(nextDateString)) {
                             collision = true;
                             break;
@@ -173,7 +91,7 @@ public class SamplingDay implements Serializable {
             // tirato furi
             // alla lista dei giorni in conflitto
             AssignedJobOrder toMove = null;
-            for (AssignedJobOrder aj : assignedJobOrdersAfterSampling) {
+            for (AssignedJobOrder aj : assignedJobOrdersAfterEvent) {
                 if (sdf.format(aj.getStart()).equals(nextDateString)
                         && aj.getMachine().getId().equals(ajConflict.getMachine().getId())) {
                     toMove = aj;
@@ -198,5 +116,4 @@ public class SamplingDay implements Serializable {
         // se funziona sono Dio.
         
     }
-
 }

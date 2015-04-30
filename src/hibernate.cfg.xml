@@ -23,6 +23,6 @@
 		<mapping resource="com/viaagnolettisrl/hibernate/JobOrder.hbm.xml" />
 		<mapping resource="com/viaagnolettisrl/hibernate/AssignedJobOrders.hbm.xml" />
 		<mapping resource="com/viaagnolettisrl/hibernate/NonWorkingDay.hbm.xml" />
-		<mapping resource="com/viaagnolettisrl/hibernate/SamplingDay.hbm.xml" />
+		<mapping resource="com/viaagnolettisrl/hibernate/Sampling.hbm.xml" />
 	</session-factory>
 </hibernate-configuration>

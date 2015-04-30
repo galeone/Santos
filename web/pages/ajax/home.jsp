@@ -18,8 +18,6 @@ if(user.getIsAdmin()) { %>
 	<div class="leftc" style="background: #eee">
 		<h4>Giorni non lavorativi</h4>
 		<div id="nonworkingevent"></div>
-		<h4>Campionamento</h4>
-		<div id="sampling"></div>
 	</div>
 	<div class="rightc">
 		<div id='globalCalendar'></div>
@@ -48,23 +46,6 @@ $block.draggable({
 });
 $block.addClass("fc-draggable-event nonworkingday");
 
-var $block = $("#sampling"), title = 'Campionamento',
-event = {
-		title: title,
-		allDay: true,
-		color: '#00E',
-		type: 'samplingday'
-};
-$block.html(title);
-$block.data('event', event);
-
-$block.draggable({
-	zIndex: 999,
-	revert: true,
-	revertduration: 0
-});
-$block.addClass("fc-draggable-event sampling");
-
 
 $("#globalCalendar").fullCalendar({
 	lang: 'it',
@@ -75,6 +56,11 @@ $("#globalCalendar").fullCalendar({
     },
 	eventReceive: function(event) {
 		if(window.user.isAdmin) {
+		    var now = new Date(), evStart = new Date(event._start);
+		    if(evStart.setHours(0,0,0,0) < now.setHours(0,0,0,0)) {
+				alert("Non puoi inserire eventi nel passato");
+				return false;
+		    }
 		    $.post("<%=request.getContextPath()%>/add?what=" + event.type,
 		            {
 		            	date: event._start._d.toUTCString()
@@ -87,6 +73,12 @@ $("#globalCalendar").fullCalendar({
 	},
 	eventDrop: function(event, delta, revertFunc) {
 		if(window.user.isAdmin) {
+		    var now = new Date(), evStart = new Date(event._start);
+		    if(evStart.setHours(0,0,0,0) < now.setHours(0,0,0,0)) {
+				alert("Non puoi spostare eventi nel passato");
+				revertFunc();
+				return false;
+		    }
 		    $.post("<%=request.getContextPath()%>/edit?what=" + event.type,
 		            {
 		            	id: event.id,
@@ -102,8 +94,7 @@ $("#globalCalendar").fullCalendar({
 		center: 'title'
 	},
 	eventSources:[ {
-	        events: $.merge(<%=gson.toJson(GetCollection.NonWorkingDays(user.getIsAdmin()))%>,
-	        	<%=gson.toJson(GetCollection.SamplingDays(user.getIsAdmin()))%>)
+	        events: <%=gson.toJson(GetCollection.NonWorkingDays(user.getIsAdmin()))%>
 	    }
 	],
 	eventDragStop: function(event,jsEvent) {

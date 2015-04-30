@@ -27,7 +27,7 @@ import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
 import com.viaagnolettisrl.hibernate.Machine;
 import com.viaagnolettisrl.hibernate.NonWorkingDay;
-import com.viaagnolettisrl.hibernate.SamplingDay;
+import com.viaagnolettisrl.hibernate.Sampling;
 import com.viaagnolettisrl.hibernate.User;
 
 public class AddServlet extends HttpServlet {
@@ -244,6 +244,7 @@ public class AddServlet extends HttpServlet {
                             
                             message = g.toJson(aj);
                             savedObject = aj;
+                            
                         } catch (NumberFormatException e) {
                             message = "Macchina non valida";
                         } catch (ParseException e) {
@@ -272,6 +273,8 @@ public class AddServlet extends HttpServlet {
                             message = g.toJson(nw);
                             savedObject = nw;
                             
+                            NonWorkingDay.handle(nw, hibSession);
+                            
                         } catch (ParseException e) {
                             message = "formato data non valido";
                         }
@@ -279,7 +282,7 @@ public class AddServlet extends HttpServlet {
                 }
             break;
             
-            case "samplingday":
+            case "sampling":
                 if (!user.getIsAdmin()) {
                     message = "Non puoi aggiungere giorni non lavorativi";
                 } else {
@@ -288,7 +291,7 @@ public class AddServlet extends HttpServlet {
                         message = "Completare tutti i campi";
                     } else {
                         try {
-                            SamplingDay sd = new SamplingDay();
+                            Sampling sd = new Sampling();
                             SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
                             Date d = sdf.parse(dateS);
                             sd.setStart(d);
@@ -298,7 +301,7 @@ public class AddServlet extends HttpServlet {
                             message = g.toJson(sd);
                             savedObject = sd;
                             
-                            SamplingDay.handle(sd, hibSession);
+                            Sampling.handle(sd, hibSession);
 
                         } catch (ParseException e) {
                             message = "formato data non valido";

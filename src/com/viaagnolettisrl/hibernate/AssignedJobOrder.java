@@ -3,7 +3,7 @@ package com.viaagnolettisrl.hibernate;
 import java.io.Serializable;
 import java.util.Date;
 
-public class AssignedJobOrder implements Serializable {
+public class AssignedJobOrder extends DraggableEvent implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 

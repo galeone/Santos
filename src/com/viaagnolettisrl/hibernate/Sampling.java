@@ -3,7 +3,8 @@ package com.viaagnolettisrl.hibernate;
 import java.io.Serializable;
 import java.util.Date;
 
-public class NonWorkingDay extends DraggableEvent implements Serializable {
+
+public class Sampling extends DraggableEvent implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -11,23 +12,15 @@ public class NonWorkingDay extends DraggableEvent implements Serializable {
 
 	private Date start, end;
 	
-	public Machine getMachine() {
-	    return null;
-	}
+	private Machine machine;
+	private JobOrder jobOrder;
 	
-	@Override
-    public String toString() {
-        return "NonWorkingDay [id=" + id + ", start=" + start + ", end=" + end + ", title=" + title + ", color="
-                + color + "]";
-    }
-
-    public String title = "Giorno non lavorativo",
-			color = "#ff9f89",
-			type = "nonworkingday";
+	public String title = "Campionamento",
+			color = "#00E",
+			type = "sampling";
 	public boolean overlap = false, // can't drop events on a non working day
 			allDay = true,
 			editable = true;
-			
 
 	@Override
 	public int hashCode() {
@@ -47,7 +40,7 @@ public class NonWorkingDay extends DraggableEvent implements Serializable {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		NonWorkingDay other = (NonWorkingDay) obj;
+		Sampling other = (Sampling) obj;
 		if (start == null) {
 			if (other.start != null)
 				return false;
@@ -89,5 +82,28 @@ public class NonWorkingDay extends DraggableEvent implements Serializable {
 	public void setEnd(Date end) {
 		this.end = end;
 	}
+
+    @Override
+    public String toString() {
+        return "Sampling [id=" + id + ", start=" + start + ", end=" + end + ", machine=" + machine + ", jobOrder="
+                + jobOrder + ", title=" + title + ", color=" + color + ", type=" + type + ", overlap=" + overlap
+                + ", allDay=" + allDay + ", editable=" + editable + "]";
+    }
+
+    public Machine getMachine() {
+        return machine;
+    }
+
+    public void setMachine(Machine machine) {
+        this.machine = machine;
+    }
+
+    public JobOrder getJobOrder() {
+        return jobOrder;
+    }
+
+    public void setJobOrder(JobOrder jobOrder) {
+        this.jobOrder = jobOrder;
+    }
 
 }

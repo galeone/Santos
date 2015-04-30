@@ -31,6 +31,9 @@
 		<li class="ui-state-default ui-corner-all"><a
 			href="<%= request.getContextPath() %>/pages/ajax/program.jsp">Programma</a>
 		</li>
+		<li class="ui-state-default ui-corner-all"><a
+			href="<%= request.getContextPath() %>/pages/ajax/sampling.jsp">Campionature</a>
+		</li>
 		<li class="ui-state-default ui-corner-all" style="float: right">
 			<a href='<%= request.getContextPath() %>/pages/ajax/logout.jsp'>Esci</a>
 		</li>

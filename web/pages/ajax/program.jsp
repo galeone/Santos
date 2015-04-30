@@ -14,6 +14,7 @@
 	}
 	application.setAttribute("todojoborders",GetCollection.notCompletelyAssignedJobOrders(user));
 	application.setAttribute("machines", GetCollection.Machines());
+	application.setAttribute("joborders", GetCollection.JobOrders());
 %>
 <div class="wrap">
 	<div class="leftc" style="background: #eee">
@@ -37,13 +38,26 @@
 		</c:choose>
 
 		<div id="jobordersummary"></div>
+		<h4>Campionamento</h4>
+		<p>
+			Seleziona la commessa ed imposta la durata. <br /> Dopo trascina il
+			blocchetto sul calendario.
+		</p>
+		<div id="sampling">
+			<div id="sampling-event"></div>
+			<select id="joborder">
+				<c:forEach var="jo" items="${joborders}">
+					<option value="${jo.id}">Commessa: ${jo.id} - Cliente: ${jo.client.name}</option>
+				</c:forEach>
+			</select>
+		</div>
 	</div>
 	<div class="rightc">
 		<h1>Calendario per macchina</h1>
 		<div id="accordion">
 			<c:forEach var="machine" items="${machines}">
-				<h3>ID: ${machine.id} -
-					${machine.name} - ${machine.type} - Finezza: ${machine.nicety}</h3>
+				<h3>ID: ${machine.id} - ${machine.name} - ${machine.type} -
+					Finezza: ${machine.nicety}</h3>
 				<div id="m${machine.id}Calendar"></div>
 			</c:forEach>
 		</div>
@@ -51,6 +65,24 @@
 </div>
 <% Gson gson = new Gson(); %>
 <script>
+var $block = $("#sampling-event"), title = 'Campionamento',
+event = {
+		title: title,
+		allDay: true,
+		color: '#00E',
+		type: 'sampling',
+		// dinamically add machine & joborder reference
+};
+$block.html(title);
+$block.data('event', event);
+
+$block.draggable({
+	zIndex: 999,
+	revert: true,
+	revertduration: 0
+});
+$block.addClass("fc-draggable-event sampling");
+
 window.todojoborders = <%= gson.toJson(application.getAttribute("todojoborders")) %>;
 $("#todoJobOrders").selectmenu({
 	select: function(event, ui) {
@@ -78,7 +110,8 @@ $("#todoJobOrders").selectmenu({
 				allDay: last === 24,
 				last: last,
 				me: $block,
-				color: color
+				color: color,
+				type: "assignedjoborder"
 			};
 			$block.data('event', event);
 			
@@ -107,16 +140,18 @@ $("#todoJobOrders").selectmenu({
 	        return !stillEvent.allDay;
 	    },
 		eventReceive: function(event) {
+		    console.log(event);
 			if(window.user.canAddJobOrder) {
 			    var end = new Date(event._start._d);
 			    end.setHours(end.getHours() +  event.last);
-			    $.post("<%=request.getContextPath()%>/add?what=assignedjoborder",
+			    $.post("<%=request.getContextPath()%>/add?what=" + event.type,
 			            {
 			            	start: event._start._d.toUTCString(),
 			            	end:   end.toUTCString(),
 			            	machine: ${machine.id},
 			            	joborder: event.joborder
 			            }, function(data){
+					 // retreive all machine calendar values and redraw (?)
 			        		var ret = jQuery.parseJSON(data);
 			            	event.id = ret.id;
 			            	event.machine = ret.machine;
@@ -135,7 +170,7 @@ $("#todoJobOrders").selectmenu({
 					end.setHours(end.getHours() +  event.last);
 					event._end = moment(end);
 			    } 
-			    $.post("<%=request.getContextPath()%>/edit?what=assignedjoborder",
+			    $.post("<%=request.getContextPath()%>/edit?what=" + event.type,
 			            {
 			            	id: event.id,
 			            	start: event._start._d.toUTCString(),
@@ -144,6 +179,7 @@ $("#todoJobOrders").selectmenu({
 			            	joborder: event.jobOrder.id
 			            },
 						function(data){
+					    // retreive all machine calendar values and redraw (?)
 			            	if(data != 'ok') { alert(data); revertFunc(); } 
 			    });
 			}
@@ -155,7 +191,7 @@ $("#todoJobOrders").selectmenu({
 		eventSources:[ {
 		        events: $.merge( $.merge(<%=gson.toJson(GetCollection.setAssignedJobOrderAttr(((Machine)pageContext.findAttribute("machine")).getAssignedJobOrders(),user)) %>,
 		        	<%=gson.toJson(GetCollection.NonWorkingDays(false))%>),
-			        <%=gson.toJson(GetCollection.SamplingDays(false))%> )
+			        <%=gson.toJson(GetCollection.Sampling(false))%> )
 		    }
 		],
 		eventDragStop: function(event,jsEvent) {
