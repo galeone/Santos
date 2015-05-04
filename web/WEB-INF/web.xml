@@ -18,6 +18,12 @@
 		<servlet-name>edit</servlet-name>
 		<servlet-class>com.viaagnolettisrl.EditServlet</servlet-class>
 	</servlet>
+	
+	<servlet>
+		<servlet-name>get</servlet-name>
+		<servlet-class>com.viaagnolettisrl.GetServlet</servlet-class>
+	</servlet>
+	
 
 	<servlet>
 		<servlet-name>add</servlet-name>
@@ -56,6 +62,11 @@
 		<url-pattern>/add</url-pattern>
 	</servlet-mapping>
 
+	<servlet-mapping>
+		<servlet-name>get</servlet-name>
+		<url-pattern>/get</url-pattern>
+	</servlet-mapping>
+	
 	<!-- Welcome files -->
 	<!-- Define, in order of preference, which file to show when no filename 
 		is defined in the path -->

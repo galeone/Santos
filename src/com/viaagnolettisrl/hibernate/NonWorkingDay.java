@@ -3,7 +3,7 @@ package com.viaagnolettisrl.hibernate;
 import java.io.Serializable;
 import java.util.Date;
 
-public class NonWorkingDay extends DraggableEvent implements Serializable {
+public class NonWorkingDay extends DraggableEvent implements Serializable, GlobalEvent {
 
 	private static final long serialVersionUID = 1L;
 

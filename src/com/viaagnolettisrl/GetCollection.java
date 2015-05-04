@@ -49,7 +49,7 @@ public class GetCollection {
         cal.add(Calendar.DATE, 1);
         Date end = cal.getTime();
         Machine m = e.getMachine();
-        Query q = session.createQuery("from AssignedJobOrder where starts between :begin AND :end" + (m != null ? " AND machineid = :machine" : "")).
+        Query q = session.createQuery("from AssignedJobOrder where starts between :begin AND :end" + (m != null ? " AND idmachine = :machine" : "")).
                 setDate("begin", begin).setDate("end", end);
         if(m != null) {
             q.setLong("machine", m.getId());
@@ -209,17 +209,17 @@ public class GetCollection {
     }
     
     @SuppressWarnings("unchecked")
-    public static Collection<Sampling> Sampling() {
-        return (Collection<Sampling>) Get("Sampling");
+    public static Collection<Sampling> Sampling(Machine m) {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        Query q = session.createQuery("from Sampling where idmachine = :id");
+        q.setLong("id", m.getId());
+        List ret = q.list();
+        session.close();
+        return (Collection<Sampling>)ret;
     }
-    
-    
-    public static Collection<Sampling> Sampling(Boolean editable) {
-        Collection<Sampling> l = Sampling();
-        for(Sampling sd : l) {
-            sd.editable = editable;
-        }
-        return l;
+    @SuppressWarnings("unchecked")
+    public static Collection<Sampling> Sampling() {
+        return (Collection<Sampling>)Get("Sampling");
     }
     
     @SuppressWarnings("unchecked")

@@ -248,7 +248,7 @@ public class AddServlet extends HttpServlet {
                         } catch (NumberFormatException e) {
                             message = "Macchina non valida";
                         } catch (ParseException e) {
-                            message = "Data inizio/ fine non valida";
+                            message = "Data inizio/fine non valida";
                         }
                     }
                 }
@@ -283,28 +283,61 @@ public class AddServlet extends HttpServlet {
             break;
             
             case "sampling":
-                if (!user.getIsAdmin()) {
-                    message = "Non puoi aggiungere giorni non lavorativi";
+                if (!user.getCanAddJobOrder()) {
+                    message = "Non puoi gestire commesse";
                 } else {
-                    String dateS = request.getParameter("date");
-                    if (dateS == null || "".equals(dateS)) {
+                    String[] fields = new String[] { "start", "end", "machine", "joborder" };
+                    Arrays.sort(fields);
+                    params = ServletUtils.getParameters(request, fields);
+                    if (params.containsValue(null) || params.containsValue("")) {
                         message = "Completare tutti i campi";
                     } else {
                         try {
-                            Sampling sd = new Sampling();
+                            Sampling s = new Sampling();
+                            Long id = null;
+                            try {
+                                id = Long.parseLong(params.get("machine"));
+                            } catch (NumberFormatException e) {
+                                message = "Valore macchine non valido";
+                                break;
+                            }
+                            Machine m = (Machine) hibSession.get(Machine.class, id);
+                            if (m == null) {
+                                message = "Macchina non trovata";
+                                break;
+                            }
+                            
+                            s.setMachine(m);
+                            
+                            try {
+                                id = Long.parseLong(params.get("joborder"));
+                            } catch (NumberFormatException e) {
+                                message = "Valore commessa non valido";
+                                break;
+                            }
+                            JobOrder j = (JobOrder) hibSession.get(JobOrder.class, id);
+                            if (j == null) {
+                                message = "Commessa non trovata";
+                                break;
+                            }
+                            
+                            s.setJobOrder(j);
+                            
                             SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
-                            Date d = sdf.parse(dateS);
-                            sd.setStart(d);
-                            sd.setEnd(d);
+                            s.setEnd(sdf.parse(params.get("end")));
+                            s.setStart(sdf.parse(params.get("start")));
                             
-                            hibSession.saveOrUpdate(sd);
-                            message = g.toJson(sd);
-                            savedObject = sd;
+                            hibSession.saveOrUpdate(s);
                             
-                            Sampling.handle(sd, hibSession);
-
+                            message = g.toJson(s);
+                            savedObject = s;
+                            
+                            Sampling.handle(s, hibSession);
+                            
+                        } catch (NumberFormatException e) {
+                            message = "Macchina non valida";
                         } catch (ParseException e) {
-                            message = "formato data non valido";
+                            message = "Data inizio/fine non valida";
                         }
                     }
                 }

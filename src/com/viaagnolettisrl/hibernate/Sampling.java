@@ -18,7 +18,7 @@ public class Sampling extends DraggableEvent implements Serializable {
 	public String title = "Campionamento",
 			color = "#00E",
 			type = "sampling";
-	public boolean overlap = false, // can't drop events on a non working day
+	public boolean overlap = true,
 			allDay = true,
 			editable = true;
 

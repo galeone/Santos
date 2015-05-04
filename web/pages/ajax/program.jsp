@@ -1,3 +1,4 @@
+<%@page import="javax.swing.text.AbstractDocument.Content"%>
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@ page errorPage="../../errors/exception.jsp"%>
 <%@ page session="true"%>
@@ -71,6 +72,7 @@ event = {
 		allDay: true,
 		color: '#00E',
 		type: 'sampling',
+		last: 24
 		// dinamically add machine & joborder reference
 };
 $block.html(title);
@@ -149,7 +151,7 @@ $("#todoJobOrders").selectmenu({
 			            	start: event._start._d.toUTCString(),
 			            	end:   end.toUTCString(),
 			            	machine: ${machine.id},
-			            	joborder: event.joborder
+			            	joborder: event.type == 'sampling' ? $("#joborder").val() : event.joborder
 			            }, function(data){
 					 // retreive all machine calendar values and redraw (?)
 			        		var ret = jQuery.parseJSON(data);
@@ -191,7 +193,7 @@ $("#todoJobOrders").selectmenu({
 		eventSources:[ {
 		        events: $.merge( $.merge(<%=gson.toJson(GetCollection.setAssignedJobOrderAttr(((Machine)pageContext.findAttribute("machine")).getAssignedJobOrders(),user)) %>,
 		        	<%=gson.toJson(GetCollection.NonWorkingDays(false))%>),
-			        <%=gson.toJson(GetCollection.Sampling(false))%> )
+			        <%=gson.toJson(GetCollection.Sampling((Machine)pageContext.findAttribute("machine")))%> )
 		    }
 		],
 		eventDragStop: function(event,jsEvent) {

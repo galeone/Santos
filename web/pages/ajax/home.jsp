@@ -59,6 +59,8 @@ $("#globalCalendar").fullCalendar({
 		    var now = new Date(), evStart = new Date(event._start);
 		    if(evStart.setHours(0,0,0,0) < now.setHours(0,0,0,0)) {
 				alert("Non puoi inserire eventi nel passato");
+				$("#globalCalendar").fullCalendar( 'refetchEvents' );
+				$("#globalCalendar").fullCalendar( 'rerenderEvents' );
 				return false;
 		    }
 		    $.post("<%=request.getContextPath()%>/add?what=" + event.type,
@@ -67,7 +69,7 @@ $("#globalCalendar").fullCalendar({
 		            }, function(data) {
 		        		var id = jQuery.parseJSON(data).id;
 		                event.id = id;
-		                $("#globalCalendar").fullCalendar('updateEvent',event , false);
+		                $("#globalCalendar").fullCalendar('updateEvent',event);
 		    });
 		}
 	},
@@ -94,7 +96,7 @@ $("#globalCalendar").fullCalendar({
 		center: 'title'
 	},
 	eventSources:[ {
-	        events: <%=gson.toJson(GetCollection.NonWorkingDays(user.getIsAdmin()))%>
+	        url: "<%=request.getContextPath()%>/get?what=nonworkingday"
 	    }
 	],
 	eventDragStop: function(event,jsEvent) {
@@ -107,7 +109,8 @@ $("#globalCalendar").fullCalendar({
 		        jsEvent.pageY>= y1 && jsEvent.pageY <= y2) {
 			    $.post("<%=request.getContextPath()%>/delete?what=" + event.type, { id: event.id }, function(data) {
 			    	if(data == 'ok') {
-			    		$('#globalCalendar').fullCalendar('removeEvents', event.id);
+						$("#globalCalendar").fullCalendar( 'refetchEvents' );
+						$("#globalCalendar").fullCalendar( 'rerenderEvents' );
 			    	} else {
 			    		alert(data);
 			    	}
