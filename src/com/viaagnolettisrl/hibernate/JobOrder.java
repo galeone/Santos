@@ -8,8 +8,8 @@ public class JobOrder implements Serializable {
 
 	private Client client;
 	private Long id;
-	private Long leadTime, missingTime;
-	private String color;
+	private Long leadTime, missingTime, numberOfItems, timeForItem;
+	private String color, description;
 	
 	transient private Set<AssignedJobOrder> assignedJobOrders;
 	
@@ -33,10 +33,7 @@ public class JobOrder implements Serializable {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((client == null) ? 0 : client.hashCode());
-        result = prime * result + ((color == null) ? 0 : color.hashCode());
         result = prime * result + ((id == null) ? 0 : id.hashCode());
-        result = prime * result + ((leadTime == null) ? 0 : leadTime.hashCode());
         return result;
     }
 
@@ -46,18 +43,9 @@ public class JobOrder implements Serializable {
         if (obj == null) return false;
         if (getClass() != obj.getClass()) return false;
         JobOrder other = (JobOrder) obj;
-        if (client == null) {
-            if (other.client != null) return false;
-        } else if (!client.equals(other.client)) return false;
-        if (color == null) {
-            if (other.color != null) return false;
-        } else if (!color.equals(other.color)) return false;
         if (id == null) {
             if (other.id != null) return false;
         } else if (!id.equals(other.id)) return false;
-        if (leadTime == null) {
-            if (other.leadTime != null) return false;
-        } else if (!leadTime.equals(other.leadTime)) return false;
         return true;
     }
 
@@ -77,11 +65,11 @@ public class JobOrder implements Serializable {
 		this.leadTime = LeadTime;
 	}
 
-	@Override
-	public String toString() {
-		return "JobOrder [client=" + client + ", id=" + id + ", leadTime="
-				+ leadTime + "]";
-	}
+    @Override
+    public String toString() {
+        return "JobOrder [client=" + client + ", id=" + id + ", leadTime=" + leadTime + ", missingTime=" + missingTime
+                + ", numberOfItems=" + numberOfItems + ", timeForItem=" + timeForItem + ", color=" + color + "]";
+    }
 
     public Long getMissingTime() {
         return missingTime;
@@ -97,6 +85,30 @@ public class JobOrder implements Serializable {
 
     public void setColor(String color) {
         this.color = color;
+    }
+
+    public Long getNumberOfItems() {
+        return numberOfItems;
+    }
+
+    public void setNumberOfItems(Long numberOfItems) {
+        this.numberOfItems = numberOfItems;
+    }
+
+    public Long getTimeForItem() {
+        return timeForItem;
+    }
+
+    public void setTimeForItem(Long timeForItem) {
+        this.timeForItem = timeForItem;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
 }

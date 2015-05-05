@@ -59,7 +59,7 @@
 			<c:forEach var="machine" items="${machines}">
 				<h3>ID: ${machine.id} - ${machine.name} - ${machine.type} -
 					Finezza: ${machine.nicety}</h3>
-				<div id="m${machine.id}Calendar"></div>
+				<div id="m${machine.id}Calendar" data-calendarid="m${machine.id}Calendar"></div>
 			</c:forEach>
 		</div>
 	</div>
@@ -190,11 +190,8 @@ $("#todoJobOrders").selectmenu({
 			left: 'prev,next today',
 			center: 'title'
 		},
-		eventSources:[ {
-		        events: $.merge( $.merge(<%=gson.toJson(GetCollection.setAssignedJobOrderAttr(((Machine)pageContext.findAttribute("machine")).getAssignedJobOrders(),user)) %>,
-		        	<%=gson.toJson(GetCollection.NonWorkingDays(false))%>),
-			        <%=gson.toJson(GetCollection.Sampling((Machine)pageContext.findAttribute("machine")))%> )
-		    }
+		eventSources:[
+		        "<%=request.getContextPath()%>/get?what=program&machine=${machine.id}"
 		],
 		eventDragStop: function(event,jsEvent) {
 			if(window.user.canAddJobOrder) {
@@ -210,7 +207,8 @@ $("#todoJobOrders").selectmenu({
 
 				    $.post("<%=request.getContextPath()%>/delete?what=assignedjoborder", { id: event.id }, function(data) {
 				    	if(data == 'ok') {
-				    		$('#m${machine.id}Calendar').fullCalendar('removeEvents', event.id);
+				    		$("#m${machine.id}Calendar").fullCalendar( 'refetchEvents' );
+							$("#m${machine.id}Calendar").fullCalendar( 'rerenderEvents' );
 							trashEl.removeClass("to-trash");
 				    	} else {
 				    		alert(data);
@@ -227,7 +225,15 @@ $("#todoJobOrders").selectmenu({
 
 $("#accordion").accordion({
     collapsible: true,
-    heightStyle: "content"
+    heightStyle: "content",
+    activate: function( event, ui ) {
+		var visibleCalendar = ui.newPanel.data('calendarid');
+		if(visibleCalendar !== null) {
+		    visibleCalendar = $("#"+visibleCalendar);
+		    visibleCalendar.fullCalendar( 'refetchEvents' );
+		    visibleCalendar.fullCalendar( 'rerenderEvents' );
+		}		
+    }
 });
 
 </script>

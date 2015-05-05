@@ -177,7 +177,7 @@ public class EditServlet extends HttpServlet {
                     
                     if (message.equals("ok")) {
                         hibSession.saveOrUpdate(nw);
-                        NonWorkingDay.handle(nw, hibSession);
+                        NonWorkingDay.shiftRight(nw, hibSession);
                     }
                 }
             break;
@@ -212,7 +212,7 @@ public class EditServlet extends HttpServlet {
                     
                     if (message.equals("ok")) {
                         hibSession.saveOrUpdate(sd);
-                        Sampling.handle(sd, hibSession);
+                        Sampling.shiftRight(sd, hibSession);
                     }
                 }
             break;
@@ -341,19 +341,35 @@ public class EditServlet extends HttpServlet {
                                         message = "Cliente non trovato";
                                     }
                                 break;
-                                case "leadTime":
+                                case "numberOfItems":
                                     try {
                                         Long lt = Long.parseLong(value);
                                         if (lt <= 0) { throw new NumberFormatException(); }
-                                        j.setLeadTime(lt);
+                                        j.setNumberOfItems(lt);
+                                        j.setLeadTime(lt * j.getTimeForItem());
                                         outputResult = value;
                                     } catch (NumberFormatException e) {
-                                        message = "Tempo di produzione errato";
+                                        message = "Numero di elementi <= 0";
+                                    }
+                                break;
+                                case "timeForItem":
+                                    try {
+                                        Long lt = Long.parseLong(value);
+                                        if (lt <= 0) { throw new NumberFormatException(); }
+                                        j.setTimeForItem(lt);
+                                        j.setLeadTime(lt * j.getNumberOfItems());
+                                        outputResult = value;
+                                    } catch (NumberFormatException e) {
+                                        message = "Tempo per capo <= 0";
                                     }
                                 break;
                                 case "color":
                                     outputResult = value;
                                     j.setColor(value);
+                                break;
+                                case "description":
+                                    outputResult = value;
+                                    j.setDescription(value);
                                 break;
                                 default:
                                     message = "Campo non riconosciuto";
@@ -421,7 +437,7 @@ public class EditServlet extends HttpServlet {
                     
                     if (message.equals("ok")) {
                         hibSession.saveOrUpdate(aj);
-                        AssignedJobOrder.handle(aj, hibSession);
+                        AssignedJobOrder.shiftRight(aj, hibSession);
                     }
                 }
             break;

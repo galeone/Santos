@@ -4,6 +4,5 @@ import java.util.Date;
 
 public interface Event {
     public Date getEnd();
-    public Date getStart();
-    public Machine getMachine();
+    public Date getStart();   
 }

@@ -27,16 +27,23 @@
 			<c:forEach var="client" items="${clients}">
 				<option value="${client.id}">${client.name}</option>
 			</c:forEach>
-		</select> <label for="giorni">Giorni</label> <input type="number" name="giorni"
+		</select>
+		<label for="description">Descrizione</label>
+		<input type="text" required id="description" name="description" rel="2" value="" />
+		<label>Tempo per capo:</label>
+		<label for="giorni">Giorni</label> <input type="number" name="giorni"
 			id="giorni" /> <label for="ore">Ore</label> <input type="number"
 			name="ore" id="ore" />
+		&nbsp;&nbsp;<input type="hidden" name="timeforitem" id="timeforitem" rel="3" value="0" />
 		<!-- tempo in gg e ore -->
-		<input type="hidden" name="leadtime" id="leadtime" rel="2" value="0" />
-		<input type="hidden" name="missingtime" id="missingtime" rel="3"
+		<label for="numberofitems">Numero di capi</label> <input type="number" name="numberofitems"
+		id="numberofitems" rel="4" />
+		<input type="hidden" name="leadtime" id="leadtime" rel="5" value="0" />
+		<input type="hidden" name="missingtime" id="missingtime" rel="6"
 			value="0" />
 		<label
 			for="color">Colore</label> <input type="text" name="color" value=""
-			required class="color text ui-widget-content ui-corner-all" rel="4"
+			required class="color text ui-widget-content ui-corner-all" rel="7"
 			readonly>
 		<input type="submit" value="ok" class="inner">
 		<div class="colorpicker"></div>
@@ -48,7 +55,10 @@
 		<tr class="ui-widget-header ">
 			<th>ID</th>
 			<th>Cliente</th>
-			<th>Tempo di produzione</th>
+			<th>Descrizione</th>
+			<th>Tempo per capo capo</th>
+			<th>Numero di capi</th>
+			<th>Tempo totale di produzione</th>
 			<th>Ore non assegnate</th>
 			<th>Colore</th>
 		</tr>
@@ -85,8 +95,7 @@ $("#ore").on('keyup mouseup', function() {
 	
 	days  = isNaN(days) ? 0 : days;
 	hours = isNaN(hours) ? 0 : hours;
-	$("#leadtime").val(days * 24 + hours);
-	$("#missingtime").val($("#leadtime").val());
+	$("#timeforitem").val(days * 24 + hours);
 });
 $("#giorni").on('keyup mouseup', function() {
 	var days = parseInt($(this).val()),
@@ -94,7 +103,11 @@ $("#giorni").on('keyup mouseup', function() {
 
 	days  = isNaN(days) ? 0 : days;
 	hours = isNaN(hours) ? 0 : hours;
-	$("#leadtime").val(days * 24 + hours);
+	$("#timeforitem").val(days * 24 + hours);
+});
+
+$("#numberofitems").on('keyup mouseup', function() {
+    $("#leadtime").val($("#timeforitem").val() * parseInt($(this).val()));
 	$("#missingtime").val($("#leadtime").val());
 });
 
@@ -118,10 +131,16 @@ $("#joborders-table").dataTable({
             	  }
               },
               { data: 'client.name', name: "client" },
+              { data: 'description', name: "description" },
+              { data: 'timeForItem', name: "timeForItem", render: dataTablesLeadTime },
+              { data: 'numberOfItems', name: "numberOfItems" },
               {
             	  data: 'leadTime',
             	  name: 'leadTime',
-            	  render: dataTablesLeadTime
+            	  render: dataTablesLeadTime,
+            	  createdCell: function (td, cellData, rowData, row, col) {
+  					    td.setAttribute('class', 'read_only');
+  	  		      }
               },
               {
         	  	  data: 'missingTime',
@@ -158,18 +177,25 @@ $("#joborders-table").dataTable({
 		}
 	},
     "aoColumns": [
-                  {},
+                  {},//id
                   {
                 	  type: 'select',
                 	  submit: 'Ok',
                 	  cancel: 'Cancel',
                 	  data: '<%=gson.toJson(mapClient) %>'
                   }, // client
+                  {}, //description
                   {
-                	  type: 'leadtime',
+            	      type: 'leadtime',
                       submit    : 'Ok',
                       cancel    : 'Cancel',
-                  }, //leadtime
+                  },
+                  {}, //numberOfItems
+                  {
+            	      type: 'leadtime',
+                      submit    : 'Ok',
+                      cancel    : 'Cancel',
+                  },
                   {}, //missing
                   {
             	  	type: 'farbtastic',

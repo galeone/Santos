@@ -37,6 +37,9 @@
 		<li class="ui-state-default ui-corner-all" style="float: right">
 			<a href='<%= request.getContextPath() %>/pages/ajax/logout.jsp'>Esci</a>
 		</li>
+		<div id="reload-current-tab" class="ui-state-default ui-corner-all" style="float:right; margin-right:8px; margin-top:-2px">
+			<img src="<%= request.getContextPath() %>/styles/images/reload.png" />
+		</div>
 		<%
 	if(user.getIsAdmin()) {
 %>
@@ -62,6 +65,13 @@ $(document).ready(function() {
 			ui.oldPanel.empty();
 		}
 	});
+	
+	$("#reload-current-tab").on('click', function(e) {
+	    e.preventDefault();
+	    var current_index = $("#menu").tabs("option","active");
+		$("#menu").tabs('load',current_index);
+	});
+	
 });
 </script>
 <%@ include file="../fragments/footer.jsp"%>

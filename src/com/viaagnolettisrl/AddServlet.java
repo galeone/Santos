@@ -33,6 +33,11 @@ import com.viaagnolettisrl.hibernate.User;
 public class AddServlet extends HttpServlet {
     
     private static final long serialVersionUID = 74377157203911L;
+    private User user;
+    private String message;
+    private Object savedObject = null;
+    private Gson g = new Gson();
+    private Session hibSession;
     
     @Override
     public void init() throws ServletException {
@@ -43,12 +48,75 @@ public class AddServlet extends HttpServlet {
         doPost(req, resp);
     }
     
+    private void sampling(HttpServletRequest request) {
+        Map<String, String> params;
+        
+        if (!user.getCanAddJobOrder()) {
+            message = "Non puoi gestire commesse";
+        } else {
+            String[] fields = new String[] { "start", "end", "machine", "joborder" };
+            Arrays.sort(fields);
+            params = ServletUtils.getParameters(request, fields);
+            if (params.containsValue(null) || params.containsValue("")) {
+                message = "Completare tutti i campi";
+            } else {
+                try {
+                    Sampling s = new Sampling();
+                    Long id = null;
+                    try {
+                        id = Long.parseLong(params.get("machine"));
+                    } catch (NumberFormatException e) {
+                        message = "Valore macchine non valido";
+                        return;
+                    }
+                    Machine m = (Machine) hibSession.get(Machine.class, id);
+                    if (m == null) {
+                        message = "Macchina non trovata";
+                        return;
+                    }
+                    
+                    s.setMachine(m);
+                    
+                    try {
+                        id = Long.parseLong(params.get("joborder"));
+                    } catch (NumberFormatException e) {
+                        message = "Valore commessa non valido";
+                        return;
+                    }
+                    JobOrder j = (JobOrder) hibSession.get(JobOrder.class, id);
+                    if (j == null) {
+                        message = "Commessa non trovata";
+                        return;
+                    }
+                    
+                    s.setJobOrder(j);
+                    
+                    SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
+                    s.setEnd(sdf.parse(params.get("end")));
+                    s.setStart(sdf.parse(params.get("start")));
+                    
+                    hibSession.saveOrUpdate(s);
+                    
+                    message = g.toJson(s);
+                    savedObject = s;
+                    
+                    Sampling.shiftRight(s, hibSession);
+                    
+                } catch (NumberFormatException e) {
+                    message = "Macchina non valida";
+                } catch (ParseException e) {
+                    message = "Data inizio/fine non valida";
+                }
+            }
+        }
+    }
+    
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,
             IOException {
         HttpSession session = request.getSession(true);
         ServletOutputStream out = response.getOutputStream();
-        User user = (User) session.getAttribute(LoginServlet.USER);
+        user = (User) session.getAttribute(LoginServlet.USER);
         
         if (user == null) { // not logged in
             out.print("login");
@@ -62,13 +130,9 @@ public class AddServlet extends HttpServlet {
             return;
         }
         
-        Session hibSession = HibernateUtil.getSessionFactory().openSession();
+        message = "ok";
+        hibSession = HibernateUtil.getSessionFactory().openSession();
         hibSession.beginTransaction();
-        
-        String message = "ok";
-        Gson g = new Gson();
-        Object savedObject = null; // for logging
-        
         switch (what) {
             case "user":
                 if (!user.getIsAdmin()) {
@@ -153,7 +217,7 @@ public class AddServlet extends HttpServlet {
                 if (!user.getCanAddJobOrder()) {
                     message = "Non puoi aggiungere commesse";
                 } else {
-                    String[] fields = new String[] { "leadtime", "client", "color" };
+                    String[] fields = new String[] { "leadtime", "client", "color", "numberofitems", "timeforitem", "description" };
                     Arrays.sort(fields);
                     params = ServletUtils.getParameters(request, fields);
                     if (params.containsValue(null) || params.containsValue("")) {
@@ -181,9 +245,23 @@ public class AddServlet extends HttpServlet {
                                 message = "Tempo di produzione <= 0";
                                 break;
                             }
+                            Long numberOfItems = Long.parseLong(params.get("numberofitems"));
+                            if(numberOfItems <= 0) {
+                                message = "Numero di capi <= 0";
+                                break;
+                            }
+                            Long timeForItem = Long.parseLong(params.get("timeforitem"));
+                            if(timeForItem <= 0) {
+                                message = "Tempo per capo <= 0";
+                                break;
+                            }
+                            leadTime = timeForItem * numberOfItems;
+                            j.setNumberOfItems(numberOfItems);
+                            j.setTimeForItem(timeForItem);
                             j.setLeadTime(leadTime);
                             j.setMissingTime(leadTime);
                             j.setColor(params.get("color"));
+                            j.setDescription(params.get("description"));
                             hibSession.saveOrUpdate(j);
                             
                             message = g.toJson(j);
@@ -273,7 +351,7 @@ public class AddServlet extends HttpServlet {
                             message = g.toJson(nw);
                             savedObject = nw;
                             
-                            NonWorkingDay.handle(nw, hibSession);
+                            NonWorkingDay.shiftRight(nw, hibSession);
                             
                         } catch (ParseException e) {
                             message = "formato data non valido";
@@ -283,64 +361,7 @@ public class AddServlet extends HttpServlet {
             break;
             
             case "sampling":
-                if (!user.getCanAddJobOrder()) {
-                    message = "Non puoi gestire commesse";
-                } else {
-                    String[] fields = new String[] { "start", "end", "machine", "joborder" };
-                    Arrays.sort(fields);
-                    params = ServletUtils.getParameters(request, fields);
-                    if (params.containsValue(null) || params.containsValue("")) {
-                        message = "Completare tutti i campi";
-                    } else {
-                        try {
-                            Sampling s = new Sampling();
-                            Long id = null;
-                            try {
-                                id = Long.parseLong(params.get("machine"));
-                            } catch (NumberFormatException e) {
-                                message = "Valore macchine non valido";
-                                break;
-                            }
-                            Machine m = (Machine) hibSession.get(Machine.class, id);
-                            if (m == null) {
-                                message = "Macchina non trovata";
-                                break;
-                            }
-                            
-                            s.setMachine(m);
-                            
-                            try {
-                                id = Long.parseLong(params.get("joborder"));
-                            } catch (NumberFormatException e) {
-                                message = "Valore commessa non valido";
-                                break;
-                            }
-                            JobOrder j = (JobOrder) hibSession.get(JobOrder.class, id);
-                            if (j == null) {
-                                message = "Commessa non trovata";
-                                break;
-                            }
-                            
-                            s.setJobOrder(j);
-                            
-                            SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
-                            s.setEnd(sdf.parse(params.get("end")));
-                            s.setStart(sdf.parse(params.get("start")));
-                            
-                            hibSession.saveOrUpdate(s);
-                            
-                            message = g.toJson(s);
-                            savedObject = s;
-                            
-                            Sampling.handle(s, hibSession);
-                            
-                        } catch (NumberFormatException e) {
-                            message = "Macchina non valida";
-                        } catch (ParseException e) {
-                            message = "Data inizio/fine non valida";
-                        }
-                    }
-                }
+                sampling(request);
             break;
         }
         

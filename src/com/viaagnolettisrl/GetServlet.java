@@ -1,7 +1,12 @@
 package com.viaagnolettisrl;
 
 import java.io.IOException;
-import java.util.Map;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Locale;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -10,12 +15,21 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.hibernate.Session;
+
 import com.google.gson.Gson;
+import com.viaagnolettisrl.hibernate.AssignedJobOrder;
+import com.viaagnolettisrl.hibernate.HibernateUtil;
+import com.viaagnolettisrl.hibernate.Machine;
+import com.viaagnolettisrl.hibernate.NonWorkingDay;
+import com.viaagnolettisrl.hibernate.Sampling;
 import com.viaagnolettisrl.hibernate.User;
 
 public class GetServlet extends HttpServlet {
     
     private static final long serialVersionUID = 74377157203911L;
+    private Gson gson = new Gson();
+    private User user;
     
     @Override
     public void init() throws ServletException {
@@ -26,32 +40,137 @@ public class GetServlet extends HttpServlet {
         doPost(req, resp);
     }
     
+    private Collection<NonWorkingDay> nonWorkingDays(Date start, Date end) throws IOException {
+        return GetCollection.NonWorkingDays(user.getIsAdmin(), start, end);
+    }
+    
+    private Collection<AssignedJobOrder> assignedJobOrders(HttpServletRequest request, Date start, Date end) throws Exception {
+        String machine;
+        if((machine = request.getParameter("machine")) == null || machine.isEmpty()) {
+            throw new Exception("error, machine required");
+        }
+        Long machineId;
+        Machine m;
+        try {
+            machineId = Long.parseLong(machine);
+            Session hibSession = HibernateUtil.getSessionFactory().openSession();
+            hibSession.beginTransaction();
+            m = (Machine) hibSession.get(Machine.class, machineId);
+            hibSession.close();
+            if(m == null) {
+                throw new NumberFormatException();
+            }
+            
+        }catch(NumberFormatException e) {
+            throw new Exception("Id macchina non valido");
+        }
+        
+        return GetCollection.setAssignedJobOrderAttr(m.getAssignedJobOrders(),user);
+    }
+    
+    private Collection<Sampling> sampling(HttpServletRequest request, Date start, Date end) throws Exception {
+        String machine;
+        if((machine = request.getParameter("machine")) == null || machine.isEmpty()) {
+            throw new Exception("error, machine required");
+        }
+        Long machineId;
+        Machine m;
+        try {
+            machineId = Long.parseLong(machine);
+            Session hibSession = HibernateUtil.getSessionFactory().openSession();
+            hibSession.beginTransaction();
+            m = (Machine) hibSession.get(Machine.class, machineId);
+            hibSession.close();
+            if(m == null) {
+                throw new NumberFormatException();
+            }
+            
+        }catch(NumberFormatException e) {
+            throw new Exception("Id macchina non valido");
+        }
+        return GetCollection.Sampling(m, start, end);
+        
+    }
+    
+    private Date getDate(HttpServletRequest request, String name) {
+        String dateS = request.getParameter(name);
+        if (dateS == null || "".equals(dateS)) {
+            return null;
+        } else {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
+                return sdf.parse(dateS);
+            } catch (ParseException e) {
+                return null;
+            }
+        }
+    }
+    
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,
             IOException {
         HttpSession session = request.getSession(true);
         ServletOutputStream out = response.getOutputStream();
-        User user = (User) session.getAttribute(LoginServlet.USER);
-        Gson gson = new Gson();
+        user = (User) session.getAttribute(LoginServlet.USER);
         
         if (user == null) { // not logged in
             out.print("login");
             return;
         }
         
-        Map<String, String> params = ServletUtils.getParameters(request, new String[] { "what" });
-        String what;
-        if ((what = params.get("what")) == null) {
-            out.println("error, invalid parameters");
+        String what = request.getParameter("what");
+        if (what == null || what.isEmpty()) {
+            out.println("error, invalid parameter what");
             return;
         }
         
-        switch(what) {
-            case "nonworkingday":
-                out.print(gson.toJson(GetCollection.NonWorkingDays(user.getIsAdmin())));
-                break;
-             default:
-                 out.print("Error");
+        Date start = getDate(request, "start");
+        Date end = getDate(request, "end");
+        System.out.println(start + " " + end);
+        
+        switch (what) {
+            case "nonworkingdays":
+                out.print(gson.toJson(nonWorkingDays(start, end)));
+            break;
+            
+            case "assignedjoborders":
+                try {
+                    out.print(gson.toJson(assignedJobOrders(request, start, end)));
+                } catch (Exception e) {
+                    out.print(e.getMessage());
+                    e.printStackTrace();
+                }
+            break;
+            
+            case "sampling":
+                try {
+                    out.print(gson.toJson(sampling(request, start, end)));
+                } catch (Exception e) {
+                    out.print(e.getMessage());
+                    e.printStackTrace();
+                }
+            break;
+            
+            case "program":
+                try {
+                    Collection<Object> c = new HashSet<Object>();
+                    for(NonWorkingDay nw : nonWorkingDays(start, end))
+                        c.add(nw);
+                    for(AssignedJobOrder aj : assignedJobOrders(request, start, end))
+                        c.add(aj);
+                    for(Sampling s : sampling(request, start, end))
+                        c.add(s);
+                    out.print(gson.toJson(c));
+                } catch (Exception e) {
+                    out.print(e.getMessage());
+                    e.printStackTrace();
+                }
+            break;
+            
+            default:
+                out.print("Error");
+            break;
+        
         }
     }
 }

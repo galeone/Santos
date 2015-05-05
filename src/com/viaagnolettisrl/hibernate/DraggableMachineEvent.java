@@ -11,27 +11,23 @@ import org.hibernate.Session;
 
 import com.viaagnolettisrl.GetCollection;
 
-public abstract class DraggableEvent implements Event {
-    // shift EVERYTHING RIGHT
-    public static void shiftRight(Event e, Session hibSession) {
+public abstract class DraggableMachineEvent implements MachineEvent {
+    
+    public static void shiftRight(MachineEvent e, Session hibSession) {
         
         // Cerca assigned job order nel giorno di
         // campionamento e fai slittare ai giorni lavorativi
         // successivi
         // lavorativi = non di campionamento e non non lavorativi
-        Collection<AssignedJobOrder> assignedJobOrderConflict = GetCollection
-                .assignedJobOrdersInConflictWith(e);
+        Collection<AssignedJobOrder> assignedJobOrderConflict = GetCollection.assignedJobOrdersInConflictWith(e);
         // ottieni la lista dei giorni di non lavoro
         // successivi al sampling
-        Collection<NonWorkingDay> nonworkingDaysAfterEvent = GetCollection
-                .nonWorkingDaysAfterEvent(e);
+        Collection<NonWorkingDay> nonworkingDaysAfterEvent = GetCollection.nonWorkingDaysAfterEvent(e);
         // ottieni la lista degli ajo successivi al sampling
-        Collection<AssignedJobOrder> assignedJobOrdersAfterEvent = GetCollection
-                .assignedJobOrdersAfterEvent(e);
+        Collection<AssignedJobOrder> assignedJobOrdersAfterEvent = GetCollection.assignedJobOrdersAfterEvent(e);
         // ottieni la lista dei giorni di samplig successivi
         // a questo sampling
-        Collection<Sampling> sampligDaysAfterEvent = GetCollection
-                .samplingAfterEvent(e);
+        Collection<Sampling> sampligDaysAfterEvent = GetCollection.samplingAfterEvent(e);
         
         // per ogni ajo in confitto con il sampling
         Calendar cal = Calendar.getInstance();
@@ -91,6 +87,8 @@ public abstract class DraggableEvent implements Event {
             // in avanti), cioè aggiungi il giorno appena
             // tirato furi
             // alla lista dei giorni in conflitto
+            
+            // TODO: controllare solo per e.getMachine()
             AssignedJobOrder toMove = null;
             for (AssignedJobOrder aj : assignedJobOrdersAfterEvent) {
                 if (sdf.format(aj.getStart()).equals(nextDateString)
@@ -114,7 +112,7 @@ public abstract class DraggableEvent implements Event {
             }
         }
         
-        // se funziona sono Dio.
-        
+        // se funziona sono Dio.+
     }
+    
 }
