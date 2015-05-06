@@ -111,6 +111,247 @@ public class AddServlet extends HttpServlet {
         }
     }
     
+    private void nonWorkingDay(HttpServletRequest request) {
+        if (!user.getIsAdmin()) {
+            message = "Non puoi aggiungere giorni non lavorativi";
+        } else {
+            String startS = request.getParameter("start");
+            if (startS == null || "".equals(startS)) {
+                message = "Completare tutti i campi";
+            } else {
+                try {
+                    NonWorkingDay nw = new NonWorkingDay();
+                    SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
+                    Date d = sdf.parse(startS);
+                    nw.setStart(d);
+                    nw.setEnd(d);
+                    
+                    hibSession.saveOrUpdate(nw);
+                    message = g.toJson(nw);
+                    savedObject = nw;
+                    
+                    NonWorkingDay.shiftRight(nw, hibSession);
+                    
+                } catch (ParseException e) {
+                    message = "formato data non valido";
+                }
+            }
+        }
+    }
+    
+    private void user_a(HttpServletRequest request) {
+        if (!user.getIsAdmin()) {
+            message = "Non sei admin";
+        } else {
+            String[] fields = new String[] { "name", "surname", "username", "password", "canaddjoborder", "canaddclient", "canaddmachine" };
+            Arrays.sort(fields);
+            Map<String, String> params = ServletUtils.getParameters(request, fields);
+            if (params.containsValue(null) || params.containsValue("")) {
+                message = "Completare tutti i campi";
+            } else {
+                User u = new User();
+                u.setCanAddClient(params.get("canaddclient").equals("Si"));
+                u.setCanAddJobOrder(params.get("canaddjoborder").equals("Si"));
+                u.setCanAddMachine(params.get("canaddmachine").equals("Si"));
+                u.setIsAdmin(false);
+                u.setName(params.get("name"));
+                u.setPassword(params.get("password"));
+                u.setSurname(params.get("surname"));
+                u.setUsername(params.get("username"));
+                u.setHistory(new HashSet<History>());
+                hibSession.saveOrUpdate(u);
+                savedObject = u;
+                
+                message = g.toJson(u);
+            }
+        }
+    }
+    
+    private void client(HttpServletRequest request) {
+        if (!user.getCanAddClient()) {
+            message = "Non puoi aggiungere clienti";
+        } else {
+            String[] fields = new String[] { "name", "code" };
+            Arrays.sort(fields);
+            Map<String, String> params = ServletUtils.getParameters(request, fields);
+            if (params.containsValue(null) || params.containsValue("")) {
+                message = "Completare tutti i campi";
+            } else {
+                Client c = new Client();
+                c.setCode(params.get("code"));
+                c.setName(params.get("name"));
+                c.setJobOrders(new HashSet<JobOrder>());
+                hibSession.saveOrUpdate(c);
+                savedObject = c;
+                
+                message = g.toJson(c);
+            }
+        }
+    }
+    
+    private void machine(HttpServletRequest request) {
+        if (!user.getCanAddMachine()) {
+            message = "Non puoi aggiungere macchine";
+        } else {
+            String[] fields = new String[] { "name", "type", "nicety" };
+            Arrays.sort(fields);
+            Map<String, String> params = ServletUtils.getParameters(request, fields);
+            if (params.containsValue(null) || params.containsValue("")) {
+                message = "Completare tutti i campi";
+            } else {
+                try {
+                    Machine m = new Machine();
+                    m.setName(params.get("name"));
+                    m.setNicety(Float.parseFloat(params.get("nicety")));
+                    m.setType(params.get("type"));
+                    m.setAssignedJobOrders(new HashSet<AssignedJobOrder>());
+                    hibSession.saveOrUpdate(m);
+                    savedObject = m;
+                    
+                    message = g.toJson(m);
+                } catch (NumberFormatException e) {
+                    message = "Valore della finezza non valido";
+                }
+            }
+        }
+    }
+    
+    private void jobOrder(HttpServletRequest request) {
+        if (!user.getCanAddJobOrder()) {
+            message = "Non puoi aggiungere commesse";
+        } else {
+            String[] fields = new String[] { "leadtime", "client", "color", "numberofitems", "timeforitem", "description" };
+            Arrays.sort(fields);
+            Map<String, String> params = ServletUtils.getParameters(request, fields);
+            if (params.containsValue(null) || params.containsValue("")) {
+                message = "Completare tutti i campi";
+            } else {
+                try {
+                    JobOrder j = new JobOrder();
+                    Long id = null;
+                    try {
+                        id = Long.parseLong(params.get("client"));
+                    } catch (NumberFormatException e) {
+                        message = "Valore cliente non valido";
+                        return;
+                    }
+                    Client c = (Client) hibSession.get(Client.class, id);
+                    if (c == null) {
+                        message = "Cliente non trovato";
+                        return;
+                    }
+                    
+                    j.setAssignedJobOrders(new HashSet<AssignedJobOrder>());
+                    j.setClient(c);
+                    Long leadTime = Long.parseLong(params.get("leadtime"));
+                    if (leadTime <= 0) {
+                        message = "Tempo di produzione <= 0";
+                        return;
+                    }
+                    Long numberOfItems = Long.parseLong(params.get("numberofitems"));
+                    if(numberOfItems <= 0) {
+                        message = "Numero di capi <= 0";
+                        return;
+                    }
+                    Long timeForItem = Long.parseLong(params.get("timeforitem"));
+                    if(timeForItem <= 0) {
+                        message = "Tempo per capo <= 0";
+                        return;
+                    }
+                    leadTime = timeForItem * numberOfItems;
+                    j.setNumberOfItems(numberOfItems);
+                    j.setTimeForItem(timeForItem);
+                    j.setLeadTime(leadTime);
+                    j.setMissingTime(leadTime);
+                    j.setColor(params.get("color"));
+                    j.setDescription(params.get("description"));
+                    hibSession.saveOrUpdate(j);
+                    
+                    message = g.toJson(j);
+                    savedObject = j;
+                } catch (NumberFormatException e) {
+                    message = "Tempo di produzione non valido";
+                }
+            }
+        }
+    }
+    
+    private void assignedJobOrder(HttpServletRequest request) {
+        if (!user.getCanAddJobOrder()) {
+            message = "Non puoi aggiungere commesse";
+        } else {
+            String[] fields = new String[] { "start", "end", "machine", "joborder" };
+            Arrays.sort(fields);
+            Map<String, String> params = ServletUtils.getParameters(request, fields);
+            if (params.containsValue(null) || params.containsValue("")) {
+                message = "Completare tutti i campi";
+            } else {
+                try {
+                    AssignedJobOrder aj = new AssignedJobOrder();
+                    Long id = null;
+                    try {
+                        id = Long.parseLong(params.get("machine"));
+                    } catch (NumberFormatException e) {
+                        message = "Valore macchine non valido";
+                        return;
+                    }
+                    Machine m = (Machine) hibSession.get(Machine.class, id);
+                    if (m == null) {
+                        message = "Macchina non trovata";
+                        return;
+                    }
+                    
+                    aj.setMachine(m);
+                    
+                    try {
+                        id = Long.parseLong(params.get("joborder"));
+                    } catch (NumberFormatException e) {
+                        message = "Valore commessa non valido";
+                        return;
+                    }
+                    JobOrder j = (JobOrder) hibSession.get(JobOrder.class, id);
+                    if (j == null) {
+                        message = "Commessa non trovata";
+                        return;
+                    }
+                    
+                    aj.setJobOrder(j);
+                    
+                    SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
+                    aj.setEnd(sdf.parse(params.get("end")));
+                    aj.setStart(sdf.parse(params.get("start")));
+                    
+                    hibSession.saveOrUpdate(aj);
+                    
+                    message = g.toJson(aj);
+                    savedObject = aj;
+                    
+                } catch (NumberFormatException e) {
+                    message = "Macchina non valida";
+                } catch (ParseException e) {
+                    message = "Data inizio/fine non valida";
+                }
+            }
+        }
+    }
+    
+    private void log() {
+        try {
+            if (savedObject != null) {
+                History h = new History();
+                h.setAction("CREATE");
+                h.setTime(new Date());
+                h.setUser(user);
+                h.setWhat(savedObject.toString());
+                hibSession.saveOrUpdate(h);
+            }
+            hibSession.getTransaction().commit();
+        } catch (ConstraintViolationException e) {
+            message = "Esiste già un record con questo nome";
+            hibSession.getTransaction().rollback();
+        }
+    }
+    
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,
             IOException {
@@ -130,255 +371,43 @@ public class AddServlet extends HttpServlet {
             return;
         }
         
-        message = "ok";
         hibSession = HibernateUtil.getSessionFactory().openSession();
         hibSession.beginTransaction();
         switch (what) {
             case "user":
-                if (!user.getIsAdmin()) {
-                    message = "Non sei admin";
-                } else {
-                    String[] fields = new String[] { "name", "surname", "username", "password", "canaddjoborder",
-                            "canaddclient", "canaddmachine" };
-                    Arrays.sort(fields);
-                    params = ServletUtils.getParameters(request, fields);
-                    if (params.containsValue(null) || params.containsValue("")) {
-                        message = "Completare tutti i campi";
-                    } else {
-                        User u = new User();
-                        u.setCanAddClient(params.get("canaddclient").equals("Si"));
-                        u.setCanAddJobOrder(params.get("canaddjoborder").equals("Si"));
-                        u.setCanAddMachine(params.get("canaddmachine").equals("Si"));
-                        u.setIsAdmin(false);
-                        u.setName(params.get("name"));
-                        u.setPassword(params.get("password"));
-                        u.setSurname(params.get("surname"));
-                        u.setUsername(params.get("username"));
-                        u.setHistory(new HashSet<History>());
-                        hibSession.saveOrUpdate(u);
-                        savedObject = u;
-                        
-                        message = g.toJson(u);
-                    }
-                    
-                }// isadmin
+                user_a(request);
             break;
             
             case "client":
-                if (!user.getCanAddClient()) {
-                    message = "Non puoi aggiungere clienti";
-                } else {
-                    String[] fields = new String[] { "name", "code" };
-                    Arrays.sort(fields);
-                    params = ServletUtils.getParameters(request, fields);
-                    if (params.containsValue(null) || params.containsValue("")) {
-                        message = "Completare tutti i campi";
-                    } else {
-                        Client c = new Client();
-                        c.setCode(params.get("code"));
-                        c.setName(params.get("name"));
-                        c.setJobOrders(new HashSet<JobOrder>());
-                        hibSession.saveOrUpdate(c);
-                        savedObject = c;
-                        
-                        message = g.toJson(c);
-                    }
-                }
+                client(request);
             break;
             
             case "machine":
-                if (!user.getCanAddMachine()) {
-                    message = "Non puoi aggiungere macchine";
-                } else {
-                    String[] fields = new String[] { "name", "type", "nicety" };
-                    Arrays.sort(fields);
-                    params = ServletUtils.getParameters(request, fields);
-                    if (params.containsValue(null) || params.containsValue("")) {
-                        message = "Completare tutti i campi";
-                    } else {
-                        try {
-                            Machine m = new Machine();
-                            m.setName(params.get("name"));
-                            m.setNicety(Float.parseFloat(params.get("nicety")));
-                            m.setType(params.get("type"));
-                            m.setAssignedJobOrders(new HashSet<AssignedJobOrder>());
-                            hibSession.saveOrUpdate(m);
-                            savedObject = m;
-                            
-                            message = g.toJson(m);
-                        } catch (NumberFormatException e) {
-                            message = "Valore della finezza non valido";
-                        }
-                    }
-                }
+                machine(request);
             break;
             
             case "joborder":
-                if (!user.getCanAddJobOrder()) {
-                    message = "Non puoi aggiungere commesse";
-                } else {
-                    String[] fields = new String[] { "leadtime", "client", "color", "numberofitems", "timeforitem", "description" };
-                    Arrays.sort(fields);
-                    params = ServletUtils.getParameters(request, fields);
-                    if (params.containsValue(null) || params.containsValue("")) {
-                        message = "Completare tutti i campi";
-                    } else {
-                        try {
-                            JobOrder j = new JobOrder();
-                            Long id = null;
-                            try {
-                                id = Long.parseLong(params.get("client"));
-                            } catch (NumberFormatException e) {
-                                message = "Valore cliente non valido";
-                                break;
-                            }
-                            Client c = (Client) hibSession.get(Client.class, id);
-                            if (c == null) {
-                                message = "Cliente non trovato";
-                                break;
-                            }
-                            
-                            j.setAssignedJobOrders(new HashSet<AssignedJobOrder>());
-                            j.setClient(c);
-                            Long leadTime = Long.parseLong(params.get("leadtime"));
-                            if (leadTime <= 0) {
-                                message = "Tempo di produzione <= 0";
-                                break;
-                            }
-                            Long numberOfItems = Long.parseLong(params.get("numberofitems"));
-                            if(numberOfItems <= 0) {
-                                message = "Numero di capi <= 0";
-                                break;
-                            }
-                            Long timeForItem = Long.parseLong(params.get("timeforitem"));
-                            if(timeForItem <= 0) {
-                                message = "Tempo per capo <= 0";
-                                break;
-                            }
-                            leadTime = timeForItem * numberOfItems;
-                            j.setNumberOfItems(numberOfItems);
-                            j.setTimeForItem(timeForItem);
-                            j.setLeadTime(leadTime);
-                            j.setMissingTime(leadTime);
-                            j.setColor(params.get("color"));
-                            j.setDescription(params.get("description"));
-                            hibSession.saveOrUpdate(j);
-                            
-                            message = g.toJson(j);
-                            savedObject = j;
-                        } catch (NumberFormatException e) {
-                            message = "Tempo di produzione non valido";
-                        }
-                    }
-                }
+                jobOrder(request);
             break;
             
             case "assignedjoborder":
-                if (!user.getCanAddJobOrder()) {
-                    message = "Non puoi aggiungere commesse";
-                } else {
-                    String[] fields = new String[] { "start", "end", "machine", "joborder" };
-                    Arrays.sort(fields);
-                    params = ServletUtils.getParameters(request, fields);
-                    if (params.containsValue(null) || params.containsValue("")) {
-                        message = "Completare tutti i campi";
-                    } else {
-                        try {
-                            AssignedJobOrder aj = new AssignedJobOrder();
-                            Long id = null;
-                            try {
-                                id = Long.parseLong(params.get("machine"));
-                            } catch (NumberFormatException e) {
-                                message = "Valore macchine non valido";
-                                break;
-                            }
-                            Machine m = (Machine) hibSession.get(Machine.class, id);
-                            if (m == null) {
-                                message = "Macchina non trovata";
-                                break;
-                            }
-                            
-                            aj.setMachine(m);
-                            
-                            try {
-                                id = Long.parseLong(params.get("joborder"));
-                            } catch (NumberFormatException e) {
-                                message = "Valore commessa non valido";
-                                break;
-                            }
-                            JobOrder j = (JobOrder) hibSession.get(JobOrder.class, id);
-                            if (j == null) {
-                                message = "Commessa non trovata";
-                                break;
-                            }
-                            
-                            aj.setJobOrder(j);
-                            
-                            SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
-                            aj.setEnd(sdf.parse(params.get("end")));
-                            aj.setStart(sdf.parse(params.get("start")));
-                            
-                            hibSession.saveOrUpdate(aj);
-                            
-                            message = g.toJson(aj);
-                            savedObject = aj;
-                            
-                        } catch (NumberFormatException e) {
-                            message = "Macchina non valida";
-                        } catch (ParseException e) {
-                            message = "Data inizio/fine non valida";
-                        }
-                    }
-                }
+                assignedJobOrder(request);
             break;
             
             case "nonworkingday":
-                if (!user.getIsAdmin()) {
-                    message = "Non puoi aggiungere giorni non lavorativi";
-                } else {
-                    String dateS = request.getParameter("date");
-                    if (dateS == null || "".equals(dateS)) {
-                        message = "Completare tutti i campi";
-                    } else {
-                        try {
-                            NonWorkingDay nw = new NonWorkingDay();
-                            SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
-                            Date d = sdf.parse(dateS);
-                            nw.setStart(d);
-                            nw.setEnd(d);
-                            
-                            hibSession.saveOrUpdate(nw);
-                            message = g.toJson(nw);
-                            savedObject = nw;
-                            
-                            NonWorkingDay.shiftRight(nw, hibSession);
-                            
-                        } catch (ParseException e) {
-                            message = "formato data non valido";
-                        }
-                    }
-                }
+                nonWorkingDay(request);
             break;
             
             case "sampling":
                 sampling(request);
             break;
+            
+            default:
+                out.print("Invalid parameter value for what: " + what);
+                return;
         }
         
-        try {
-            if (savedObject != null) {
-                History h = new History();
-                h.setAction("CREATE");
-                h.setTime(new Date());
-                h.setUser(user);
-                h.setWhat(savedObject.toString());
-                hibSession.saveOrUpdate(h);
-            }
-            hibSession.getTransaction().commit();
-        } catch (ConstraintViolationException e) {
-            message = "Esiste già un record con questo nome";
-            hibSession.getTransaction().rollback();
-        }
+        log();
         
         out.print(message);
         hibSession.close();

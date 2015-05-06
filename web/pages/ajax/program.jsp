@@ -153,14 +153,14 @@ $("#todoJobOrders").selectmenu({
 			            	machine: ${machine.id},
 			            	joborder: event.type == 'sampling' ? $("#joborder").val() : event.joborder
 			            }, function(data){
-					 // retreive all machine calendar values and redraw (?)
+			        		//handle only machine events, will never add global event from here
 			        		var ret = jQuery.parseJSON(data);
 			            	event.id = ret.id;
 			            	event.machine = ret.machine;
 			            	event.jobOrder = ret.jobOrder;
 			                $("#m${machine.id}Calendar").fullCalendar('updateEvent',event , false);
 			                $("#remainingTime").html(parseInt($("#remainingTime").html()) - event.last);
-			                event.me.remove();
+			                if(typeof(event.me) !== 'undefined') {event.me.remove();}
 			    });
 			}
 		},
@@ -171,23 +171,28 @@ $("#todoJobOrders").selectmenu({
 					end =  new Date(event._start._d);
 					end.setHours(end.getHours() +  event.last);
 					event._end = moment(end);
-			    } 
+			    }
 			    $.post("<%=request.getContextPath()%>/edit?what=" + event.type,
 			            {
 			            	id: event.id,
 			            	start: event._start._d.toUTCString(),
 			            	end:   event._end._d.toUTCString(),
-			            	machine: event.machine.id,
-			            	joborder: event.jobOrder.id
+			            	// global events (does not have machine/joborder)
+			            	machine: typeof(event.machine)  == 'undefined' ? '' : event.machine.id,
+				            joborder: typeof(event.jobOrder) == 'undefined' ? '' : event.jobOrder.id
 			            },
 						function(data){
-					    // retreive all machine calendar values and redraw (?)
-			            	if(data != 'ok') { alert(data); revertFunc(); } 
+			            	if(data != 'ok') { alert(data); revertFunc(); }
+			            	else {
+			            	    // handle moving of events server side
+			            		$("#m${machine.id}Calendar").fullCalendar( 'refetchEvents' );
+								$("#m${machine.id}Calendar").fullCalendar( 'rerenderEvents' );
+			            	}
 			    });
 			}
 		},
 		header: {
-			left: 'prev,next today',
+			left: '',
 			center: 'title'
 		},
 		eventSources:[
@@ -205,7 +210,7 @@ $("#todoJobOrders").selectmenu({
 		        		trashEl.addClass("to-trash");
 		            }
 
-				    $.post("<%=request.getContextPath()%>/delete?what=assignedjoborder", { id: event.id }, function(data) {
+				    $.post("<%=request.getContextPath()%>/delete?what=" + event.type, { id: event.id }, function(data) {
 				    	if(data == 'ok') {
 				    		$("#m${machine.id}Calendar").fullCalendar( 'refetchEvents' );
 							$("#m${machine.id}Calendar").fullCalendar( 'rerenderEvents' );

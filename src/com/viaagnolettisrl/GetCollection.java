@@ -49,29 +49,19 @@ public class GetCollection {
     public static Collection<AssignedJobOrder> assignedJobOrdersInConflictWith(MachineEvent e) {
         Session session = HibernateUtil.getSessionFactory().openSession();
 
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(e.getStart());
-        cal.set(Calendar.HOUR, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
+        Date start = new Date(), end = new Date();
+        setStartEnd(e, start, end);
         
-        Date begin = cal.getTime();
-        cal.add(Calendar.DATE, 1);
-        Date end = cal.getTime();
         Machine m = e.getMachine();
-        Query q = session.createQuery("from AssignedJobOrder where starts between :begin AND :end AND idmachine = :machine").
-                setDate("begin", begin).setDate("end", end).setLong("machine", m.getId());
+        Query q = session.createQuery("from AssignedJobOrder where starts between :start AND :end AND idmachine = :machine").
+                setDate("start", start).setDate("end", end).setLong("machine", m.getId());
         
         List<AssignedJobOrder> ret = (List<AssignedJobOrder>)q.list();
         session.close();
         return ret;
     }
     
-    @SuppressWarnings("unchecked")
-    public static Collection<AssignedJobOrder> assignedJobOrdersInConflictWith(Event e) {
-        Session session = HibernateUtil.getSessionFactory().openSession();
-
+    private static void setStartEnd(Event e, Date start, Date end) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(e.getStart());
         cal.set(Calendar.HOUR, 0);
@@ -79,11 +69,19 @@ public class GetCollection {
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.HOUR_OF_DAY, 0);
         
-        Date begin = cal.getTime();
+        start.setTime(cal.getTime().getTime());
         cal.add(Calendar.DATE, 1);
-        Date end = cal.getTime();
-        Query q = session.createQuery("from AssignedJobOrder where starts between :begin AND :end").
-                setDate("begin", begin).setDate("end", end);
+        end.setTime(cal.getTime().getTime());
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<AssignedJobOrder> assignedJobOrdersInConflictWith(Event e) {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+        
+        Date start = new Date(), end = new Date();
+        setStartEnd(e, start, end);
+        Query q = session.createQuery("from AssignedJobOrder where starts between :start AND :end").
+                setDate("start", start).setDate("end", end);
         
         List<AssignedJobOrder> ret = (List<AssignedJobOrder>)q.list();
         session.close();
@@ -93,18 +91,11 @@ public class GetCollection {
     @SuppressWarnings("unchecked")
     public static Collection<AssignedJobOrder> assignedJobOrdersAfterEvent(Event e) {
         Session session = HibernateUtil.getSessionFactory().openSession();
-
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(e.getStart());
-        cal.set(Calendar.HOUR, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
         
-        Date begin = cal.getTime();
-        
-        Query q = session.createQuery("from AssignedJobOrder where starts > :begin").
-                setDate("begin", begin);
+        Date start = new Date(), end = new Date();
+        setStartEnd(e, start, end);
+        Query q = session.createQuery("from AssignedJobOrder where starts > :start").
+                setDate("start", start);
         List<AssignedJobOrder> ret = (List<AssignedJobOrder>)q.list();
         session.close();
         return ret;
@@ -114,17 +105,11 @@ public class GetCollection {
     public static Collection<AssignedJobOrder> assignedJobOrdersAfterEvent(MachineEvent e) {
         Session session = HibernateUtil.getSessionFactory().openSession();
 
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(e.getStart());
-        cal.set(Calendar.HOUR, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
+        Date start = new Date(), end = new Date();
+        setStartEnd(e, start, end);
         
-        Date begin = cal.getTime();
-        
-        Query q = session.createQuery("from AssignedJobOrder where starts > :begin").
-                setDate("begin", begin);
+        Query q = session.createQuery("from AssignedJobOrder where starts > :start").
+                setDate("start", start);
         List<AssignedJobOrder> ret = (List<AssignedJobOrder>)q.list();
         session.close();
         return ret;
@@ -134,16 +119,10 @@ public class GetCollection {
     public static Collection<NonWorkingDay> nonWorkingDaysAfterEvent(Event e) {
         Session session = HibernateUtil.getSessionFactory().openSession();
 
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(e.getStart());
-        cal.set(Calendar.HOUR, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
+        Date start = new Date(), end = new Date();
+        setStartEnd(e, start, end);
         
-        Date begin = cal.getTime();
-        
-        Query q = session.createQuery("from NonWorkingDay where starts > :begin").setDate("begin", begin);
+        Query q = session.createQuery("from NonWorkingDay where starts > :start").setDate("start", start);
         List<NonWorkingDay> ret = (List<NonWorkingDay>)q.list();
         session.close();
         return ret;
@@ -152,17 +131,12 @@ public class GetCollection {
     @SuppressWarnings("unchecked")
     public static Collection<Sampling> samplingAfterEvent(MachineEvent e) {
         Session session = HibernateUtil.getSessionFactory().openSession();
-
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(e.getStart());
-        cal.set(Calendar.HOUR, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
         
-        Date begin = cal.getTime();
+        Date start = new Date(), end = new Date();
+        setStartEnd(e, start, end);
+
         Machine m = e.getMachine();
-        Query q = session.createQuery("from Sampling where starts > :begin AND idmachine = :machine").setDate("begin", begin).setLong("machine", m.getId());
+        Query q = session.createQuery("from Sampling where starts > :start AND idmachine = :machine").setDate("start", start).setLong("machine", m.getId());
         List<Sampling> ret = (List<Sampling>)q.list();
         session.close();
         return ret;
@@ -171,17 +145,11 @@ public class GetCollection {
     @SuppressWarnings("unchecked")
     public static Collection<Sampling> samplingAfterEvent(Event e) {
         Session session = HibernateUtil.getSessionFactory().openSession();
-
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(e.getStart());
-        cal.set(Calendar.HOUR, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
         
-        Date begin = cal.getTime();
+        Date start = new Date(), end = new Date();
+        setStartEnd(e, start, end);
 
-        Query q = session.createQuery("from Sampling where starts > :begin").setDate("begin", begin);
+        Query q = session.createQuery("from Sampling where starts > :start").setDate("start", start);
         List<Sampling> ret = (List<Sampling>)q.list();
         session.close();
         return ret;

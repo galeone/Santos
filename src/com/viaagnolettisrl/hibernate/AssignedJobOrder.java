@@ -14,6 +14,7 @@ public class AssignedJobOrder extends DraggableMachineEvent implements Serializa
 	private JobOrder jobOrder;
 	private String title, color;
 	private boolean overlap, editable, allDay;
+	public String type = "assignedjoborder";
 	
 	public Long getLast() {
         return (getEnd().getTime() - getStart().getTime())/ (60 * 60 * 1000);

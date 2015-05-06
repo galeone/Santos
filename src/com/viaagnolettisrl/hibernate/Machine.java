@@ -10,6 +10,7 @@ public class Machine implements Serializable {
 	private Float nicety;
 	private Long id;
 	transient private Set<AssignedJobOrder> assignedJobOrders;
+	transient private Set<Sampling> sampling;
 
     @Override
     public int hashCode() {
@@ -71,4 +72,12 @@ public class Machine implements Serializable {
 		return "Machine [name=" + name + ", type=" + type + ", nicety="
 				+ nicety + ", id=" + id + "]";
 	}
+
+    public Set<Sampling> getSampling() {
+        return sampling;
+    }
+
+    public void setSampling(Set<Sampling> sampling) {
+        this.sampling = sampling;
+    }
 }

@@ -12,6 +12,7 @@ public class JobOrder implements Serializable {
 	private String color, description;
 	
 	transient private Set<AssignedJobOrder> assignedJobOrders;
+	transient private Set<Sampling> sampling;
 	
 	public Set<AssignedJobOrder> getAssignedJobOrders() {
 		return assignedJobOrders;
@@ -109,6 +110,14 @@ public class JobOrder implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Set<Sampling> getSampling() {
+        return sampling;
+    }
+
+    public void setSampling(Set<Sampling> sampling) {
+        this.sampling = sampling;
     }
 
 }

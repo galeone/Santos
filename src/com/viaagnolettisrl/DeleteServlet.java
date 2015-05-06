@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.hibernate.Session;
+import org.hibernate.exception.GenericJDBCException;
 
 import com.viaagnolettisrl.hibernate.AssignedJobOrder;
 import com.viaagnolettisrl.hibernate.Client;
@@ -26,6 +27,10 @@ import com.viaagnolettisrl.hibernate.User;
 public class DeleteServlet extends HttpServlet {
     
     private static final long serialVersionUID = 743707157203911L;
+    private User user;
+    private Session hibSession;
+    private String message;
+    private Object toDelete;
     
     @Override
     public void init() throws ServletException {
@@ -36,12 +41,132 @@ public class DeleteServlet extends HttpServlet {
         doPost(req, resp);
     }
     
+    private void user_e(Long id) {
+        if (!user.getIsAdmin()) {
+            message = "Non sei amministratore";
+        } else {
+            toDelete = hibSession.get(User.class, id);
+            if (toDelete != null) { // exists
+                if (((User) toDelete).getId() == user.getId()) {
+                    message = "Non puoi eliminare l'amministratore";
+                } else {
+                    hibSession.delete((User) toDelete);
+                    message = "ok";
+                }
+            } else {
+                message = "Utente con id " + id + " non esistente";
+            }
+        }
+    }
+    
+    private void nonWorkingDay(Long id) {
+        if (!user.getIsAdmin()) {
+            message = "Non sei amministratore";
+        } else {
+            toDelete = hibSession.get(NonWorkingDay.class, id);
+            if (toDelete != null) { // exists
+                hibSession.delete((NonWorkingDay) toDelete);
+                message = "ok";
+            } else {
+                message = "Giorno non lavorativo non esistente";
+            }
+        }
+    }
+    
+    private void sampling(Long id) {
+        if (!user.getCanAddJobOrder()) {
+            message = "Non pui gestire le commesse e quindi i campionamenti";
+        } else {
+            toDelete = hibSession.get(Sampling.class, id);
+            if (toDelete != null) { // exists
+                hibSession.delete((Sampling) toDelete);
+                message = "ok";
+            } else {
+                message = "Campionamento non esistente";
+            }
+        }
+    }
+    
+    private void client(Long id) {
+        if (!user.getCanAddClient()) {
+            message = "Non puoi eliminare i clienti";
+        } else {
+            toDelete = hibSession.get(Client.class, id);
+            if (toDelete != null) { // exists
+                hibSession.delete((Client) toDelete);
+                message = "ok";
+            } else {
+                message = "Cliente con id " + id + " non esistente";
+            }
+        }
+    }
+    
+    private void machine(Long id) {
+        if (!user.getCanAddMachine()) {
+            message = "Non puoi eliminare le macchine";
+        } else {
+            toDelete = hibSession.get(Machine.class, id);
+            if (toDelete != null) { // exists
+                hibSession.delete((Machine) toDelete);
+                message = "ok";
+            } else {
+                message = "Macchina con id " + id + " non esistente";
+            }
+        }
+    }
+    
+    private void assignedJobOrder(Long id) {
+        if (!user.getCanAddJobOrder()) {
+            message = "Non puoi eliminare le commesse";
+        } else {
+            toDelete = hibSession.get(AssignedJobOrder.class, id);
+            if (toDelete != null) { // exists
+                hibSession.delete((AssignedJobOrder) toDelete);
+                message = "ok";
+            } else {
+                message = "Assegnamento blocchetto orario a macchina non esistente";
+            }
+        }
+    }
+    
+    private void jobOrder(Long id) {
+        if (!user.getCanAddJobOrder()) {
+            message = "Non puoi eliminare le commesse";
+        } else {
+            toDelete = hibSession.get(JobOrder.class, id);
+            if (toDelete != null) { // exists
+                hibSession.delete((JobOrder) toDelete);
+                message = "ok";
+            } else {
+                message = "Commessa con id " + id + " non esistente";
+            }
+        }
+    }
+    
+    private void log() {
+        if ("ok".equals(message)) {
+            try {
+            History h = new History();
+            h.setAction("DELETE");
+            h.setTime(new Date());
+            h.setUser(user);
+            h.setWhat(toDelete.toString());
+            hibSession.saveOrUpdate(h);
+            hibSession.getTransaction().commit();
+            } catch(GenericJDBCException e) {
+                hibSession.getTransaction().rollback();
+                message = "Errore nella cancellazione del record";
+            }
+        } else {
+            hibSession.getTransaction().rollback();
+        }
+    }
+    
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException,
-            IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         HttpSession session = request.getSession(true);
         ServletOutputStream out = response.getOutputStream();
-        User user = (User) session.getAttribute(LoginServlet.USER);
+        user = (User) session.getAttribute(LoginServlet.USER);
         
         if (user == null) { // not logged in
             out.print("login");
@@ -58,112 +183,41 @@ public class DeleteServlet extends HttpServlet {
         
         id = Long.parseLong(params.get("id"));
         
-        Session hibSession = HibernateUtil.getSessionFactory().openSession();
+        hibSession = HibernateUtil.getSessionFactory().openSession();
         hibSession.beginTransaction();
-        
-        Object toDelete = null;
-        String message = "Impossibile eliminare. Elemento già eliminato o non esistente";
-        
+                
         switch (what) {
             case "user":
-                if (!user.getIsAdmin()) {
-                    message = "Non sei amministratore";
-                } else {
-                    toDelete = hibSession.get(User.class, id);
-                    if (toDelete != null) { // exists
-                        if (((User) toDelete).getId() == user.getId()) {
-                            message = "Non puoi eliminare l'amministratore";
-                        } else {
-                            hibSession.delete((User) toDelete);
-                            message = "ok";
-                        }
-                    }
-                }
+                user_e(id);
             break;
             
             case "nonworkingday":
-                if (!user.getIsAdmin()) {
-                    message = "Non sei amministratore";
-                } else {
-                    toDelete = hibSession.get(NonWorkingDay.class, id);
-                    if (toDelete != null) { // exists
-                        hibSession.delete((NonWorkingDay) toDelete);
-                        message = "ok";
-                    }
-                }
+                nonWorkingDay(id);
             break;
             
             case "sampling":
-                if (!user.getIsAdmin()) {
-                    message = "Non sei amministratore";
-                } else {
-                    toDelete = hibSession.get(Sampling.class, id);
-                    if (toDelete != null) { // exists
-                        hibSession.delete((Sampling) toDelete);
-                        message = "ok";
-                    }
-                }
+                sampling(id);
             break;
             
             case "client":
-                if (!user.getCanAddClient()) {
-                    message = "Non puoi eliminare i clienti";
-                } else {
-                    toDelete = hibSession.get(Client.class, id);
-                    if (toDelete != null) { // exists
-                        hibSession.delete((Client) toDelete);
-                        message = "ok";
-                    }
-                }
+                client(id);
             break;
             
             case "machine":
-                if (!user.getCanAddMachine()) {
-                    message = "Non puoi eliminare le macchine";
-                } else {
-                    toDelete = hibSession.get(Machine.class, id);
-                    if (toDelete != null) { // exists
-                        hibSession.delete((Machine) toDelete);
-                        message = "ok";
-                    }
-                }
+                machine(id);
             break;
             
             case "joborder":
-                if (!user.getCanAddJobOrder()) {
-                    message = "Non puoi eliminare le commesse";
-                } else {
-                    toDelete = hibSession.get(JobOrder.class, id);
-                    if (toDelete != null) { // exists
-                        hibSession.delete((JobOrder) toDelete);
-                        message = "ok";
-                    }
-                }
+                jobOrder(id);
             break;
             
             case "assignedjoborder":
-                if (!user.getCanAddJobOrder()) {
-                    message = "Non puoi eliminare le commesse";
-                } else {
-                    toDelete = hibSession.get(AssignedJobOrder.class, id);
-                    if (toDelete != null) { // exists
-                        hibSession.delete((AssignedJobOrder) toDelete);
-                        message = "ok";
-                    }
-                }
+                assignedJobOrder(id);
             break;
         }
-        if ("ok".equals(message)) {
-            History h = new History();
-            h.setAction("DELETE");
-            h.setTime(new Date());
-            h.setUser(user);
-            h.setWhat(toDelete.toString());
-            hibSession.saveOrUpdate(h);
-            hibSession.getTransaction().commit();
-        } else {
-            hibSession.getTransaction().rollback();
-        }
+        
+        log();
+        
         out.print(message);
         
         hibSession.close();

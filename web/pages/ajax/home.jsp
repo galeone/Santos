@@ -58,7 +58,7 @@ $("#globalCalendar").fullCalendar({
 		if(window.user.isAdmin) {
 		    $.post("<%=request.getContextPath()%>/add?what=" + event.type,
 		            {
-		            	date: event._start._d.toUTCString()
+		            	start: event._start._d.toUTCString()
 		            }, function(data) {
 		        		var id = jQuery.parseJSON(data).id;
 		                event.id = id;
@@ -71,7 +71,7 @@ $("#globalCalendar").fullCalendar({
 		    $.post("<%=request.getContextPath()%>/edit?what=" + event.type,
 		            {
 		            	id: event.id,
-		            	date: event._start._d.toUTCString()
+		            	start: event._start._d.toUTCString()
 		            },
 					function(data){
 		            	if(data != 'ok') { alert(data); revertFunc(); } 
@@ -79,7 +79,7 @@ $("#globalCalendar").fullCalendar({
 		}
 	},
 	header: {
-		left: 'prev,next today',
+		left: '',
 		center: 'title'
 	},
 	eventSources:[ {

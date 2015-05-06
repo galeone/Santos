@@ -11,8 +11,8 @@
 		<property column="starts" name="start" type="timestamp" />
 		<property column="ends" name="end" type="timestamp" />
 		<many-to-one name="Machine" class="com.viaagnolettisrl.hibernate.Machine"
-			column="IDMACHINE" unique="false" not-null="true" lazy="false" />
+			column="idMachine" unique="false" not-null="true" lazy="false" />
 		<many-to-one name="JobOrder" class="com.viaagnolettisrl.hibernate.JobOrder"
-			column="IDJOBORDER" unique="false" not-null="true" lazy="false" />
+			column="idJobOrder" unique="false" not-null="true" lazy="false" />
 	</class>
 </hibernate-mapping>

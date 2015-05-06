@@ -31,10 +31,11 @@
 		<label for="description">Descrizione</label>
 		<input type="text" required id="description" name="description" rel="2" value="" />
 		<label>Tempo per capo:</label>
-		<label for="giorni">Giorni</label> <input type="number" name="giorni"
-			id="giorni" /> <label for="ore">Ore</label> <input type="number"
-			name="ore" id="ore" />
-		&nbsp;&nbsp;<input type="hidden" name="timeforitem" id="timeforitem" rel="3" value="0" />
+		<label for="giorni">Ore</label> <input type="number" name="ore"
+			id="ore" />
+		<label for="minuti">Minuti</label> <input type="number"
+			name="minuti" id="minuti" />
+		<input type="hidden" name="timeforitem" id="timeforitem" rel="3" value="0" />
 		<!-- tempo in gg e ore -->
 		<label for="numberofitems">Numero di capi</label> <input type="number" name="numberofitems"
 		id="numberofitems" rel="4" />
@@ -89,21 +90,23 @@ picker.linkTo(function(color) {
 	$in.css('border-color', color);
 	$in.prop('readonly', true);
 });
+
 $("#ore").on('keyup mouseup', function() {
-	var days = parseInt($("#giorni").val()),
+	var minutes = parseInt($("#minuti").val()),
 		hours =  parseInt($(this).val());
 	
-	days  = isNaN(days) ? 0 : days;
-	hours = isNaN(hours) ? 0 : hours;
-	$("#timeforitem").val(days * 24 + hours);
+	minutes  = isNaN(minutes) ? 0 : minutes;
+	hours 	 = isNaN(hours)   ? 0 : hours;
+	$("#timeforitem").val(hours * 60 + minutes);
 });
-$("#giorni").on('keyup mouseup', function() {
-	var days = parseInt($(this).val()),
-		hours =  parseInt($("#ore").val());
 
-	days  = isNaN(days) ? 0 : days;
-	hours = isNaN(hours) ? 0 : hours;
-	$("#timeforitem").val(days * 24 + hours);
+$("#minuti").on('keyup mouseup', function() {
+	var hours  	= parseInt($("#ore").val()),
+		minutes =  parseInt($(this).val());
+
+	minutes  = isNaN(minutes) ? 0 : minutes;
+	hours 	 = isNaN(hours)   ? 0 : hours;
+	$("#timeforitem").val(hours * 60 + minutes);
 });
 
 $("#numberofitems").on('keyup mouseup', function() {
