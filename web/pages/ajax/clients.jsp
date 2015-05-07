@@ -52,7 +52,7 @@ $("#clients-table").dataTable({
 	"language": {
 		"url": "<%=request.getContextPath()%>/scripts/datatables/italian.js"
 	},
-	"data": <%=gson.toJson(GetCollection.Clients())%>,
+	"data": <%=gson.toJson(GetCollection.clients())%>,
 	"createdRow": function ( row, data, index ) {
 		row.setAttribute('id', data.id);
 	},

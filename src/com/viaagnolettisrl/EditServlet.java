@@ -58,6 +58,8 @@ public class EditServlet extends HttpServlet {
             
             if (toEdit != null) { // edit
                 sd = (Sampling) toEdit;
+                sd.setOldEnd(sd.getEnd());
+                sd.setOldStart(sd.getStart());
                 Map<String,String> params = ServletUtils.getParameters(request, new String[]{"start", "end"});
                 String startS = params.get("start"), endS = params.get("end");
 
@@ -80,7 +82,7 @@ public class EditServlet extends HttpServlet {
             
             if (message.equals("ok")) {
                 hibSession.saveOrUpdate(sd);
-                Sampling.shiftRight(sd, hibSession);
+                Sampling.switchOnNext(sd, hibSession);
             }
         }
     }
@@ -377,6 +379,8 @@ public class EditServlet extends HttpServlet {
             AssignedJobOrder aj = new AssignedJobOrder();
             if (toEdit != null) { // edit
                 aj = (AssignedJobOrder) toEdit;
+                aj.setOldEnd(aj.getEnd());
+                aj.setOldStart(aj.getStart());
                 Map<String,String> params = ServletUtils.getParameters(request, fields);
                 String startS = params.get("start"), endS = params.get("end");
                 
@@ -411,7 +415,7 @@ public class EditServlet extends HttpServlet {
             
             if (message.equals("ok")) {
                 hibSession.saveOrUpdate(aj);
-                AssignedJobOrder.shiftRight(aj, hibSession);
+                AssignedJobOrder.switchOnNext(aj, hibSession);
             }
         }
     }

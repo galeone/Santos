@@ -51,9 +51,7 @@ $("#globalCalendar").fullCalendar({
 	lang: 'it',
 	editable: window.user.isAdmin,
 	droppable: window.user.isAdmin,
-    eventOverlap: function(stillEvent, movingEvent) {
-        return !stillEvent.allDay;
-    },
+    eventOverlap: window.user.isAdmin,
 	eventReceive: function(event) {
 		if(window.user.isAdmin) {
 		    $.post("<%=request.getContextPath()%>/add?what=" + event.type,

@@ -40,7 +40,7 @@ $("#sampling-table").dataTable({
 	"language": {
 		"url": "<%=request.getContextPath()%>/scripts/datatables/italian.js"
 	},
-	"data": <%=gson.toJson(GetCollection.Sampling())%>,
+	"data": <%=gson.toJson(GetCollection.sampling())%>,
 	"createdRow": function ( row, data, index ) {
 		row.setAttribute('id', data.id);
 	},

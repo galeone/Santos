@@ -4,23 +4,19 @@ import java.io.Serializable;
 import java.util.Date;
 
 
-public class Sampling extends DraggableMachineEvent implements Serializable {
+public class Sampling extends DroppableMachineEvent implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
 	private Long id;
-
 	private Date start, end;
-	
 	private Machine machine;
 	private JobOrder jobOrder;
 	
 	public String title = "Campionamento",
 			color = "#00E",
 			type = "sampling";
-	public boolean overlap = true,
-			allDay = true,
-			editable = true;
+	public boolean overlap = true, allDay = true, editable = true;
 
 	@Override
     public int hashCode() {

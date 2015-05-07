@@ -3,7 +3,7 @@ package com.viaagnolettisrl.hibernate;
 import java.io.Serializable;
 import java.util.Date;
 
-public class AssignedJobOrder extends DraggableMachineEvent implements Serializable {
+public class AssignedJobOrder extends DroppableMachineEvent implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -13,7 +13,7 @@ public class AssignedJobOrder extends DraggableMachineEvent implements Serializa
 	private Machine machine;
 	private JobOrder jobOrder;
 	private String title, color;
-	private boolean overlap, editable, allDay;
+	private boolean overlap = true, editable = true, allDay;
 	public String type = "assignedjoborder";
 	
 	public Long getLast() {

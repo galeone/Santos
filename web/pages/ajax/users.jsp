@@ -70,7 +70,7 @@ $("#users-table").dataTable({
 	"language": {
 		"url": "<%=request.getContextPath()%>/scripts/datatables/italian.js"
 	},
-	"data": <%=gson.toJson(GetCollection.Users())%>,
+	"data": <%=gson.toJson(GetCollection.users())%>,
 	"createdRow": function ( row, data, index ) {
 		row.setAttribute('id', data.id);
 	},

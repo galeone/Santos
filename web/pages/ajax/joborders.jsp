@@ -22,7 +22,7 @@
 			for="client">Cliente</label> <select name="client" id="client"
 			required rel="1">
 			<%
-			application.setAttribute("clients", GetCollection.Clients());
+			application.setAttribute("clients", GetCollection.clients());
 			%>
 			<c:forEach var="client" items="${clients}">
 				<option value="${client.id}">${client.name}</option>
@@ -74,7 +74,7 @@
 	commessa</button>
 <%
 Gson gson = new Gson();
-Collection<Client> clients = GetCollection.Clients();
+Collection<Client> clients = (Collection<Client>) application.getAttribute("clients");
 Map<Long, String> mapClient = new HashMap<Long, String>();
 for(Client c : clients) {
 	   mapClient.put(c.getId(), c.getName());
@@ -118,10 +118,11 @@ $("#joborders-table").dataTable({
 	"bJQueryUI": true,
 	"bProcestrueng": true,
 	"sPaginationType": "full_numbers",
+	"order": [[ 0, "desc" ]],
 	"language": {
 		"url": "<%=request.getContextPath()%>/scripts/datatables/italian.js"
 	},
-	"data": <%=gson.toJson(GetCollection.JobOrders())%>,
+	"data": <%=gson.toJson(GetCollection.jobOrders())%>,
 	"createdRow": function ( row, data, index ) {
 		row.setAttribute('id', data.id);
 	},

@@ -13,9 +13,9 @@
 		response.sendRedirect(request.getContextPath()
 				+ LoginServlet.LOGIN_FORM);
 	}
-	application.setAttribute("todojoborders",GetCollection.notCompletelyAssignedJobOrders(user));
-	application.setAttribute("machines", GetCollection.Machines());
-	application.setAttribute("joborders", GetCollection.JobOrders());
+	application.setAttribute("todojoborders",GetCollection.notCompletelyAssignedJobOrders(user.getCanAddJobOrder()));
+	application.setAttribute("machines", GetCollection.machines());
+	application.setAttribute("joborders", GetCollection.jobOrders());
 %>
 <div class="wrap">
 	<div class="leftc" style="background: #eee">
@@ -26,7 +26,7 @@
 		</h4>
 		<c:choose>
 			<c:when test="${empty todojoborders}">
-				Non esistono commesse non assegnate o parzilamente assegnate 
+				Non esistono commesse non assegnate o parzilamente assegnate<br /> 
 			</c:when>
 			<c:otherwise>
 				<select id="todoJobOrders">
@@ -37,21 +37,24 @@
 				</select>
 			</c:otherwise>
 		</c:choose>
-
-		<div id="jobordersummary"></div>
-		<h4>Campionamento</h4>
-		<p>
-			Seleziona la commessa ed imposta la durata. <br /> Dopo trascina il
-			blocchetto sul calendario.
-		</p>
-		<div id="sampling">
-			<div id="sampling-event"></div>
-			<select id="joborder">
-				<c:forEach var="jo" items="${joborders}">
-					<option value="${jo.id}">Commessa: ${jo.id} - Cliente: ${jo.client.name}</option>
-				</c:forEach>
-			</select>
-		</div>
+		<c:choose>
+			<c:when test="${!empty todojoborders}">
+				<div id="jobordersummary"></div>
+				<h4>Campionamento</h4>
+				<p>
+					Seleziona la commessa ed imposta la durata. <br /> Dopo trascina il
+					blocchetto sul calendario.
+				</p>
+				<div id="sampling">
+					<div id="sampling-event"></div>
+					<select id="joborder">
+						<c:forEach var="jo" items="${joborders}">
+							<option value="${jo.id}">Commessa: ${jo.id} - Cliente: ${jo.client.name}</option>
+						</c:forEach>
+					</select>
+				</div>
+			</c:when>
+		</c:choose>
 	</div>
 	<div class="rightc">
 		<h1>Calendario per macchina</h1>
@@ -138,9 +141,7 @@ $("#todoJobOrders").selectmenu({
 		lang: 'it',
 		editable: window.user.canAddJobOrder,
 		droppable: window.user.canAddJobOrder,
-	    eventOverlap: function(stillEvent, movingEvent) {
-	        return !stillEvent.allDay;
-	    },
+	    eventOverlap: window.user.canAddJobOrder ,
 		eventReceive: function(event) {
 		    console.log(event);
 			if(window.user.canAddJobOrder) {
@@ -161,6 +162,8 @@ $("#todoJobOrders").selectmenu({
 			                $("#m${machine.id}Calendar").fullCalendar('updateEvent',event , false);
 			                $("#remainingTime").html(parseInt($("#remainingTime").html()) - event.last);
 			                if(typeof(event.me) !== 'undefined') {event.me.remove();}
+			                $("#m${machine.id}Calendar").fullCalendar( 'refetchEvents' );
+							$("#m${machine.id}Calendar").fullCalendar( 'rerenderEvents' );
 			    });
 			}
 		},

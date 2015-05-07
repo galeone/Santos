@@ -35,7 +35,7 @@ $("#history-table").dataTable({
 	"language": {
 		"url": "<%=request.getContextPath()%>/scripts/datatables/italian.js"
 	},
-	"data": <%=gson.toJson(GetCollection.Histories())%>,
+	"data": <%=gson.toJson(GetCollection.histories())%>,
     columns: [
               { data: 'dateTime', name: "dateTime" },
               { data: 'user.username', name: 'user.username' },

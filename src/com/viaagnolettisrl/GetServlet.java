@@ -40,10 +40,6 @@ public class GetServlet extends HttpServlet {
         doPost(req, resp);
     }
     
-    private Collection<NonWorkingDay> nonWorkingDays(Date start, Date end) throws IOException {
-        return GetCollection.NonWorkingDays(user.getIsAdmin(), start, end);
-    }
-    
     private Collection<AssignedJobOrder> assignedJobOrders(HttpServletRequest request, Date start, Date end) throws Exception {
         String machine;
         if((machine = request.getParameter("machine")) == null || machine.isEmpty()) {
@@ -60,12 +56,13 @@ public class GetServlet extends HttpServlet {
             if(m == null) {
                 throw new NumberFormatException();
             }
+            return GetCollection.setAssignedJobOrderAttr(
+                    GetCollection.assignedJobOrdersBetween(m, start, end),
+                    user.getCanAddJobOrder());
             
         }catch(NumberFormatException e) {
             throw new Exception("Id macchina non valido");
-        }
-        
-        return GetCollection.setAssignedJobOrderAttr(m.getAssignedJobOrders(),user);
+        }        
     }
     
     private Collection<Sampling> sampling(HttpServletRequest request, Date start, Date end) throws Exception {
@@ -88,7 +85,7 @@ public class GetServlet extends HttpServlet {
         }catch(NumberFormatException e) {
             throw new Exception("Id macchina non valido");
         }
-        return GetCollection.Sampling(m, start, end);
+        return GetCollection.samplingBetween(m, start, end);
         
     }
     
@@ -130,7 +127,7 @@ public class GetServlet extends HttpServlet {
         
         switch (what) {
             case "nonworkingdays":
-                out.print(gson.toJson(nonWorkingDays(start, end)));
+                out.print(gson.toJson(GetCollection.nonWorkingDaysBetween(user.getIsAdmin(), start, end)));
             break;
             
             case "assignedjoborders":
@@ -154,7 +151,7 @@ public class GetServlet extends HttpServlet {
             case "program":
                 try {
                     Collection<Object> c = new HashSet<Object>();
-                    for(NonWorkingDay nw : nonWorkingDays(start, end))
+                    for(NonWorkingDay nw : GetCollection.nonWorkingDaysBetween(user.getIsAdmin(), start, end))
                         c.add(nw);
                     for(AssignedJobOrder aj : assignedJobOrders(request, start, end))
                         c.add(aj);

@@ -3,7 +3,7 @@ package com.viaagnolettisrl.hibernate;
 import java.io.Serializable;
 import java.util.Date;
 
-public class NonWorkingDay extends DraggableEvent implements Serializable, Event {
+public class NonWorkingDay extends DroppableGlobalEvent implements Serializable, GlobalEvent {
     
     private static final long serialVersionUID = 1L;
     
@@ -12,8 +12,7 @@ public class NonWorkingDay extends DraggableEvent implements Serializable, Event
     private Date start, end;
     
     public String title = "Giorno non lavorativo", color = "#ff9f89", type = "nonworkingday";
-    public boolean overlap = false, // can't drop events on a non working day
-            allDay = true, editable = true;
+    public boolean overlap = true,  allDay = true, editable = true;
     
     @Override
     public String toString() {

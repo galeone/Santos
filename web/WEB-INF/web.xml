@@ -71,7 +71,7 @@
 	<!-- Define, in order of preference, which file to show when no filename 
 		is defined in the path -->
 	<welcome-file-list>
-		<welcome-file>pages/login.jsp</welcome-file>
+		<welcome-file>/pages/login.jsp</welcome-file>
 	</welcome-file-list>
 
 	<!-- Error handlers -->

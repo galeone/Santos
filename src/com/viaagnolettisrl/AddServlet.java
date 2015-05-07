@@ -326,6 +326,8 @@ public class AddServlet extends HttpServlet {
                     message = g.toJson(aj);
                     savedObject = aj;
                     
+                    AssignedJobOrder.shiftRight(aj, hibSession);
+                    
                 } catch (NumberFormatException e) {
                     message = "Macchina non valida";
                 } catch (ParseException e) {
