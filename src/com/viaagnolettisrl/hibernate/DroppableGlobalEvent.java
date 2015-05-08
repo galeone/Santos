@@ -9,6 +9,7 @@ import java.util.Queue;
 
 import org.hibernate.Session;
 
+import com.viaagnolettisrl.EventUtils;
 import com.viaagnolettisrl.GetCollection;
 
 public abstract class DroppableGlobalEvent implements GlobalEvent {
@@ -24,7 +25,7 @@ public abstract class DroppableGlobalEvent implements GlobalEvent {
         // globalEventsAfter does not
         
         // per ogni evento (macchina o globale) macchina in conflitto con e
-        Calendar cal = Calendar.getInstance();
+        Calendar cal = Calendar.getInstance(EventUtils.timezone);
         Queue<Event> qq = new LinkedList<Event>(machineEventsInConflict);
         
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");

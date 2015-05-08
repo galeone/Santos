@@ -14,7 +14,7 @@
 		response.sendRedirect(request.getContextPath()
 				+ LoginServlet.LOGIN_FORM);
 	}
-	application.setAttribute("todojoborders",GetCollection.notCompletelyAssignedJobOrders(user.getCanAddJobOrder()));
+	application.setAttribute("todojoborders",GetCollection.todoJobOrders(user.getCanAddJobOrder()));
 	application.setAttribute("machines", GetCollection.machines());
 	application.setAttribute("joborders", GetCollection.jobOrders());
 %>
@@ -32,10 +32,10 @@
 			<c:otherwise>
 				<select id="todoJobOrders">
 					<c:forEach var="entry" items="${todojoborders}" varStatus="loop">
-						<option data-arrayindex="${loop.index}" value="${entry.key.id}">
-						[${entry.key.id}] Tempo mancante:
-							<fmt:formatNumber value="${entry.value / 60}" maxFractionDigits="0"/> ore e
-							${entry.value % 60} minuti</option>
+						<option data-arrayindex="${loop.index}" value="${entry.id}">
+						[${entry.id}] Tempo mancante:
+							<fmt:formatNumber value="${entry.missingTime / 60 -0.5}" maxFractionDigits="0"/> ore e
+							${entry.missingTime % 60} minuti</option>
 					</c:forEach>
 				</select>
 			</c:otherwise>
@@ -94,17 +94,17 @@ $block.addClass("fc-draggable-event sampling");
 window.todojoborders = <%= gson.toJson(application.getAttribute("todojoborders")) %>;
 $("#todoJobOrders").selectmenu({
 	select: function(event, ui) {
-	    var leadMinutes = parseInt(window.todojoborders[ui.item.element.data('arrayindex')].key.leadTime),
+	    var leadMinutes = parseInt(window.todojoborders[ui.item.element.data('arrayindex')].leadTime),
 	    	leadHours = Math.floor(leadMinutes / 60),
 	    	leadMinutes = leadMinutes % 60,
-	    	dataRemainMinutes = parseInt(window.todojoborders[ui.item.element.data('arrayindex')].value),
+	    	dataRemainMinutes = parseInt(window.todojoborders[ui.item.element.data('arrayindex')].missingTime),
 	    	remainMinutes = dataRemainMinutes,
 	    	remainHours = Math.floor(remainMinutes / 60),
 	    	remainMinutes = remainMinutes  % 60;
 	    
 		$("#jobordersummary").html(
-				"Nome cliente: " + window.todojoborders[ui.item.element.data('arrayindex')].key.client.name + "<br />" +
-				"Codice cliente: " + window.todojoborders[ui.item.element.data('arrayindex')].key.client.code + "<br /><br />" +
+				"Nome cliente: " + window.todojoborders[ui.item.element.data('arrayindex')].client.name + "<br />" +
+				"Codice cliente: " + window.todojoborders[ui.item.element.data('arrayindex')].client.code + "<br /><br />" +
 				"Tempo totale: <div><b>" + leadHours + " ore e " + leadMinutes + " minuti</b></div><br />" +
 				"Tempo rimanente : <div id='remainingTime' data-minutes="+dataRemainMinutes+"><b>" + remainHours + " ore e " + remainMinutes + " minuti</div></b><br /><br />" +
 				"<b>Blocchetti orari (giornalieri):</b><br /><br />");
@@ -115,16 +115,16 @@ $("#todoJobOrders").selectmenu({
 			var $block = $(document.createElement("div")),
 			last =  dataRemainMinutes >= aDay ? aDay : dataRemainMinutes,
 			lastHours = Math.floor(last / 60), lastMinutes = last % 60,
-			title = '[' + window.todojoborders[ui.item.element.data('arrayindex')].key.id + "] " +
-					window.todojoborders[ui.item.element.data('arrayindex')].key.client.code +  " - " +
-					window.todojoborders[ui.item.element.data('arrayindex')].key.client.name + 
+			title = '[' + window.todojoborders[ui.item.element.data('arrayindex')].id + "] " +
+					window.todojoborders[ui.item.element.data('arrayindex')].client.code +  " - " +
+					window.todojoborders[ui.item.element.data('arrayindex')].client.name + 
 					"<br>" + lastHours + " ore" + (
 						lastMinutes > 0 ? " e " + lastMinutes + " minuti" : ""
 							),
-			color = window.todojoborders[ui.item.element.data('arrayindex')].key.color;
+			color = window.todojoborders[ui.item.element.data('arrayindex')].color;
 			$block.html(title);
 			event = {
-				joborder: window.todojoborders[ui.item.element.data('arrayindex')].key.id,
+				joborder: window.todojoborders[ui.item.element.data('arrayindex')].id,
 				title: title,
 				allDay: last === aDay,
 				last: last,
@@ -175,11 +175,11 @@ $("#todoJobOrders").selectmenu({
 			            	event.machine = ret.machine;
 			            	event.jobOrder = ret.jobOrder;
 			                $("#m${machine.id}Calendar").fullCalendar('updateEvent',event , false);
-			                var remain = $("#remainingTime");
-			                remain.data(parseInt(remain.data("minutes")) - event.last);
-			                var minutes= parseInt(remain.data("minutes"));
+			                var remain = $("#remainingTime"), minutes = parseInt(remain.data("minutes"));
+			                minutes -= event.last;
+			                remain.data("minutes", minutes);
 							var lastHours = Math.floor(minutes / 60), lastMinutes = minutes % 60;
-							remain.html(lastHours + " ore e " + lastMinutes + " minuti");
+							remain.html("<b>" + lastHours + " ore e " + lastMinutes + " minuti</b>");
 
 			                if(typeof(event.me) !== 'undefined') {event.me.remove();}
 			                $("#m${machine.id}Calendar").fullCalendar( 'refetchEvents' );

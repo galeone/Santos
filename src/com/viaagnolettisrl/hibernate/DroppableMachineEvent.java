@@ -9,6 +9,7 @@ import java.util.Queue;
 
 import org.hibernate.Session;
 
+import com.viaagnolettisrl.EventUtils;
 import com.viaagnolettisrl.GetCollection;
 
 public abstract class DroppableMachineEvent implements MachineEvent {
@@ -25,7 +26,7 @@ public abstract class DroppableMachineEvent implements MachineEvent {
         Collection<MachineEvent> machineEventsAfter = GetCollection.machineEventsAfter(e);
         
         // per ogni evento macchina in conflitto con il nuovo evento
-        Calendar cal = Calendar.getInstance();
+        Calendar cal = Calendar.getInstance(EventUtils.timezone);
         Queue<MachineEvent> qq = new LinkedList<MachineEvent>(machineEventsInConflict);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         
@@ -97,7 +98,7 @@ public abstract class DroppableMachineEvent implements MachineEvent {
         // se funziona sono Dio.+
     }
     
-    private Date oldStart, oldEnd;
+    private Date oldStart;
     
     public Date getOldStart() {
         return oldStart;
@@ -107,18 +108,10 @@ public abstract class DroppableMachineEvent implements MachineEvent {
         this.oldStart = oldStart;
     }
 
-    public Date getOldEnd() {
-        return oldEnd;
-    }
-
-    public void setOldEnd(Date oldEnd) {
-        this.oldEnd = oldEnd;
-    }
-
     public static void switchOnNext(DroppableMachineEvent e, Session hibSession) {
         Collection<MachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
         for(MachineEvent conflictEvent : machineEventsInConflict) {
-            conflictEvent.setEnd(e.getOldEnd());
+            conflictEvent.setEnd(new Date(e.getOldStart().getTime() + EventUtils.getLast(conflictEvent)*60000));
             conflictEvent.setStart(e.getOldStart());
             hibSession.merge(conflictEvent);
         }

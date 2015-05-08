@@ -2,11 +2,9 @@ package com.viaagnolettisrl;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Enumeration;
-import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -58,7 +56,7 @@ public class EditServlet extends HttpServlet {
             
             if (toEdit != null) { // edit
                 sd = (Sampling) toEdit;
-                sd.setOldEnd(sd.getEnd());
+                //DroppableMachineEvent switch next
                 sd.setOldStart(sd.getStart());
                 Map<String,String> params = ServletUtils.getParameters(request, new String[]{"start", "end"});
                 String startS = params.get("start"), endS = params.get("end");
@@ -67,8 +65,7 @@ public class EditServlet extends HttpServlet {
                     message = "Il campo non può essere vuoto";
                 } else {
                     try {
-                        SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
-                        Date start = sdf.parse(startS.trim()), end = sdf.parse(endS.trim());
+                        Date start = EventUtils.parseDate(startS.trim()), end = EventUtils.parseDate(endS.trim());
                         sd.setStart(start);
                         sd.setEnd(end);
                         message = "ok";
@@ -104,9 +101,8 @@ public class EditServlet extends HttpServlet {
                     message = "Completare tutti i campi";
                 } else {
                     try {
-                        SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
-                        nw.setStart(sdf.parse(params.get("start").trim()));
-                        nw.setEnd(sdf.parse(params.get("end").trim()));
+                        nw.setStart(EventUtils.parseDate(params.get("start").trim()));
+                        nw.setEnd(EventUtils.parseDate(params.get("end").trim()));
                         if(nw.getEnd().before(nw.getStart()) || nw.getEnd().equals(nw.getStart())) {
                             message = "Data di inizio e fine evento errate (insensate)";
                         } else {
@@ -383,7 +379,7 @@ public class EditServlet extends HttpServlet {
             AssignedJobOrder aj = new AssignedJobOrder();
             if (toEdit != null) { // edit
                 aj = (AssignedJobOrder) toEdit;
-                aj.setOldEnd(aj.getEnd());
+                // DroppableMachineEvent -> switch next
                 aj.setOldStart(aj.getStart());
                 Map<String,String> params = ServletUtils.getParameters(request, fields);
                 String startS = params.get("start"), endS = params.get("end");
@@ -395,9 +391,8 @@ public class EditServlet extends HttpServlet {
                 } else {
                     message = "ok";
                     try {
-                        SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
-                        aj.setStart(sdf.parse(startS.trim()));
-                        aj.setEnd(sdf.parse(endS.trim()));
+                        aj.setStart(EventUtils.parseDate(startS.trim()));
+                        aj.setEnd(EventUtils.parseDate(endS.trim()));
 
                         if(aj.getEnd().before(aj.getStart()) || aj.getEnd().equals(aj.getStart())) {
                             message = "Data di inizio e fine evento errate (insensate)";

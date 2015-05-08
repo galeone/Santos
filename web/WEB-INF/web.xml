@@ -24,15 +24,14 @@
 		<servlet-class>com.viaagnolettisrl.GetServlet</servlet-class>
 	</servlet>
 	
+	<servlet>
+		<servlet-name>install</servlet-name>
+		<servlet-class>com.viaagnolettisrl.InstallServlet</servlet-class>
+	</servlet>
 
 	<servlet>
 		<servlet-name>add</servlet-name>
 		<servlet-class>com.viaagnolettisrl.AddServlet</servlet-class>
-	</servlet>
-
-	<servlet>
-		<servlet-name>install</servlet-name>
-		<servlet-class>com.viaagnolettisrl.InstallServlet</servlet-class>
 	</servlet>
 
 	<!-- URLs mapping -->
@@ -46,7 +45,7 @@
 		<servlet-name>install</servlet-name>
 		<url-pattern>/install</url-pattern>
 	</servlet-mapping>
-
+	
 	<servlet-mapping>
 		<servlet-name>delete</servlet-name>
 		<url-pattern>/delete</url-pattern>

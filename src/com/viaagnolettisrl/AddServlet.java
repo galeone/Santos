@@ -2,11 +2,9 @@ package com.viaagnolettisrl;
 
 import java.io.IOException;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -91,9 +89,8 @@ public class AddServlet extends HttpServlet {
                     
                     s.setJobOrder(j);
                     
-                    SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
-                    s.setEnd(sdf.parse(params.get("end")));
-                    s.setStart(sdf.parse(params.get("start")));
+                    s.setEnd(EventUtils.parseDate(params.get("end")));
+                    s.setStart(EventUtils.parseDate(params.get("start")));
                     
                     hibSession.saveOrUpdate(s);
                     
@@ -123,9 +120,8 @@ public class AddServlet extends HttpServlet {
             } else {
                 try {
                     NonWorkingDay nw = new NonWorkingDay();
-                    SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
-                    nw.setStart(sdf.parse(params.get("start").trim()));
-                    nw.setEnd(sdf.parse(params.get("end").trim()));
+                    nw.setStart(EventUtils.parseDate(params.get("start").trim()));
+                    nw.setEnd(EventUtils.parseDate(params.get("end").trim()));
                     if(nw.getEnd().before(nw.getStart()) || nw.getEnd().equals(nw.getStart())) {
                         message = "Data di inizio e fine evento errate (insensate)";
                         return;
@@ -321,12 +317,14 @@ public class AddServlet extends HttpServlet {
                     }
                     
                     aj.setJobOrder(j);
+
+                    aj.setEnd(EventUtils.parseDate(params.get("end")));
+                    aj.setStart(EventUtils.parseDate(params.get("start")));
                     
-                    SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
-                    aj.setEnd(sdf.parse(params.get("end")));
-                    aj.setStart(sdf.parse(params.get("start")));
+                    j.setMissingTime(j.getMissingTime() - EventUtils.getLast(aj));
                     
                     hibSession.saveOrUpdate(aj);
+                    hibSession.saveOrUpdate(j);
                     
                     message = g.toJson(aj);
                     savedObject = aj;

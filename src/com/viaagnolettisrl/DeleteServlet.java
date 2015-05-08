@@ -121,6 +121,10 @@ public class DeleteServlet extends HttpServlet {
         } else {
             toDelete = hibSession.get(AssignedJobOrder.class, id);
             if (toDelete != null) { // exists
+            	AssignedJobOrder aj = (AssignedJobOrder)toDelete;
+            	JobOrder j = aj.getJobOrder();
+            	j.setMissingTime(j.getMissingTime() + EventUtils.getLast(aj));
+            	hibSession.saveOrUpdate(j);
                 hibSession.delete((AssignedJobOrder) toDelete);
                 message = "ok";
             } else {

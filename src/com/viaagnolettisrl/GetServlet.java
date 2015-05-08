@@ -95,6 +95,7 @@ public class GetServlet extends HttpServlet {
             return null;
         } else {
             try {
+            	// Do not replace with EventUtils.parseDate (different parse string)
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH);
                 return sdf.parse(dateS);
             } catch (ParseException e) {

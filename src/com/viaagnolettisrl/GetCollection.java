@@ -3,13 +3,8 @@ package com.viaagnolettisrl;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -30,7 +25,7 @@ import com.viaagnolettisrl.hibernate.User;
 public class GetCollection {
     
     public static Date reset(Date d) {
-        Calendar cal = Calendar.getInstance();
+        Calendar cal = Calendar.getInstance(EventUtils.timezone);
         cal.setTime(d);
         cal.set(Calendar.HOUR, 0);
         cal.set(Calendar.MINUTE, 0);
@@ -40,7 +35,7 @@ public class GetCollection {
     }
     
     public static Date tomorrow(Date d) {
-        Calendar cal = Calendar.getInstance();
+        Calendar cal = Calendar.getInstance(EventUtils.timezone);
         Date today = reset(d);
         cal.setTime(today);
         cal.add(Calendar.DATE, 1);
@@ -241,8 +236,7 @@ public class GetCollection {
     
     @SuppressWarnings("unchecked")
     public static Collection<JobOrder> jobOrders() {
-        Collection<JobOrder> ret = (Collection<JobOrder>) get(JobOrder.class);
-        return setJobOrderAttr(ret);
+        return (Collection<JobOrder>) get(JobOrder.class);
     }
     
     @SuppressWarnings("unchecked")
@@ -278,18 +272,6 @@ public class GetCollection {
         return l;
     }
     
-    public static Collection<JobOrder> setJobOrderAttr(Collection<JobOrder> l) {
-        for(JobOrder jo : l) {
-            long sum = 0, missingTimeInMinutes;
-            for(AssignedJobOrder aj : jo.getAssignedJobOrders()) {
-                sum += aj.getLastInMinutes();
-            }
-            missingTimeInMinutes = jo.getLeadTime() - sum;
-            jo.setMissingTime(missingTimeInMinutes);
-        }
-        return l;
-    }
-    
     @SuppressWarnings("unchecked")
     public static Collection<AssignedJobOrder> assignedJobOrders(boolean editable) {
         return setAssignedJobOrderAttr((Collection<AssignedJobOrder>) get(AssignedJobOrder.class), editable);
@@ -304,31 +286,15 @@ public class GetCollection {
         return histories;
     }
     
-    public static Collection<Map.Entry<JobOrder, Long>> notCompletelyAssignedJobOrders(Boolean editable) {
-        Collection<JobOrder> joborders = jobOrders();
-        Map<JobOrder, Long> map = new HashMap<JobOrder, Long>();
+    @SuppressWarnings("unchecked")
+	public static Collection<JobOrder> todoJobOrders(Boolean editable) {
+        Session session = HibernateUtil.getSessionFactory().openSession();
+
+        Query q = session.createQuery("from JobOrder where missingTime <> 0");
         
-        for (JobOrder j : joborders) {
-            map.put(j, j.getLeadTime());
-            System.out.println(j.equals(j));
-        }
-        
-        Collection<AssignedJobOrder> ajo = assignedJobOrders(editable);
-        
-        for (AssignedJobOrder a : ajo) {
-            JobOrder j = a.getJobOrder();
-            System.out.println(map.get(j) + " " + j + " " + a.getEnd() + " " + a.getStart());
-            map.put(j, map.get(j) - (a.getEnd().getTime() - a.getStart().getTime()) / (1000 * 60 * 60));
-        }
-        Iterator<Entry<JobOrder, Long>> it = map.entrySet().iterator();
-        while (it.hasNext()) {
-            Entry<JobOrder, Long> e = it.next();
-            if (e.getValue() <= 0L) {
-                it.remove();
-            }
-        }
-        
-        return new LinkedList<Entry<JobOrder, Long>>(map.entrySet());
+        List<JobOrder> ret = q.list();
+        session.close();
+        return ret;
     }
     
     public static Collection<MachineEvent> machineEventsInConflictWith(GlobalEvent e) {
@@ -344,17 +310,13 @@ public class GetCollection {
         return ret;
     }
     
-    private static Long getLast(Event e) {
-        return (e.getEnd().getTime() - e.getStart().getTime()) / (60 * 60 * 1000);
-    }
-    
     public static Collection<MachineEvent> machineEventsInConflictWith(MachineEvent e) {
         Collection<MachineEvent> ret = new HashSet<MachineEvent>();
         // The same day of
         Collection<Sampling> sampling = samplingInConflictWith(e);
         Collection<AssignedJobOrder> ajo = assignedJobOrdersInConflictWith(e);
         
-        Long last = getLast(e);
+        Long last = EventUtils.getLast(e);
         
         if(last >= 24) {
             ret.addAll(sampling);
@@ -362,14 +324,14 @@ public class GetCollection {
         } else {
             Long sumOfLast = 0L;
             for(MachineEvent ev : sampling) {
-                sumOfLast += getLast(ev);
+                sumOfLast += EventUtils.getLast(ev);
             }
             if(sumOfLast + last > 24) {
                 ret.addAll(sampling);
                 ret.addAll(ajo);
             } else {
                 for(MachineEvent ev: ajo) {
-                    sumOfLast += getLast(ev);
+                    sumOfLast += EventUtils.getLast(ev);
                 }
                 if(sumOfLast + last > 24) {
                     ret.addAll(sampling);

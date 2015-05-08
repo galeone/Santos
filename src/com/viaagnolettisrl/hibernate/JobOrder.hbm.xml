@@ -37,6 +37,9 @@
 			
 		<property column="time_for_item" generated="never" lazy="false"
 			name="timeForItem" optimistic-lock="true" type="long" unique="false" />
+			
+		<property column="missing_time" generated="never" lazy="false"
+			name="missingTime" optimistic-lock="true" type="long" unique="false" />
 
 		<many-to-one name="Client" class="com.viaagnolettisrl.hibernate.Client"
 			column="IDCLIENT" unique="false" not-null="true" lazy="false" />
