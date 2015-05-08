@@ -12,7 +12,7 @@ public class NonWorkingDay extends DroppableGlobalEvent implements Serializable,
     private Date start, end;
     
     public String title = "Giorno non lavorativo", color = "#ff9f89", type = "nonworkingday";
-    public boolean overlap = true,  allDay = true, editable = true;
+    public boolean overlap = true,  allDay = true, editable = false;
     
     @Override
     public String toString() {

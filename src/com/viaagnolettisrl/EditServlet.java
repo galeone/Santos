@@ -97,16 +97,21 @@ public class EditServlet extends HttpServlet {
             
             if (toEdit != null) {
                 nw = (NonWorkingDay) toEdit;
-                String startS = request.getParameter("start");
-                if (startS == null || "".equals(startS)) {
-                    message = "Data non valida (vuota)";
+                String[] fields = new String[] { "start", "end" };
+                Arrays.sort(fields);
+                Map<String, String> params = ServletUtils.getParameters(request, fields);
+                if (params.containsValue(null) || params.containsValue("")) {
+                    message = "Completare tutti i campi";
                 } else {
                     try {
                         SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
-                        Date d = sdf.parse(startS);
-                        nw.setStart(d);
-                        nw.setEnd(d);
-                        message = "ok";
+                        nw.setStart(sdf.parse(params.get("start").trim()));
+                        nw.setEnd(sdf.parse(params.get("end").trim()));
+                        if(nw.getEnd().before(nw.getStart()) || nw.getEnd().equals(nw.getStart())) {
+                            message = "Data di inizio e fine evento errate (insensate)";
+                        } else {
+                            message = "ok";
+                        }
                     } catch (ParseException e) {
                         message = "formato data non valido";
                     }
@@ -117,14 +122,13 @@ public class EditServlet extends HttpServlet {
             
             if (message.equals("ok")) {
                 hibSession.saveOrUpdate(nw);
-                NonWorkingDay.shiftRight(nw, hibSession);
+                NonWorkingDay.shiftMachineEventsRight(nw, hibSession);
             }
         }
     }
     
     private void user_e(Long id, HttpServletRequest request) {
-        String[] fields = new String[] { "id", "name", "surname", "username", "password", "canaddjoborder",
-                "canaddclient", "canaddmachine" };
+        String[] fields = new String[] { "id", "name", "surname", "username", "password", "canaddjoborder", "canaddclient", "canaddmachine" };
         Arrays.sort(fields);
         
         if (!user.getIsAdmin()) {
@@ -394,6 +398,11 @@ public class EditServlet extends HttpServlet {
                         SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
                         aj.setStart(sdf.parse(startS.trim()));
                         aj.setEnd(sdf.parse(endS.trim()));
+
+                        if(aj.getEnd().before(aj.getStart()) || aj.getEnd().equals(aj.getStart())) {
+                            message = "Data di inizio e fine evento errate (insensate)";
+                            return;
+                        }
                     } catch (ParseException e) {
                         message = "formato data non valido";
                     }

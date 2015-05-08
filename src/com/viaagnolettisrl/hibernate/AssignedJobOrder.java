@@ -16,8 +16,12 @@ public class AssignedJobOrder extends DroppableMachineEvent implements Serializa
 	private boolean overlap = true, editable = true, allDay;
 	public String type = "assignedjoborder";
 	
-	public Long getLast() {
+	public Long getLastInHours() {
         return (getEnd().getTime() - getStart().getTime())/ (60 * 60 * 1000);
+	}
+	
+	public Long getLastInMinutes() {
+	        return (getEnd().getTime() - getStart().getTime())/(60 * 1000);
 	}
 	
 	@Override

@@ -54,9 +54,12 @@ $("#globalCalendar").fullCalendar({
     eventOverlap: window.user.isAdmin,
 	eventReceive: function(event) {
 		if(window.user.isAdmin) {
+		    var end = new Date(event._start._d);
+		    end.setHours(end.getHours() + 24);
 		    $.post("<%=request.getContextPath()%>/add?what=" + event.type,
 		            {
-		            	start: event._start._d.toUTCString()
+		            	start: event._start._d.toUTCString(),
+		            	end: end.toUTCString()
 		            }, function(data) {
 		        		var id = jQuery.parseJSON(data).id;
 		                event.id = id;
@@ -66,10 +69,13 @@ $("#globalCalendar").fullCalendar({
 	},
 	eventDrop: function(event, delta, revertFunc) {
 		if(window.user.isAdmin) {
+		    var end = new Date(event._start._d);
+		    end.setHours(end.getHours() + 24);
 		    $.post("<%=request.getContextPath()%>/edit?what=" + event.type,
 		            {
 		            	id: event.id,
-		            	start: event._start._d.toUTCString()
+		            	start: event._start._d.toUTCString(),
+		            	end: end.toUTCString()
 		            },
 					function(data){
 		            	if(data != 'ok') { alert(data); revertFunc(); } 

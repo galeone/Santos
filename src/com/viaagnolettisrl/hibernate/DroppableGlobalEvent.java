@@ -11,16 +11,14 @@ import org.hibernate.Session;
 
 import com.viaagnolettisrl.GetCollection;
 
-public abstract class DroppableGlobalEvent implements Event {
+public abstract class DroppableGlobalEvent implements GlobalEvent {
     // shift EVERYTHING RIGHT
-    public static void shiftRight(GlobalEvent e, Session hibSession) {
-        // Global events after e (to jump when rearrangin items)
+    public static void shiftMachineEventsRight(GlobalEvent e, Session hibSession) {
+        // Global events after e (to jump when rearranging items)
         Collection<GlobalEvent> globalEventsAfterGlobalEvent = GetCollection.globalEventsAfter(e);
         // Ottiene la lista di tutti gli eventi (di tutte le macchine) in conflitto con la data di e
         // e la lista di tutti gli eventi (di tutte le macchine) successivi alla data di e
         Collection<MachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
-        // drag global event on global event
-        Collection<GlobalEvent> globalEventsInConflict = GetCollection.globalEventsInConflictWith(e);
         // machine events must be shifted if required
         Collection<MachineEvent> machineEventsAfter = GetCollection.machineEventsAfter(e);
         // globalEventsAfter does not
@@ -28,7 +26,6 @@ public abstract class DroppableGlobalEvent implements Event {
         // per ogni evento (macchina o globale) macchina in conflitto con e
         Calendar cal = Calendar.getInstance();
         Queue<Event> qq = new LinkedList<Event>(machineEventsInConflict);
-        qq.addAll(globalEventsInConflict);
         
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         while (!qq.isEmpty()) {
@@ -43,8 +40,9 @@ public abstract class DroppableGlobalEvent implements Event {
             
             while (!canMove) {
                 boolean collision = false;
-                for (Event ea : globalEventsAfterGlobalEvent) {
-                    if (sdf.format(ea.getStart()).equals(nextDateString)) {
+                for (GlobalEvent ea : globalEventsAfterGlobalEvent) {
+                    //if dragged on the past (move back), I should remove myself (e: skip, no collision) from the collection
+                    if (!ea.equals(e) && sdf.format(ea.getStart()).equals(nextDateString)) {
                         collision = true;
                         break;
                     }
@@ -94,7 +92,5 @@ public abstract class DroppableGlobalEvent implements Event {
                 qq.add(toMove);
             }
         }
-        
-        // se funziona sono Dio.+
     }
 }

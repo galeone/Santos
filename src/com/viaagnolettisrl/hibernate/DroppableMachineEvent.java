@@ -117,8 +117,7 @@ public abstract class DroppableMachineEvent implements MachineEvent {
 
     public static void switchOnNext(DroppableMachineEvent e, Session hibSession) {
         Collection<MachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
-        if(machineEventsInConflict.size() == 1) {
-            MachineEvent conflictEvent = (MachineEvent) machineEventsInConflict.toArray()[0];
+        for(MachineEvent conflictEvent : machineEventsInConflict) {
             conflictEvent.setEnd(e.getOldEnd());
             conflictEvent.setStart(e.getOldStart());
             hibSession.merge(conflictEvent);

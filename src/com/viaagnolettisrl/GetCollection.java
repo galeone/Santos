@@ -262,8 +262,16 @@ public class GetCollection {
     
     public static Collection<AssignedJobOrder> setAssignedJobOrderAttr(Collection<AssignedJobOrder> l, boolean editable) {
         for(AssignedJobOrder aj : l) {
-            aj.setTitle("[" + aj.getJobOrder().getId() + "] " + aj.getJobOrder().getClient().getCode() + " - " + aj.getJobOrder().getClient().getName() + "\n" + aj.getLast() + " ore");
-            aj.setAllDay(aj.getLast().equals(24L));
+            Long lastInHours = aj.getLastInHours(), remainMinutes =aj.getLastInMinutes() - lastInHours*60;
+            aj.setTitle("[" + aj.getJobOrder().getId() + "] " + 
+                        aj.getJobOrder().getClient().getCode() + " - " + 
+                        aj.getJobOrder().getClient().getName() + "\n" +
+                        lastInHours + " ore" + (
+                                remainMinutes > 0
+                                ? " e " + remainMinutes + " minuti"
+                                : "")
+                       );
+            aj.setAllDay(aj.getLastInHours().equals(24L));
             aj.setColor(aj.getJobOrder().getColor());
             aj.setEditable(editable);
         }
@@ -272,12 +280,12 @@ public class GetCollection {
     
     public static Collection<JobOrder> setJobOrderAttr(Collection<JobOrder> l) {
         for(JobOrder jo : l) {
-            long sum = 0, missingTime;
+            long sum = 0, missingTimeInMinutes;
             for(AssignedJobOrder aj : jo.getAssignedJobOrders()) {
-                sum += aj.getLast();
+                sum += aj.getLastInMinutes();
             }
-            missingTime = jo.getLeadTime() - sum;
-            jo.setMissingTime(missingTime);
+            missingTimeInMinutes = jo.getLeadTime() - sum;
+            jo.setMissingTime(missingTimeInMinutes);
         }
         return l;
     }
@@ -336,10 +344,39 @@ public class GetCollection {
         return ret;
     }
     
+    private static Long getLast(Event e) {
+        return (e.getEnd().getTime() - e.getStart().getTime()) / (60 * 60 * 1000);
+    }
+    
     public static Collection<MachineEvent> machineEventsInConflictWith(MachineEvent e) {
         Collection<MachineEvent> ret = new HashSet<MachineEvent>();
-        ret.addAll(samplingInConflictWith(e));
-        ret.addAll(assignedJobOrdersInConflictWith(e));
+        // The same day of
+        Collection<Sampling> sampling = samplingInConflictWith(e);
+        Collection<AssignedJobOrder> ajo = assignedJobOrdersInConflictWith(e);
+        
+        Long last = getLast(e);
+        
+        if(last >= 24) {
+            ret.addAll(sampling);
+            ret.addAll(ajo);
+        } else {
+            Long sumOfLast = 0L;
+            for(MachineEvent ev : sampling) {
+                sumOfLast += getLast(ev);
+            }
+            if(sumOfLast + last > 24) {
+                ret.addAll(sampling);
+                ret.addAll(ajo);
+            } else {
+                for(MachineEvent ev: ajo) {
+                    sumOfLast += getLast(ev);
+                }
+                if(sumOfLast + last > 24) {
+                    ret.addAll(sampling);
+                    ret.addAll(ajo);
+                }
+            }
+        }
         return ret;
     }
     

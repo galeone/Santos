@@ -7,6 +7,7 @@
 <%@ page import="com.google.gson.*"%>
 <%@ page import="java.util.Collection"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <%
 	User user = (User) session.getAttribute(LoginServlet.USER);
 	if (user == null) {
@@ -31,8 +32,10 @@
 			<c:otherwise>
 				<select id="todoJobOrders">
 					<c:forEach var="entry" items="${todojoborders}" varStatus="loop">
-						<option data-arrayindex="${loop.index}" value="${entry.key.id}">${entry.key.id}
-							- Tempo mancante: ${entry.value} ore</option>
+						<option data-arrayindex="${loop.index}" value="${entry.key.id}">
+						[${entry.key.id}] Tempo mancante:
+							<fmt:formatNumber value="${entry.value / 60}" maxFractionDigits="0"/> ore e
+							${entry.value % 60} minuti</option>
 					</c:forEach>
 				</select>
 			</c:otherwise>
@@ -91,28 +94,39 @@ $block.addClass("fc-draggable-event sampling");
 window.todojoborders = <%= gson.toJson(application.getAttribute("todojoborders")) %>;
 $("#todoJobOrders").selectmenu({
 	select: function(event, ui) {
+	    var leadMinutes = parseInt(window.todojoborders[ui.item.element.data('arrayindex')].key.leadTime),
+	    	leadHours = Math.floor(leadMinutes / 60),
+	    	leadMinutes = leadMinutes % 60,
+	    	dataRemainMinutes = parseInt(window.todojoborders[ui.item.element.data('arrayindex')].value),
+	    	remainMinutes = dataRemainMinutes,
+	    	remainHours = Math.floor(remainMinutes / 60),
+	    	remainMinutes = remainMinutes  % 60;
+	    
 		$("#jobordersummary").html(
 				"Nome cliente: " + window.todojoborders[ui.item.element.data('arrayindex')].key.client.name + "<br />" +
 				"Codice cliente: " + window.todojoborders[ui.item.element.data('arrayindex')].key.client.code + "<br /><br />" +
-				"Tempo totale (ore): <div><b>" + window.todojoborders[ui.item.element.data('arrayindex')].key.leadTime + "</b></div><br />" +
-				"Tempo rimanente (ore): <div id='remainingTime'><b>" + window.todojoborders[ui.item.element.data('arrayindex')].value + "</div></b><br /><br />" +
+				"Tempo totale: <div><b>" + leadHours + " ore e " + leadMinutes + " minuti</b></div><br />" +
+				"Tempo rimanente : <div id='remainingTime' data-minutes="+dataRemainMinutes+"><b>" + remainHours + " ore e " + remainMinutes + " minuti</div></b><br /><br />" +
 				"<b>Blocchetti orari (giornalieri):</b><br /><br />");
 		
-		var hours = parseInt(window.todojoborders[ui.item.element.data('arrayindex')].value), c = 0;
+		var c = 0, aDay = 24*60;
 		
-		while(hours > 0) {
+		while(dataRemainMinutes > 0) {
 			var $block = $(document.createElement("div")),
-			last = hours >= 24 ? 24 : hours,
+			last =  dataRemainMinutes >= aDay ? aDay : dataRemainMinutes,
+			lastHours = Math.floor(last / 60), lastMinutes = last % 60,
 			title = '[' + window.todojoborders[ui.item.element.data('arrayindex')].key.id + "] " +
 					window.todojoborders[ui.item.element.data('arrayindex')].key.client.code +  " - " +
 					window.todojoborders[ui.item.element.data('arrayindex')].key.client.name + 
-					"\n" + last + " ore",
+					"<br>" + lastHours + " ore" + (
+						lastMinutes > 0 ? " e " + lastMinutes + " minuti" : ""
+							),
 			color = window.todojoborders[ui.item.element.data('arrayindex')].key.color;
 			$block.html(title);
 			event = {
 				joborder: window.todojoborders[ui.item.element.data('arrayindex')].key.id,
 				title: title,
-				allDay: last === 24,
+				allDay: last === aDay,
 				last: last,
 				me: $block,
 				color: color,
@@ -125,13 +139,14 @@ $("#todoJobOrders").selectmenu({
 			});
 			$block.addClass("fc-draggable-event");
 			$block.css('background-color', color);
+			
 			if(c == 3) {
 				c = 0;
 				$("#jobordersummary").append("<br />");
 			}
 			$("#jobordersummary").append($block);
 			c++;
-			hours -= 24;
+			dataRemainMinutes -= aDay;
 		}
 	}
 });
@@ -141,12 +156,12 @@ $("#todoJobOrders").selectmenu({
 		lang: 'it',
 		editable: window.user.canAddJobOrder,
 		droppable: window.user.canAddJobOrder,
-	    eventOverlap: window.user.canAddJobOrder ,
+	    eventOverlap: window.user.canAddJobOrder,
+	    disableResizing: true,
 		eventReceive: function(event) {
 		    console.log(event);
 			if(window.user.canAddJobOrder) {
-			    var end = new Date(event._start._d);
-			    end.setHours(end.getHours() +  event.last);
+			    var end = new Date(event._start._d.getTime() + event.last * 60000);
 			    $.post("<%=request.getContextPath()%>/add?what=" + event.type,
 			            {
 			            	start: event._start._d.toUTCString(),
@@ -160,7 +175,12 @@ $("#todoJobOrders").selectmenu({
 			            	event.machine = ret.machine;
 			            	event.jobOrder = ret.jobOrder;
 			                $("#m${machine.id}Calendar").fullCalendar('updateEvent',event , false);
-			                $("#remainingTime").html(parseInt($("#remainingTime").html()) - event.last);
+			                var remain = $("#remainingTime");
+			                remain.data(parseInt(remain.data("minutes")) - event.last);
+			                var minutes= parseInt(remain.data("minutes"));
+							var lastHours = Math.floor(minutes / 60), lastMinutes = minutes % 60;
+							remain.html(lastHours + " ore e " + lastMinutes + " minuti");
+
 			                if(typeof(event.me) !== 'undefined') {event.me.remove();}
 			                $("#m${machine.id}Calendar").fullCalendar( 'refetchEvents' );
 							$("#m${machine.id}Calendar").fullCalendar( 'rerenderEvents' );
@@ -168,11 +188,11 @@ $("#todoJobOrders").selectmenu({
 			}
 		},
 		eventDrop: function(event, delta, revertFunc) {
+		    console.log(event);
 			if(window.user.canAddJobOrder) {
 			    var end = null;
 			    if(!event._end) {
-					end =  new Date(event._start._d);
-					end.setHours(end.getHours() +  event.last);
+					end =  new Date(event._start._d.getTime() + event.last * 60000);
 					event._end = moment(end);
 			    }
 			    $.post("<%=request.getContextPath()%>/edit?what=" + event.type,

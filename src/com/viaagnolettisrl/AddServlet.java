@@ -115,22 +115,27 @@ public class AddServlet extends HttpServlet {
         if (!user.getIsAdmin()) {
             message = "Non puoi aggiungere giorni non lavorativi";
         } else {
-            String startS = request.getParameter("start");
-            if (startS == null || "".equals(startS)) {
+            String[] fields = new String[] { "start", "end" };
+            Arrays.sort(fields);
+            Map<String, String> params = ServletUtils.getParameters(request, fields);
+            if (params.containsValue(null) || params.containsValue("")) {
                 message = "Completare tutti i campi";
             } else {
                 try {
                     NonWorkingDay nw = new NonWorkingDay();
                     SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
-                    Date d = sdf.parse(startS);
-                    nw.setStart(d);
-                    nw.setEnd(d);
+                    nw.setStart(sdf.parse(params.get("start").trim()));
+                    nw.setEnd(sdf.parse(params.get("end").trim()));
+                    if(nw.getEnd().before(nw.getStart()) || nw.getEnd().equals(nw.getStart())) {
+                        message = "Data di inizio e fine evento errate (insensate)";
+                        return;
+                    }
                     
                     hibSession.saveOrUpdate(nw);
                     message = g.toJson(nw);
                     savedObject = nw;
                     
-                    NonWorkingDay.shiftRight(nw, hibSession);
+                    NonWorkingDay.shiftMachineEventsRight(nw, hibSession);
                     
                 } catch (ParseException e) {
                     message = "formato data non valido";
