@@ -19,7 +19,7 @@ public abstract class DroppableGlobalEvent implements GlobalEvent {
         Collection<GlobalEvent> globalEventsAfterGlobalEvent = GetCollection.globalEventsAfter(e);
         // Ottiene la lista di tutti gli eventi (di tutte le macchine) in conflitto con la data di e
         // e la lista di tutti gli eventi (di tutte le macchine) successivi alla data di e
-        Collection<MachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
+        Collection<MachineEvent> machineEventsInConflict = GetCollection.machineEventsTheSameDayOf(e);
         // machine events must be shifted if required
         Collection<MachineEvent> machineEventsAfter = GetCollection.machineEventsAfter(e);
         // globalEventsAfter does not

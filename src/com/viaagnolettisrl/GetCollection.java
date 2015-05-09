@@ -1,6 +1,5 @@
 package com.viaagnolettisrl;
 
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
@@ -11,6 +10,7 @@ import org.hibernate.Session;
 
 import com.viaagnolettisrl.hibernate.AssignedJobOrder;
 import com.viaagnolettisrl.hibernate.Client;
+import com.viaagnolettisrl.hibernate.DroppableMachineEvent;
 import com.viaagnolettisrl.hibernate.Event;
 import com.viaagnolettisrl.hibernate.GlobalEvent;
 import com.viaagnolettisrl.hibernate.MachineEvent;
@@ -23,47 +23,35 @@ import com.viaagnolettisrl.hibernate.Sampling;
 import com.viaagnolettisrl.hibernate.User;
 
 public class GetCollection {
-    
-    public static Date reset(Date d) {
-        Calendar cal = Calendar.getInstance(EventUtils.timezone);
-        cal.setTime(d);
-        cal.set(Calendar.HOUR, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        return new Date(cal.getTime().getTime());
-    }
-    
-    public static Date tomorrow(Date d) {
-        Calendar cal = Calendar.getInstance(EventUtils.timezone);
-        Date today = reset(d);
-        cal.setTime(today);
-        cal.add(Calendar.DATE, 1);
-        return cal.getTime();
-    }
-    
+        
     @SuppressWarnings("rawtypes")
-    private static Collection get(Class entity, Date start, Date end, Machine m) {
+    private static Collection get(Class entity, Date start, Date end, Machine m, Long eventId) {
         Session session = HibernateUtil.getSessionFactory().openSession();
         boolean between = start != null && end != null,
                 machine = m != null,
-                after = start != null && end == null;
+                after = start != null && end == null,
+                conflict = eventId != null;
         
         Query q = session.createQuery("from " + entity.getSimpleName() + " where " +
-                (between ? "(starts between :start AND :end)" : "1=1") + " AND " +
-                (after   ? "(starts > :start)" : "1=1") + " AND " +
-                (machine ? "(idmachine = :machine)" : "1=1"));
+                (between  ? "(starts BETWEEN :start AND :end)" : "1=1") + " AND " +
+                (after    ? "(starts > :start)" : "1=1") + " AND " +
+                (machine  ? "(idmachine = :machine)" : "1=1") + " AND " +
+                (conflict ? "(id <> :id)" : "1=1"));
         
         if(between) {
-            q.setDate("start", reset(start)).setDate("end", reset(end));
+            q.setDate("start", start).setDate("end", end);
         }
         
         if(after) {
-            q.setDate("start", reset(start));
+            q.setDate("start", start);
         }
         
         if(machine) {
             q.setLong("machine", m.getId());
+        }
+        
+        if(conflict) {
+            q.setLong("id", eventId);
         }
         
         List ret = q.list();
@@ -71,33 +59,54 @@ public class GetCollection {
         return ret;
     }
     
+    private static Date oldStart, oldEnd;
+    
+    private static void resetDate(Event e) {
+        oldStart = new Date(e.getStart().getTime());
+        oldEnd   = new Date(e.getEnd().getTime());
+        
+        e.setStart(EventUtils.start(oldStart));
+        e.setEnd(EventUtils.end(oldStart));
+    }
+    
+    private static void restoreDate(Event e) {
+        e.setStart(oldStart);
+        e.setEnd(oldEnd);
+    }
+    
     @SuppressWarnings("rawtypes")
     private static Collection get(Class entity) {
-        return get(entity, null, null,null);
+        return get(entity, null, null,null, null);
     }
     
     // Machine
     @SuppressWarnings("rawtypes")
     private static Collection get(Class entity, Machine m) {
-        return get(entity, null, null, m);
+        return get(entity, null, null, m, null);
     }
     
     // After
     @SuppressWarnings("rawtypes")
     private static Collection get(Class entity, Date after) {
-        return get(entity, after, null,null);
+        return get(entity, after, null,null, null);
     }
     
     // After on machine
     @SuppressWarnings("rawtypes")
     private static Collection get(Class entity, Date after, Machine m) {
-        return get(entity, after, null, m);
+        return get(entity, after, null, m, null);
+    }
+    
+    // Between on machine
+    @SuppressWarnings("rawtypes")
+    private static Collection get(Class entity, Date start, Date end, Machine m) {
+        return get(entity, start, end, m, null);
     }
     
     // Global conflict
     @SuppressWarnings("rawtypes")
     private static Collection get(Class entity, Date start, Date end) {
-        return get(entity, start, end, null);
+        return get(entity, start, end, null, null);
     }
     
     @SuppressWarnings("unchecked")
@@ -121,13 +130,19 @@ public class GetCollection {
     }
     
     @SuppressWarnings("unchecked")
-    public static Collection<AssignedJobOrder> assignedJobOrdersInConflictWith(MachineEvent e) {
-        return (Collection<AssignedJobOrder>)get(AssignedJobOrder.class, e.getStart(), e.getEnd(), e.getMachine());
+    public static Collection<AssignedJobOrder> assignedJobOrdersTheSameDayOf(MachineEvent e) {
+        resetDate(e);
+        Collection<AssignedJobOrder> ret = get(AssignedJobOrder.class, e.getStart(), e.getEnd(), e.getMachine(), e.getId());
+        restoreDate(e);
+        return ret;
     }
     
     @SuppressWarnings("unchecked")
-    public static Collection<AssignedJobOrder> assignedJobOrdersInConflictWith(GlobalEvent e) {
-        return (Collection<AssignedJobOrder>)get(AssignedJobOrder.class, e.getStart(), e.getEnd());
+    public static Collection<AssignedJobOrder> assignedJobOrdersTheSameDayOf(GlobalEvent e) {
+        resetDate(e);
+        Collection<AssignedJobOrder> ret = get(AssignedJobOrder.class, e.getStart(), e.getEnd());
+        restoreDate(e);
+        return ret;
     }
     
     @SuppressWarnings("unchecked")
@@ -169,16 +184,19 @@ public class GetCollection {
     }
     
     @SuppressWarnings("unchecked")
-    private static Collection<NonWorkingDay> nonWorkingDaysInConflictWith(Event e) {
-        return (Collection<NonWorkingDay>) get(NonWorkingDay.class,e.getStart(), e.getEnd());
+    private static Collection<NonWorkingDay> nonWorkingDaysTheSameDayOf(Event e) {
+        resetDate(e);
+        Collection<NonWorkingDay> ret = get(NonWorkingDay.class,e.getStart(), e.getEnd());
+        restoreDate(e);
+        return ret;
     }
     
-    public static Collection<NonWorkingDay> nonWorkingDaysInConflictWith(GlobalEvent e) {
-        return nonWorkingDaysInConflictWith((Event)e);
+    public static Collection<NonWorkingDay> nonWorkingDaysTheSameDayOf(GlobalEvent e) {
+        return nonWorkingDaysTheSameDayOf((Event)e);
     }
     
-    public static Collection<NonWorkingDay> nonWorkingDaysInConflictWith(MachineEvent e) {
-        return nonWorkingDaysInConflictWith((Event)e); 
+    public static Collection<NonWorkingDay> nonWorkingDaysTheSameDayOf(MachineEvent e) {
+        return nonWorkingDaysTheSameDayOf((Event)e); 
     }
     
     @SuppressWarnings("unchecked")
@@ -205,13 +223,19 @@ public class GetCollection {
     }    
     
     @SuppressWarnings("unchecked")
-    public static Collection<Sampling> samplingInConflictWith(GlobalEvent e) {
-        return (Collection<Sampling>) get(Sampling.class, e.getStart(), e.getEnd());
+    public static Collection<Sampling> samplingTheSameDayOf(GlobalEvent e) {
+        resetDate(e);
+        Collection<Sampling> ret = get(Sampling.class, e.getStart(), e.getEnd());
+        restoreDate(e);
+        return ret;
     }
     
     @SuppressWarnings("unchecked")
-    public static Collection<Sampling> samplingInConflictWith(MachineEvent e) {
-        return (Collection<Sampling>) get(Sampling.class, e.getStart(), e.getEnd(), e.getMachine());
+    public static Collection<Sampling> samplingTheSameDayOf(MachineEvent e) {
+        resetDate(e);
+        Collection<Sampling> ret =  get(Sampling.class, e.getStart(), e.getEnd(), e.getMachine(), e.getId());
+        restoreDate(e);
+        return ret;
     }
     
     @SuppressWarnings("unchecked")
@@ -256,16 +280,18 @@ public class GetCollection {
     
     public static Collection<AssignedJobOrder> setAssignedJobOrderAttr(Collection<AssignedJobOrder> l, boolean editable) {
         for(AssignedJobOrder aj : l) {
-            Long lastInHours = aj.getLastInHours(), remainMinutes =aj.getLastInMinutes() - lastInHours*60;
+            Long lastInMinutes = EventUtils.getLast(aj);
+            Long missingHours = lastInMinutes / 60, missingMinutes = lastInMinutes % 60;
+            
             aj.setTitle("[" + aj.getJobOrder().getId() + "] " + 
                         aj.getJobOrder().getClient().getCode() + " - " + 
                         aj.getJobOrder().getClient().getName() + "\n" +
-                        lastInHours + " ore" + (
-                                remainMinutes > 0
-                                ? " e " + remainMinutes + " minuti"
+                        missingHours + " ore" + (
+                                missingMinutes > 0
+                                ? " e " + missingMinutes + " minuti"
                                 : "")
                        );
-            aj.setAllDay(aj.getLastInHours().equals(24L));
+            aj.setAllDay(lastInMinutes == 1440L);
             aj.setColor(aj.getJobOrder().getColor());
             aj.setEditable(editable);
         }
@@ -297,28 +323,28 @@ public class GetCollection {
         return ret;
     }
     
-    public static Collection<MachineEvent> machineEventsInConflictWith(GlobalEvent e) {
+    public static Collection<MachineEvent> machineEventsTheSameDayOf(GlobalEvent e) {
         Collection<MachineEvent> ret = new HashSet<MachineEvent>();
-        ret.addAll(samplingInConflictWith(e));
-        ret.addAll(assignedJobOrdersInConflictWith(e));
+        ret.addAll(samplingTheSameDayOf(e));
+        ret.addAll(assignedJobOrdersTheSameDayOf(e));
         return ret;
     }
     
-    public static Collection<GlobalEvent> globalEventsInConflictWith(GlobalEvent e) {
+    public static Collection<GlobalEvent> globalEventsTheSameDayOf(GlobalEvent e) {
         Collection<GlobalEvent> ret = new HashSet<GlobalEvent>();
-        ret.addAll(nonWorkingDaysInConflictWith(e));
+        ret.addAll(nonWorkingDaysTheSameDayOf(e));
         return ret;
     }
     
-    public static Collection<MachineEvent> machineEventsInConflictWith(MachineEvent e) {
-        Collection<MachineEvent> ret = new HashSet<MachineEvent>();
+    public static Collection<DroppableMachineEvent> machineEventsInConflictWith(MachineEvent e) {
+        Collection<DroppableMachineEvent> ret = new HashSet<DroppableMachineEvent>();
         // The same day of
-        Collection<Sampling> sampling = samplingInConflictWith(e);
-        Collection<AssignedJobOrder> ajo = assignedJobOrdersInConflictWith(e);
+        Collection<Sampling> sampling = samplingTheSameDayOf(e);
+        Collection<AssignedJobOrder> ajo = assignedJobOrdersTheSameDayOf(e);
         
         Long last = EventUtils.getLast(e);
-        
-        if(last >= 24) {
+
+        if(last >= 1440L) {
             ret.addAll(sampling);
             ret.addAll(ajo);
         } else {
@@ -326,14 +352,14 @@ public class GetCollection {
             for(MachineEvent ev : sampling) {
                 sumOfLast += EventUtils.getLast(ev);
             }
-            if(sumOfLast + last > 24) {
+            if(sumOfLast + last > 1440L) {
                 ret.addAll(sampling);
                 ret.addAll(ajo);
             } else {
                 for(MachineEvent ev: ajo) {
                     sumOfLast += EventUtils.getLast(ev);
                 }
-                if(sumOfLast + last > 24) {
+                if(sumOfLast + last > 1440L) {
                     ret.addAll(sampling);
                     ret.addAll(ajo);
                 }
@@ -342,22 +368,22 @@ public class GetCollection {
         return ret;
     }
     
-    public static Collection<GlobalEvent> globalEventsInConflictWith(MachineEvent e) {
+    public static Collection<GlobalEvent> globalEventsTheSameDayOf(MachineEvent e) {
         Collection<GlobalEvent> ret = new HashSet<GlobalEvent>();
-        ret.addAll(nonWorkingDaysInConflictWith(e));
+        ret.addAll(nonWorkingDaysTheSameDayOf(e));
         return ret;
     }
     
-    public static Collection<Event> eventsInConflictWith(GlobalEvent e) {
+    public static Collection<Event> eventsTheSameDayOf(GlobalEvent e) {
         Collection<Event> ret = new HashSet<Event>();
-        ret.addAll(globalEventsInConflictWith(e));
-        ret.addAll(machineEventsInConflictWith(e));
+        ret.addAll(globalEventsTheSameDayOf(e));
+        ret.addAll(machineEventsTheSameDayOf(e));
         return ret;
     }
     
-    public static Collection<Event> eventsInConflictWith(MachineEvent e) {
+    public static Collection<Event> eventsTheSameDayOf(MachineEvent e) {
         Collection<Event> ret = new HashSet<Event>();
-        ret.addAll(globalEventsInConflictWith(e));
+        ret.addAll(globalEventsTheSameDayOf(e));
         ret.addAll(machineEventsInConflictWith(e));
         return ret;
     }

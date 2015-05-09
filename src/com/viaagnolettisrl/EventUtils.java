@@ -25,5 +25,33 @@ public class EventUtils {
         return cal.getTime();
     }
     
+    public static Date start(Date d) {
+        Calendar cal = Calendar.getInstance(EventUtils.timezone);
+        cal.setTime(d);
+        cal.set(Calendar.HOUR, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        return new Date(cal.getTime().getTime());
+    }
+    
+    public static Date end(Date d) {
+        Calendar calendar = Calendar.getInstance(EventUtils.timezone);
+        calendar.setTime(d);
+        calendar.set(Calendar.HOUR_OF_DAY, 23);
+        calendar.set(Calendar.MINUTE, 59);
+        calendar.set(Calendar.SECOND, 59);
+        calendar.set(Calendar.MILLISECOND, 999);
+        return calendar.getTime();
+    }
+    
+    public static Date tomorrow(Date d) {
+        Calendar cal = Calendar.getInstance(EventUtils.timezone);
+        Date today = start(d);
+        cal.setTime(today);
+        cal.add(Calendar.DATE, 1);
+        return cal.getTime();
+    }
+    
     
 }

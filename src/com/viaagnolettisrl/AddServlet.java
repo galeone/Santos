@@ -321,6 +321,11 @@ public class AddServlet extends HttpServlet {
                     aj.setEnd(EventUtils.parseDate(params.get("end")));
                     aj.setStart(EventUtils.parseDate(params.get("start")));
                     
+                    if(aj.getStart().after(aj.getEnd()) || EventUtils.getLast(aj) > 1440L) {
+                        message = "Orario errato. O maggiore di 24h o fine precedente ad inizio";
+                        return;
+                    }
+                    
                     j.setMissingTime(j.getMissingTime() - EventUtils.getLast(aj));
                     
                     hibSession.saveOrUpdate(aj);
@@ -330,6 +335,95 @@ public class AddServlet extends HttpServlet {
                     savedObject = aj;
                     
                     AssignedJobOrder.shiftRight(aj, hibSession);
+                    
+                } catch (NumberFormatException e) {
+                    message = "Macchina non valida";
+                } catch (ParseException e) {
+                    message = "Data inizio/fine non valida";
+                }
+            }
+        }
+    }
+    
+    private void autoAssignedJobOrder(HttpServletRequest request) {
+        if (!user.getCanAddJobOrder()) {
+            message = "Non puoi aggiungere commesse";
+        } else {
+            String[] fields = new String[] { "start", "end", "machine", "joborder" };
+            Arrays.sort(fields);
+            Map<String, String> params = ServletUtils.getParameters(request, fields);
+            if (params.containsValue(null) || params.containsValue("")) {
+                message = "Completare tutti i campi";
+            } else {
+                try {
+                    AssignedJobOrder aj = new AssignedJobOrder();
+                    Long id = null;
+                    try {
+                        id = Long.parseLong(params.get("machine"));
+                    } catch (NumberFormatException e) {
+                        message = "Valore macchine non valido";
+                        return;
+                    }
+                    Machine m = (Machine) hibSession.get(Machine.class, id);
+                    if (m == null) {
+                        message = "Macchina non trovata";
+                        return;
+                    }
+                    
+                    aj.setMachine(m);
+                    
+                    try {
+                        id = Long.parseLong(params.get("joborder"));
+                    } catch (NumberFormatException e) {
+                        message = "Valore commessa non valido";
+                        return;
+                    }
+                    JobOrder j = (JobOrder) hibSession.get(JobOrder.class, id);
+                    if (j == null) {
+                        message = "Commessa non trovata";
+                        return;
+                    }
+                    
+                    aj.setJobOrder(j);
+
+                    aj.setEnd(EventUtils.parseDate(params.get("end")));
+                    aj.setStart(EventUtils.parseDate(params.get("start")));
+                    Long last = EventUtils.getLast(aj), removedTime = 0L;
+                    Date prev = new Date(aj.getStart().getTime());
+                    boolean fillAll = aj.getEnd().before(aj.getStart());
+                    if(last > 1440L || fillAll) {
+                        if(fillAll)  {
+                            //TODO: non considerare la durata ma rimepire finché ce ne è.
+                        }
+                        while(last > 0 || j.getMissingTime() > 0) {
+                            AssignedJobOrder slice = new AssignedJobOrder();
+                            slice.setJobOrder(j);
+                            slice.setMachine(m);
+                            slice.setStart(prev);
+                            Long howLong = last > 1440L ? 1440L : last;
+                            Date end = new Date(prev.getTime() + howLong);
+                            slice.setEnd(end);
+                            hibSession.saveOrUpdate(slice);
+                            j.setMissingTime(j.getMissingTime() - EventUtils.getLast(slice));
+                            last -= howLong;
+                            prev = slice.getEnd();
+                            removedTime += howLong;
+                            
+                            AssignedJobOrder.shiftRight(slice, hibSession);
+                        }
+                        message = Long.toString(removedTime);
+                        savedObject = aj;
+                    } else {
+                        j.setMissingTime(j.getMissingTime() - EventUtils.getLast(aj));
+                    
+                        hibSession.saveOrUpdate(aj);
+                        hibSession.saveOrUpdate(j);
+                    
+                        message = g.toJson(aj);
+                        savedObject = aj;
+                    
+                        AssignedJobOrder.shiftRight(aj, hibSession);
+                    }
                     
                 } catch (NumberFormatException e) {
                     message = "Macchina non valida";
@@ -397,6 +491,10 @@ public class AddServlet extends HttpServlet {
             
             case "assignedjoborder":
                 assignedJobOrder(request);
+            break;
+            
+            case "autoassignedjoborder":
+                autoAssignedJobOrder(request);
             break;
             
             case "nonworkingday":

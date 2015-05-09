@@ -3,6 +3,7 @@ package com.viaagnolettisrl.hibernate;
 import java.util.Date;
 
 public interface Event {
+    public Long getId();
     public Date getEnd();
     public Date getStart();   
     public void setStart(Date start);

@@ -22,7 +22,7 @@ public abstract class DroppableMachineEvent implements MachineEvent {
         // successivi
         // lavorativi = non di campionamento e non non lavorativi
         // machine event
-        Collection<MachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
+        Collection<DroppableMachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
         Collection<MachineEvent> machineEventsAfter = GetCollection.machineEventsAfter(e);
         
         // per ogni evento macchina in conflitto con il nuovo evento
@@ -59,7 +59,8 @@ public abstract class DroppableMachineEvent implements MachineEvent {
                 }
             }
             
-            // nextDate ha dentro il prima giorno successivo senza eventi globali
+            // nextDate ha dentro il prima giorno successivo senza eventi
+            // globali
             
             // se il giorno successivo è vuoto, piazzacelo e via
             // se non è vuoto, cioè c'è un evento della macchina
@@ -73,18 +74,24 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             
             MachineEvent toMove = null;
             for (MachineEvent me : machineEventsAfter) {
-                if (sdf.format(me.getStart()).equals(nextDateString) // stessa data
-                        //&& me.getMachine().getId().equals(conflictEvent.getMachine().getId())
-                        // il fatto che sia sulla stessa macchina dovrebbe gestirlo il fetch degli
-                        // eventi fatto un su MachineEvent che contiene la macchina
-                   ) { toMove = me; break; }
+                if (sdf.format(me.getStart()).equals(nextDateString) // stessa
+                                                                     // data
+                // &&
+                // me.getMachine().getId().equals(conflictEvent.getMachine().getId())
+                // il fatto che sia sulla stessa macchina dovrebbe gestirlo il
+                // fetch degli
+                // eventi fatto un su MachineEvent che contiene la macchina
+                ) {
+                    toMove = me;
+                    break;
+                }
             }
             
             // metto in nextdate l'ajconflict
             long last = conflictEvent.getEnd().getTime() - conflictEvent.getStart().getTime();
             conflictEvent.setStart(nextDate);
             conflictEvent.setEnd(new Date(nextDate.getTime() + last));
-            //hibSession.saveOrUpdate(conflictEvent);
+            // hibSession.saveOrUpdate(conflictEvent);
             hibSession.merge(conflictEvent);
             
             // se non potevo mettercelo, aggiungo quello che
@@ -94,8 +101,6 @@ public abstract class DroppableMachineEvent implements MachineEvent {
                 qq.add(toMove);
             }
         }
-        
-        // se funziona sono Dio.+
     }
     
     private Date oldStart;
@@ -103,15 +108,15 @@ public abstract class DroppableMachineEvent implements MachineEvent {
     public Date getOldStart() {
         return oldStart;
     }
-
+    
     public void setOldStart(Date oldStart) {
         this.oldStart = oldStart;
     }
-
+    
     public static void switchOnNext(DroppableMachineEvent e, Session hibSession) {
-        Collection<MachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
-        for(MachineEvent conflictEvent : machineEventsInConflict) {
-            conflictEvent.setEnd(new Date(e.getOldStart().getTime() + EventUtils.getLast(conflictEvent)*60000));
+        Collection<DroppableMachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
+        for (MachineEvent conflictEvent : machineEventsInConflict) {
+            conflictEvent.setEnd(new Date(e.getOldStart().getTime() + EventUtils.getLast(conflictEvent) * 60000));
             conflictEvent.setStart(e.getOldStart());
             hibSession.merge(conflictEvent);
         }

@@ -32,7 +32,7 @@
 			<c:otherwise>
 				<select id="todoJobOrders">
 					<c:forEach var="entry" items="${todojoborders}" varStatus="loop">
-						<option data-arrayindex="${loop.index}" value="${entry.id}">
+						<option value="${loop.index}">
 						[${entry.id}] Tempo mancante:
 							<fmt:formatNumber value="${entry.missingTime / 60 -0.5}" maxFractionDigits="0"/> ore e
 							${entry.missingTime % 60} minuti</option>
@@ -92,22 +92,72 @@ $block.draggable({
 $block.addClass("fc-draggable-event sampling");
 
 window.todojoborders = <%= gson.toJson(application.getAttribute("todojoborders")) %>;
+window.machines = <%= gson.toJson(application.getAttribute("machines")) %>;
+
+var machineSelect = '<select name="machine">';
+window.machines.forEach(function(machine, index, array) {
+    machineSelect += '<option value="' + machine.id + '">'+machine.id+' - ' +machine.name +'</option>';
+});
+machineSelect += "</select>";
+
+$("#jobordersummary").on('submit', '#autoassign', function(e) {
+   e.preventDefault();
+	if(window.user.canAddJobOrder) {
+	    var start = $("#autostart").datepicker("getDate"), end = $("#autoend").datepicker("getDate");
+	    var machine =  $(this).find('select[name="machine"]').val(),
+	    	jo = $(this).find('input[name="joborder"]').val();
+	    if(!end) { end = new Date(2000000000); }
+	    $.post("<%=request.getContextPath()%>/add?what=autoassignedjoborder",
+	            {
+	            	start: start.toUTCString(),
+	            	end:   end.toUTCString(),
+	            	machine: machine,
+	            	joborder: jo
+	            }, function(data){
+	        	     var removedTime = parseInt(data);
+	                if(event.type == "assignedjoborder") {
+	                	var remain = $("#remainingTime"), minutes = parseInt(remain.data("minutes"));
+	                	minutes -= removedTime;
+	                	remain.data("minutes", minutes);
+	                	// update event globalobject (avoid recration of assigned blocks on select reselection)
+	                	window.todojoborders[remain.data("arrayindex")].missingTime = minutes;
+						var lastHours = Math.floor(minutes / 60), lastMinutes = minutes % 60;
+						remain.html("<b>" + lastHours + " ore e " + lastMinutes + " minuti</b>");
+	                }
+
+	                $("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
+					$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
+	    });
+	}
+});
+
 $("#todoJobOrders").selectmenu({
 	select: function(event, ui) {
-	    var leadMinutes = parseInt(window.todojoborders[ui.item.element.data('arrayindex')].leadTime),
+	    var leadMinutes = parseInt(window.todojoborders[ui.item.element.val()].leadTime),
 	    	leadHours = Math.floor(leadMinutes / 60),
 	    	leadMinutes = leadMinutes % 60,
-	    	dataRemainMinutes = parseInt(window.todojoborders[ui.item.element.data('arrayindex')].missingTime),
+	    	dataRemainMinutes = parseInt(window.todojoborders[ui.item.element.val()].missingTime),
 	    	remainMinutes = dataRemainMinutes,
 	    	remainHours = Math.floor(remainMinutes / 60),
 	    	remainMinutes = remainMinutes  % 60;
 	    
 		$("#jobordersummary").html(
-				"Nome cliente: " + window.todojoborders[ui.item.element.data('arrayindex')].client.name + "<br />" +
-				"Codice cliente: " + window.todojoborders[ui.item.element.data('arrayindex')].client.code + "<br /><br />" +
+				"Nome cliente: " + window.todojoborders[ui.item.element.val()].client.name + "<br />" +
+				"Codice cliente: " + window.todojoborders[ui.item.element.val()].client.code + "<br /><br />" +
 				"Tempo totale: <div><b>" + leadHours + " ore e " + leadMinutes + " minuti</b></div><br />" +
-				"Tempo rimanente : <div id='remainingTime' data-minutes="+dataRemainMinutes+"><b>" + remainHours + " ore e " + remainMinutes + " minuti</div></b><br /><br />" +
-				"<b>Blocchetti orari (giornalieri):</b><br /><br />");
+				"Tempo rimanente : <div id='remainingTime' data-minutes="+dataRemainMinutes+" data-arrayindex="+ui.item.element.val()+"><b>" + remainHours + " ore e " + remainMinutes + " minuti</div></b><br /><br />" +
+				"<i>Puoi inserire in un unico colpo quante ore di produzione desideri scegliendo la data di inizio e fine e la macchina a cui assegnale<br />" +
+				"Oppure fare drag and drop delle ore sul calendario della macchina alla quale si desidere assegnare il lavoro</i><br /><br />" +
+				"<b>Inserimento automatico</b>" +
+				'<form id="autoassign">' + '<input type="hidden" name="joborder" value="' + window.todojoborders[ui.item.element.val()].id + '" />' +
+				'A partire da <sup>*</sup><input type="text" id="autostart" required /> <br />' +
+				'Fino a <input type="text" id="autoend" /> <br />' +
+				machineSelect + '<br /><input type="submit" value="Auto assegna" />' +
+				'</form>' +
+				"<br /><br /><b>Inserimento manuale (drag and drop)</b><br /><br />");
+		
+		$("#autostart").datepicker();
+		$("#autoend").datepicker();
 		
 		var c = 0, aDay = 24*60;
 		
@@ -115,16 +165,16 @@ $("#todoJobOrders").selectmenu({
 			var $block = $(document.createElement("div")),
 			last =  dataRemainMinutes >= aDay ? aDay : dataRemainMinutes,
 			lastHours = Math.floor(last / 60), lastMinutes = last % 60,
-			title = '[' + window.todojoborders[ui.item.element.data('arrayindex')].id + "] " +
-					window.todojoborders[ui.item.element.data('arrayindex')].client.code +  " - " +
-					window.todojoborders[ui.item.element.data('arrayindex')].client.name + 
+			title = '[' + window.todojoborders[ui.item.element.val()].id + "] " +
+					window.todojoborders[ui.item.element.val()].client.code +  " - " +
+					window.todojoborders[ui.item.element.val()].client.name + 
 					"<br>" + lastHours + " ore" + (
 						lastMinutes > 0 ? " e " + lastMinutes + " minuti" : ""
 							),
-			color = window.todojoborders[ui.item.element.data('arrayindex')].color;
+			color = window.todojoborders[ui.item.element.val()].color;
 			$block.html(title);
 			event = {
-				joborder: window.todojoborders[ui.item.element.data('arrayindex')].id,
+				joborder: window.todojoborders[ui.item.element.val()].id,
 				title: title,
 				allDay: last === aDay,
 				last: last,
@@ -159,7 +209,6 @@ $("#todoJobOrders").selectmenu({
 	    eventOverlap: window.user.canAddJobOrder,
 	    disableResizing: true,
 		eventReceive: function(event) {
-		    console.log(event);
 			if(window.user.canAddJobOrder) {
 			    var end = new Date(event._start._d.getTime() + event.last * 60000);
 			    $.post("<%=request.getContextPath()%>/add?what=" + event.type,
@@ -175,20 +224,23 @@ $("#todoJobOrders").selectmenu({
 			            	event.machine = ret.machine;
 			            	event.jobOrder = ret.jobOrder;
 			                $("#m${machine.id}Calendar").fullCalendar('updateEvent',event , false);
-			                var remain = $("#remainingTime"), minutes = parseInt(remain.data("minutes"));
-			                minutes -= event.last;
-			                remain.data("minutes", minutes);
-							var lastHours = Math.floor(minutes / 60), lastMinutes = minutes % 60;
-							remain.html("<b>" + lastHours + " ore e " + lastMinutes + " minuti</b>");
+			                if(event.type == "assignedjoborder") {
+			                	var remain = $("#remainingTime"), minutes = parseInt(remain.data("minutes"));
+			                	minutes -= event.last;
+			                	remain.data("minutes", minutes);
+			                	// update event globalobject (avoid recration of assigned blocks on select reselection)
+			                	window.todojoborders[remain.data("arrayindex")].missingTime = minutes;
+								var lastHours = Math.floor(minutes / 60), lastMinutes = minutes % 60;
+								remain.html("<b>" + lastHours + " ore e " + lastMinutes + " minuti</b>");
+								event.me.remove();
+			                }
 
-			                if(typeof(event.me) !== 'undefined') {event.me.remove();}
 			                $("#m${machine.id}Calendar").fullCalendar( 'refetchEvents' );
 							$("#m${machine.id}Calendar").fullCalendar( 'rerenderEvents' );
 			    });
 			}
 		},
 		eventDrop: function(event, delta, revertFunc) {
-		    console.log(event);
 			if(window.user.canAddJobOrder) {
 			    var end = null;
 			    if(!event._end) {
@@ -201,7 +253,7 @@ $("#todoJobOrders").selectmenu({
 			            	start: event._start._d.toUTCString(),
 			            	end:   event._end._d.toUTCString(),
 			            	// global events (does not have machine/joborder)
-			            	machine: typeof(event.machine)  == 'undefined' ? '' : event.machine.id,
+			            	machine:  typeof(event.machine)  == 'undefined' ? '' : event.machine.id,
 				            joborder: typeof(event.jobOrder) == 'undefined' ? '' : event.jobOrder.id
 			            },
 						function(data){
