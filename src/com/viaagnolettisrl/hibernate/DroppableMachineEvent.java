@@ -15,21 +15,31 @@ import com.viaagnolettisrl.GetCollection;
 public abstract class DroppableMachineEvent implements MachineEvent {
     
     public static void shiftRight(MachineEvent e, Session hibSession) {
-        // Global events after e
+        // Global events after e and the same day of e
         Collection<GlobalEvent> globalEventsAfterEvent = GetCollection.globalEventsAfter(e);
-        // Cerca assigned job order nel giorno di
-        // campionamento e fai slittare ai giorni lavorativi
-        // successivi
-        // lavorativi = non di campionamento e non non lavorativi
-        // machine event
+        Collection<GlobalEvent> globalEventsInConflictWith = GetCollection.globalEventsTheSameDayOf(e);
+        
+        Collection<Event> toSkip = new LinkedList<Event>(globalEventsAfterEvent);
+        
         Collection<DroppableMachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
         Collection<MachineEvent> machineEventsAfter = GetCollection.machineEventsAfter(e);
         
-        // per ogni evento macchina in conflitto con il nuovo evento
         Calendar cal = Calendar.getInstance(EventUtils.timezone);
-        Queue<MachineEvent> qq = new LinkedList<MachineEvent>(machineEventsInConflict);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         
+
+        // per ogni evento maccina in conflitto con il nuovo evento
+        Queue<MachineEvent> qq = new LinkedList<MachineEvent>(machineEventsInConflict);
+        
+        // genero la lista degli eventi macchina da dover sistamare, perché a causa
+        // di un evento globale ho dovuto shiftare l'evento su un evento maccihna già occupato
+        // per ogni evento globale in conflitto con il nuovo evento
+        Queue<GlobalEvent> gg = new LinkedList<GlobalEvent>(globalEventsInConflictWith);
+        if(!gg.isEmpty()) {
+            qq.add(e); // se sto spostando su un evento globale sicuramente dovrà muovermi, dato che lui sta fisso
+        }
+        
+        // per ogni evento macchina in conflitto con il nuovo evento macchina        
         while (!qq.isEmpty()) {
             MachineEvent conflictEvent = qq.poll();
             cal.setTime(conflictEvent.getStart());
@@ -42,9 +52,11 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             String nextDateString = sdf.format(nextDate);
             
             while (!canMove) {
+                // collisione con evento globale (voglio spostarmi in un
+                // posto già occupato da un evento globale? se sì collisione)
                 boolean collision = false;
-                for (GlobalEvent nw : globalEventsAfterEvent) {
-                    if (sdf.format(nw.getStart()).equals(nextDateString)) {
+                for (Event skip : toSkip) {
+                    if (sdf.format(skip.getStart()).equals(nextDateString)) {
                         collision = true;
                         break;
                     }
@@ -72,18 +84,18 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             // tirato furi
             // alla lista dei giorni in conflitto
             
-            MachineEvent toMove = null;
             for (MachineEvent me : machineEventsAfter) {
-                if (sdf.format(me.getStart()).equals(nextDateString) // stessa
-                                                                     // data
+                if (sdf.format(me.getStart()).equals(nextDateString) // stessa data
                 // &&
                 // me.getMachine().getId().equals(conflictEvent.getMachine().getId())
                 // il fatto che sia sulla stessa macchina dovrebbe gestirlo il
                 // fetch degli
                 // eventi fatto un su MachineEvent che contiene la macchina
                 ) {
-                    toMove = me;
-                    break;
+                    // se non potevo mettercelo, aggiungo quello che
+                    // va in conflitto alla lista di quelli da
+                    // sistemare
+                    qq.add(me);
                 }
             }
             
@@ -93,13 +105,8 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             conflictEvent.setEnd(new Date(nextDate.getTime() + last));
             // hibSession.saveOrUpdate(conflictEvent);
             hibSession.merge(conflictEvent);
-            
-            // se non potevo mettercelo, aggiungo quello che
-            // va in conflitto alla lista di quelli da
-            // sistemare
-            if (toMove != null) {
-                qq.add(toMove);
-            }
+            hibSession.getTransaction().commit();
+            hibSession.getTransaction().begin();
         }
     }
     
@@ -113,8 +120,13 @@ public abstract class DroppableMachineEvent implements MachineEvent {
         this.oldStart = oldStart;
     }
     
-    public static void switchOnNext(DroppableMachineEvent e, Session hibSession) {
+    public static void switchOnNext(DroppableMachineEvent e, Session hibSession, StringBuilder message) {
         Collection<DroppableMachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
+        Collection<GlobalEvent> globaEventsInConflictWith = GetCollection.globalEventsTheSameDayOf(e);
+        if(globaEventsInConflictWith.size() > 0) {
+            message.replace(0,message.length(),"Non puoi spostare un evento su un evento globale");
+            return;
+        }
         for (MachineEvent conflictEvent : machineEventsInConflict) {
             conflictEvent.setEnd(new Date(e.getOldStart().getTime() + EventUtils.getLast(conflictEvent) * 60000));
             conflictEvent.setStart(e.getOldStart());

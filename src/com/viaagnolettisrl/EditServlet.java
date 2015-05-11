@@ -30,7 +30,8 @@ import com.viaagnolettisrl.hibernate.User;
 public class EditServlet extends HttpServlet {
     
     private static final long serialVersionUID = 74377157203911L;
-    private String message, outputResult = "";
+    private String outputResult = "";
+    private StringBuilder message = new StringBuilder(); 
     private User user;
     private Object toEdit, savedObject;
     private Session hibSession;
@@ -47,9 +48,8 @@ public class EditServlet extends HttpServlet {
     private void sampling(Long id, HttpServletRequest request) {
 
         if (!user.getCanAddJobOrder()) {
-            message = "Non puoi gestire le commesse e nemmeno i campionamenti";
+            message.replace(0,message.length(),"Non puoi gestire le commesse e nemmeno i campionamenti");
         } else {
-            
             toEdit = (Sampling) hibSession.get(Sampling.class, id);
             
             Sampling sd = new Sampling();
@@ -62,31 +62,31 @@ public class EditServlet extends HttpServlet {
                 String startS = params.get("start"), endS = params.get("end");
 
                 if (startS == null || "".equals(startS.trim()) || endS == null || "".equals(endS.trim())) {
-                    message = "Il campo non può essere vuoto";
+                    message.replace(0,message.length(),"Il campo non può essere vuoto");
                 } else {
                     try {
                         Date start = EventUtils.parseDate(startS.trim()), end = EventUtils.parseDate(endS.trim());
                         sd.setStart(start);
                         sd.setEnd(end);
-                        message = "ok";
+                        message.replace(0,message.length(),"ok");
                     } catch (ParseException e) {
-                        message = "formato data non valido";
+                        message.replace(0,message.length(),"formato data non valido");
                     }
                 }
             } else {
-                message = "Giorno di campionamento da modificare non trovato";
+                message.replace(0,message.length(),"Giorno di campionamento da modificare non trovato");
             }
             
-            if (message.equals("ok")) {
+            if (message.toString().equals("ok")) {
                 hibSession.saveOrUpdate(sd);
-                Sampling.switchOnNext(sd, hibSession);
+                Sampling.switchOnNext(sd, hibSession,message);
             }
         }
     }
     
     private void nonWorkingDay(Long id, HttpServletRequest request) {
         if (!user.getIsAdmin()) {
-            message = "Non sei admin";
+            message.replace(0,message.length(),"Non sei admin");
         } else {
             toEdit = (NonWorkingDay) hibSession.get(NonWorkingDay.class, id);
             
@@ -98,25 +98,25 @@ public class EditServlet extends HttpServlet {
                 Arrays.sort(fields);
                 Map<String, String> params = ServletUtils.getParameters(request, fields);
                 if (params.containsValue(null) || params.containsValue("")) {
-                    message = "Completare tutti i campi";
+                    message.replace(0,message.length(),"Completare tutti i campi");
                 } else {
                     try {
                         nw.setStart(EventUtils.parseDate(params.get("start").trim()));
                         nw.setEnd(EventUtils.parseDate(params.get("end").trim()));
                         if(nw.getEnd().before(nw.getStart()) || nw.getEnd().equals(nw.getStart())) {
-                            message = "Data di inizio e fine evento errate (insensate)";
+                            message.replace(0,message.length(),"Data di inizio e fine evento errate (insensate)");
                         } else {
-                            message = "ok";
+                            message.replace(0,message.length(),"ok");
                         }
                     } catch (ParseException e) {
-                        message = "formato data non valido";
+                        message.replace(0,message.length(),"formato data non valido");
                     }
                 }
             } else {
-                message = "Giorno non lavorativo da modificare non trovato";
+                message.replace(0,message.length(),"Giorno non lavorativo da modificare non trovato");
             }
             
-            if (message.equals("ok")) {
+            if (message.toString().equals("ok")) {
                 hibSession.saveOrUpdate(nw);
                 NonWorkingDay.shiftMachineEventsRight(nw, hibSession);
             }
@@ -128,7 +128,7 @@ public class EditServlet extends HttpServlet {
         Arrays.sort(fields);
         
         if (!user.getIsAdmin()) {
-            message = "Non sei admin";
+            message.replace(0,message.length(),"Non sei admin");
         } else {
             toEdit = (User) hibSession.get(User.class, id);
             
@@ -139,15 +139,15 @@ public class EditServlet extends HttpServlet {
                 Map<String, String> params = ServletUtils.getParameters(request, new String[] { "columnName", "value" });
                 String field = params.get("columnName");
                 if (params.containsValue(null) || params.containsValue("")) {
-                    message = "Richiesta di edit errata";
+                    message.replace(0,message.length(),"Richiesta di edit errata");
                 } else if (Arrays.binarySearch(fields, field) == -1) {
-                    message = "Nome colonna non valido";
+                    message.replace(0,message.length(),"Nome colonna non valido");
                 }
                 
                 String value = params.get("value");
-                message = "ok";
+                message.replace(0,message.length(),"ok");
                 boolean result;
-                if (message.equals("ok")) {
+                if (message.toString().equals("ok")) {
                     switch (field) {
                         case "id":
                             u.setId(Long.parseLong(value));
@@ -181,15 +181,15 @@ public class EditServlet extends HttpServlet {
                         break;
                         
                         default:
-                            message = "Campo non riconosciuto";
+                            message.replace(0,message.length(),"Campo non riconosciuto");
                         break;
                     }// switch
                 }
             } else {
-                message = "Utente da modificare non trovato";
+                message.replace(0,message.length(),"Utente da modificare non trovato");
             }
             
-            if (message.equals("ok")) {
+            if (message.toString().equals("ok")) {
                 hibSession.saveOrUpdate(u);
                 savedObject = u;
             }
@@ -198,7 +198,7 @@ public class EditServlet extends HttpServlet {
     
     private void client(Long id, HttpServletRequest request) {
         if (!user.getCanAddClient()) {
-            message = "Non puoi aggiungere clienti";
+            message.replace(0,message.length(),"Non puoi aggiungere clienti");
         } else {
             String[] fields = new String[] { "name", "code" };
             Arrays.sort(fields);
@@ -210,13 +210,13 @@ public class EditServlet extends HttpServlet {
                 String value = params.get("value");
                 String field = params.get("columnName");
                 if (params.containsValue(null) || params.containsValue("")) {
-                    message = "Richiesta di edit errata";
+                    message.replace(0,message.length(),"Richiesta di edit errata");
                 } else if (Arrays.binarySearch(fields, field) == -1) {
-                    message = "Nome colonna non valido";
+                    message.replace(0,message.length(),"Nome colonna non valido");
                 } else if (value == null || "".equals(value.trim())) {
-                    message = "Il campo non può essere vuoto";
+                    message.replace(0,message.length(),"Il campo non può essere vuoto");
                 } else {
-                    message = "ok";
+                    message.replace(0,message.length(),"ok");
                     switch (field) {
                         case "name":
                             c.setName(value);
@@ -225,15 +225,15 @@ public class EditServlet extends HttpServlet {
                             c.setCode(value);
                         break;
                         default:
-                            message = "Campo non riconosciuto";
+                            message.replace(0,message.length(),"Campo non riconosciuto");
                         break;
                     }// switch
                 }
             } else {
-                message = "Cliente da modificare non trovato";
+                message.replace(0,message.length(),"Cliente da modificare non trovato");
             }
             
-            if (message.equals("ok")) {
+            if (message.toString().equals("ok")) {
                 hibSession.saveOrUpdate(c);
             }
         }
@@ -241,7 +241,7 @@ public class EditServlet extends HttpServlet {
     
     private void machine(Long id, HttpServletRequest request) {
         if (!user.getCanAddMachine()) {
-            message = "Non puoi aggiungere macchine";
+            message.replace(0,message.length(),"Non puoi aggiungere macchine");
         } else {
             String[] fields = new String[] { "name", "type", "nicety", "color" };
             Arrays.sort(fields);
@@ -254,13 +254,13 @@ public class EditServlet extends HttpServlet {
                 String field = params.get("columnName");
                 String value = params.get("value");
                 if (params.containsValue(null) || params.containsValue("")) {
-                    message = "Richiesta di edit errata";
+                    message.replace(0,message.length(),"Richiesta di edit errata");
                 } else if (Arrays.binarySearch(fields, field) == -1) {
-                    message = "Nome colonna non valido";
+                    message.replace(0,message.length(),"Nome colonna non valido");
                 } else if (value == null || "".equals(value.trim())) {
-                    message = "Il campo non può essere vuoto";
+                    message.replace(0,message.length(),"Il campo non può essere vuoto");
                 } else {
-                    message = "ok";
+                    message.replace(0,message.length(),"ok");
                     switch (field) {
                         case "name":
                             m.setName(value);
@@ -272,20 +272,20 @@ public class EditServlet extends HttpServlet {
                             try {
                                 m.setNicety(Float.parseFloat(value));
                             } catch (NumberFormatException e) {
-                                message = "Valore della finezza non valido";
+                                message.replace(0,message.length(),"Valore della finezza non valido");
                             }
                         break;
                         
                         default:
-                            message = "Campo non riconosciuto";
+                            message.replace(0,message.length(),"Campo non riconosciuto");
                         break;
                     }// switch
                 }
             } else {
-                message = "Macchina da modificare non trovata";
+                message.replace(0,message.length(),"Macchina da modificare non trovata");
             }
             
-            if (message.equals("ok")) {
+            if (message.toString().equals("ok")) {
                 hibSession.saveOrUpdate(m);
             }
         }
@@ -293,7 +293,7 @@ public class EditServlet extends HttpServlet {
     
     private void joborder(Long id, HttpServletRequest request) {
         if (!user.getCanAddJobOrder()) {
-            message = "Non puoi aggiungere commesse";
+            message.replace(0,message.length(),"Non puoi aggiungere commesse");
         } else {
             String[] fields = new String[] { "client", "leadTime" };
             Arrays.sort(fields);
@@ -306,13 +306,13 @@ public class EditServlet extends HttpServlet {
                 String field = params.get("columnName");
                 String value = params.get("value");
                 if (params.containsValue(null) || params.containsValue("")) {
-                    message = "Richiesta di edit errata";
+                    message.replace(0,message.length(),"Richiesta di edit errata");
                 } else if (Arrays.binarySearch(fields, field) == -1) {
-                    message = "Nome colonna non valido";
+                    message.replace(0,message.length(),"Nome colonna non valido");
                 } else if (value == null || "".equals(value.trim())) {
-                    message = "Il campo non può essere vuoto";
+                    message.replace(0,message.length(),"Il campo non può essere vuoto");
                 } else {
-                    message = "ok";
+                    message.replace(0,message.length(),"ok");
                     switch (field) {
                         case "client":
                             try {
@@ -320,7 +320,7 @@ public class EditServlet extends HttpServlet {
                                 if (c == null) { throw new NumberFormatException(); }
                                 j.setClient(c);
                             } catch (NumberFormatException e) {
-                                message = "Cliente non trovato";
+                                message.replace(0,message.length(),"Cliente non trovato");
                             }
                         break;
                         case "numberOfItems":
@@ -331,7 +331,7 @@ public class EditServlet extends HttpServlet {
                                 j.setLeadTime(lt * j.getTimeForItem());
                                 outputResult = value;
                             } catch (NumberFormatException e) {
-                                message = "Numero di elementi <= 0";
+                                message.replace(0,message.length(),"Numero di elementi <= 0");
                             }
                         break;
                         case "timeForItem":
@@ -342,7 +342,7 @@ public class EditServlet extends HttpServlet {
                                 j.setLeadTime(lt * j.getNumberOfItems());
                                 outputResult = value;
                             } catch (NumberFormatException e) {
-                                message = "Tempo per capo <= 0";
+                                message.replace(0,message.length(),"Tempo per capo <= 0");
                             }
                         break;
                         case "color":
@@ -354,15 +354,15 @@ public class EditServlet extends HttpServlet {
                             j.setDescription(value);
                         break;
                         default:
-                            message = "Campo non riconosciuto";
+                            message.replace(0,message.length(),"Campo non riconosciuto");
                         break;
                     }// switch
                 }
             } else {
-                message = "Commessa da modificare non trovata";
+                message.replace(0,message.length(),"Commessa da modificare non trovata");
             }
             
-            if (message.equals("ok")) {
+            if (message.toString().equals("ok")) {
                 hibSession.saveOrUpdate(j);
             }
         }
@@ -370,7 +370,7 @@ public class EditServlet extends HttpServlet {
     
     private void assignedJobOrder(Long id, HttpServletRequest request) {
         if (!user.getCanAddJobOrder()) {
-            message = "Non puoi assegnare commesse";
+            message.replace(0,message.length(),"Non puoi assegnare commesse");
         } else {
             String[] fields = new String[] { "start", "end", "machine", "joborder" };
             Arrays.sort(fields);
@@ -385,21 +385,21 @@ public class EditServlet extends HttpServlet {
                 String startS = params.get("start"), endS = params.get("end");
                 
                 if (params.containsValue(null) || params.containsValue("")) {
-                    message = "Richiesta di edit errata";
+                    message.replace(0,message.length(),"Richiesta di edit errata");
                 } else if (startS == null || "".equals(startS.trim()) || endS == null || "".equals(endS.trim())) {
-                    message = "Il campo non può essere vuoto";
+                    message.replace(0,message.length(),"Il campo non può essere vuoto");
                 } else {
-                    message = "ok";
+                    message.replace(0,message.length(),"ok");
                     try {
                         aj.setStart(EventUtils.parseDate(startS.trim()));
                         aj.setEnd(EventUtils.parseDate(endS.trim()));
 
                         if(aj.getEnd().before(aj.getStart()) || aj.getEnd().equals(aj.getStart())) {
-                            message = "Data di inizio e fine evento errate (insensate)";
+                            message.replace(0,message.length(),"Data di inizio e fine evento errate (insensate)");
                             return;
                         }
                     } catch (ParseException e) {
-                        message = "formato data non valido";
+                        message.replace(0,message.length(),"formato data non valido");
                     }
                     try {
                         JobOrder j = (JobOrder) hibSession.get(JobOrder.class, Long.parseLong(params.get("joborder")));
@@ -410,22 +410,22 @@ public class EditServlet extends HttpServlet {
                         if (m == null) { throw new NumberFormatException("Macchina non valida"); }
                         aj.setMachine(m);
                     } catch (NumberFormatException e) {
-                        message = e.getMessage() + " < ";
+                        message.replace(0,message.length(),e.getMessage() + " < ");
                     }
                 }
             } else {
-                message = "Commessa da modificare non trovata";
+                message.replace(0,message.length(),"Commessa da modificare non trovata");
             }
             
-            if (message.equals("ok")) {
+            if (message.toString().equals("ok")) {
                 hibSession.saveOrUpdate(aj);
-                AssignedJobOrder.switchOnNext(aj, hibSession);
+                AssignedJobOrder.switchOnNext(aj, hibSession, message);
             }
         }
     }
     
     private void log(Long id, String what, Map<String, String> params, HttpServletRequest request, HttpSession session) {
-        if (message.equals("ok")) {
+        if (message.toString().equals("ok")) {
             History h = new History();
             h.setAction("EDIT");
             h.setTime(new Date());
@@ -455,7 +455,7 @@ public class EditServlet extends HttpServlet {
                     }
                 }
             } catch (ConstraintViolationException e) {
-                message = "Identificativo duplicato";
+                message.replace(0,message.length(),"Identificativo duplicato");
                 hibSession.getTransaction().rollback();
             }
         } else {
@@ -522,7 +522,7 @@ public class EditServlet extends HttpServlet {
         
         log(id, what, params, request, session);
         
-        out.print(outputResult.equals("") ? message : outputResult);
+        out.print(outputResult.equals("") ? message.toString() : outputResult);
         
         hibSession.close();
     }

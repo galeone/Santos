@@ -103,7 +103,8 @@ machineSelect += "</select>";
 $("#jobordersummary").on('submit', '#autoassign', function(e) {
    e.preventDefault();
 	if(window.user.canAddJobOrder) {
-	    var start = $("#autostart").datepicker("getDate"), end = $("#autoend").datepicker("getDate");
+	    var start = $("#autostart").datepicker({altFormat: "dd/mm/yy"}).datepicker("getDate"),
+	        end = $("#autoend").datepicker({altFormat: "dd/mm/yy"}).datepicker("getDate");
 	    var machine =  $(this).find('select[name="machine"]').val(),
 	    	jo = $(this).find('input[name="joborder"]').val();
 	    if(!end) { end = new Date(2000000000); }

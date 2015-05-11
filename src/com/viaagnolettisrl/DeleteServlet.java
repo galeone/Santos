@@ -155,7 +155,7 @@ public class DeleteServlet extends HttpServlet {
             h.setTime(new Date());
             h.setUser(user);
             h.setWhat(toDelete.toString());
-            hibSession.saveOrUpdate(h);
+            hibSession.merge(h);
             hibSession.getTransaction().commit();
             } catch(GenericJDBCException e) {
                 hibSession.getTransaction().rollback();

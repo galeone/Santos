@@ -26,11 +26,11 @@ public abstract class DroppableGlobalEvent implements GlobalEvent {
         
         // per ogni evento (macchina o globale) macchina in conflitto con e
         Calendar cal = Calendar.getInstance(EventUtils.timezone);
-        Queue<Event> qq = new LinkedList<Event>(machineEventsInConflict);
+        Queue<MachineEvent> qq = new LinkedList<MachineEvent>(machineEventsInConflict);
         
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         while (!qq.isEmpty()) {
-            Event conflictEvent = qq.poll();
+            MachineEvent conflictEvent = qq.poll();
             cal.setTime(conflictEvent.getStart());
             cal.add(Calendar.DATE, 1);
             Date nextDate = cal.getTime();
@@ -70,13 +70,12 @@ public abstract class DroppableGlobalEvent implements GlobalEvent {
             // tirato furi
             // alla lista dei giorni in conflitto
             
-            MachineEvent toMove = null;
             for (MachineEvent me : machineEventsAfter) {
                 if (sdf.format(me.getStart()).equals(nextDateString) // stessa data
-                        //&& me.getMachine().getId().equals(conflictEvent.getMachine().getId())
-                        // il fatto che sia sulla stessa macchina dovrebbe gestirlo il fetch degli
-                        // eventi fatto un su MachineEvent che contiene la macchina
-                   ) { toMove = me; break; }
+                        // se non potevo mettercelo, aggiungo quello che
+                        // va in conflitto alla lista di quelli da
+                        // sistemare
+                   ) { qq.add(me); }
             }
             
             // metto in nextdate l'ajconflict
@@ -85,13 +84,9 @@ public abstract class DroppableGlobalEvent implements GlobalEvent {
             conflictEvent.setEnd(new Date(nextDate.getTime() + last));
             //hibSession.saveOrUpdate(conflictEvent);
             hibSession.merge(conflictEvent);
-            
-            // se non potevo mettercelo, aggiungo quello che
-            // va in conflitto alla lista di quelli da
-            // sistemare
-            if (toMove != null) {
-                qq.add(toMove);
-            }
+            hibSession.getTransaction().commit();
+            hibSession.getTransaction().begin();
         }
     }
 }
+
