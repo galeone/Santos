@@ -151,18 +151,23 @@ public class EditServlet extends HttpServlet {
                     switch (field) {
                         case "id":
                             u.setId(Long.parseLong(value));
+                            outputResult = value;
                         break;
                         case "name":
                             u.setName(value);
+                            outputResult = value;
                         break;
                         case "surname":
                             u.setSurname(value);
+                            outputResult = value;
                         break;
                         case "username":
                             u.setUsername(value);
+                            outputResult = value;
                         break;
                         case "password":
                             u.setPassword(value);
+                            outputResult = value;
                         break;
                         case "canaddjoborder":
                             result = value.equals("Si");
@@ -220,9 +225,11 @@ public class EditServlet extends HttpServlet {
                     switch (field) {
                         case "name":
                             c.setName(value);
+                            outputResult = value;
                         break;
                         case "code":
                             c.setCode(value);
+                            outputResult = value;
                         break;
                         default:
                             message.replace(0,message.length(),"Campo non riconosciuto");
@@ -264,13 +271,16 @@ public class EditServlet extends HttpServlet {
                     switch (field) {
                         case "name":
                             m.setName(value);
+                            outputResult = value;
                         break;
                         case "type":
                             m.setType(value);
+                            outputResult = value;
                         break;
                         case "nicety":
                             try {
                                 m.setNicety(Float.parseFloat(value));
+                                outputResult = value;
                             } catch (NumberFormatException e) {
                                 message.replace(0,message.length(),"Valore della finezza non valido");
                             }
@@ -327,8 +337,15 @@ public class EditServlet extends HttpServlet {
                             try {
                                 Long lt = Long.parseLong(value);
                                 if (lt <= 0) { throw new NumberFormatException(); }
+                                Long actualAssignedTime = j.getLeadTime() - j.getMissingTime();
+                                if(lt * j.getTimeForItem() < actualAssignedTime) {
+                                    message.replace(0, message.length(), "Non puoi modificare il numero di elementi se questa interferisce con le ore già assegnate per la produzione di questa\n" +
+                                "Per farlo devi prima eliminare le ore in più assegnate.");
+                                    return;
+                                }
                                 j.setNumberOfItems(lt);
                                 j.setLeadTime(lt * j.getTimeForItem());
+                                j.setMissingTime(j.getLeadTime() - actualAssignedTime);
                                 outputResult = value;
                             } catch (NumberFormatException e) {
                                 message.replace(0,message.length(),"Numero di elementi <= 0");
@@ -338,8 +355,15 @@ public class EditServlet extends HttpServlet {
                             try {
                                 Long lt = Long.parseLong(value);
                                 if (lt <= 0) { throw new NumberFormatException(); }
+                                Long actualAssignedTime = j.getLeadTime() - j.getMissingTime();
+                                if(lt * j.getNumberOfItems() < actualAssignedTime) {
+                                    message.replace(0, message.length(), "Non puoi modificare il tempo per elemento se questa interferisce con le ore già assegnate per la produzione di questa\n" +
+                                "Per farlo devi prima eliminare le ore in più assegnate.");
+                                    return;
+                                }
                                 j.setTimeForItem(lt);
                                 j.setLeadTime(lt * j.getNumberOfItems());
+                                j.setMissingTime(j.getLeadTime() - actualAssignedTime);
                                 outputResult = value;
                             } catch (NumberFormatException e) {
                                 message.replace(0,message.length(),"Tempo per capo <= 0");
@@ -486,6 +510,9 @@ public class EditServlet extends HttpServlet {
         
         hibSession = HibernateUtil.getSessionFactory().openSession();
         hibSession.beginTransaction();
+        
+        outputResult = "";
+        message.replace(0, message.length(), "");
         
         switch (what) {
             case "user":

@@ -12,11 +12,47 @@ public class Sampling extends DroppableMachineEvent implements Serializable {
 	private Date start, end;
 	private Machine machine;
 	private JobOrder jobOrder;
+	private boolean overlap = true, editable = true, allDay;
 	
-	public String title = "Campionamento",
-			color = "#00E",
-			type = "sampling";
-	public boolean overlap = true, allDay = true, editable = true;
+	private String title,
+			color;
+	
+	public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
+    public boolean isEditable() {
+        return editable;
+    }
+
+    public void setEditable(boolean editable) {
+        this.editable = editable;
+    }
+
+    public String type = "sampling";
+	
+	public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public boolean getAllDay() {
+        return allDay;
+    }
+
+    public void setAllDay(boolean allDay) {
+        this.allDay = allDay;
+    }
+
+    
+
 
 	@Override
     public int hashCode() {

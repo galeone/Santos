@@ -108,10 +108,15 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             message.replace(0,message.length(),"Non puoi spostare un evento su un evento globale");
             return;
         }
-        for (MachineEvent conflictEvent : machineEventsInConflict) {
+        for (DroppableMachineEvent conflictEvent : machineEventsInConflict) {
+            Date oldStart = conflictEvent.getStart();
             conflictEvent.setEnd(new Date(e.getOldStart().getTime() + EventUtils.getLast(conflictEvent) * 60000));
             conflictEvent.setStart(e.getOldStart());
             hibSession.merge(conflictEvent);
+            hibSession.getTransaction().commit();
+            hibSession.getTransaction().begin();
+            conflictEvent.setOldStart(oldStart);
+            switchOnNext(conflictEvent, hibSession, message);
         }
     }
     

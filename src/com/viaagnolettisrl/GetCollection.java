@@ -283,9 +283,9 @@ public class GetCollection {
             Long lastInMinutes = EventUtils.getLast(aj);
             Long missingHours = lastInMinutes / 60, missingMinutes = lastInMinutes % 60;
             
-            aj.setTitle("[" + aj.getJobOrder().getId() + "] " + 
-                        aj.getJobOrder().getClient().getCode() + " - " + 
-                        aj.getJobOrder().getClient().getName() + "\n" +
+            aj.setTitle(aj.getJobOrder().getClient().getCode() +  
+                        " - " +  aj.getJobOrder().getId() + "\n" +
+                        aj.getJobOrder().getDescription() + "\n" +
                         missingHours + " ore" + (
                                 missingMinutes > 0
                                 ? " e " + missingMinutes + " minuti"
@@ -298,9 +298,33 @@ public class GetCollection {
         return l;
     }
     
+    public static Collection<Sampling> setSamplingAttr(Collection<Sampling> l, boolean editable) {
+        for(Sampling s : l) {
+            Long lastInMinutes = EventUtils.getLast(s);
+            Long missingHours = lastInMinutes / 60, missingMinutes = lastInMinutes % 60;
+            
+            s.setTitle("Campionamento: " +  s.getJobOrder().getId() + "\n" +
+                        s.getJobOrder().getDescription() + "\n" +
+                        missingHours + " ore" + (
+                                missingMinutes > 0
+                                ? " e " + missingMinutes + " minuti"
+                                : "")
+                       );
+            s.setAllDay(lastInMinutes == 1440L);
+            s.setColor(s.getJobOrder().getColor());
+            s.setEditable(editable);
+        }
+        return l;
+    }
+    
     @SuppressWarnings("unchecked")
     public static Collection<AssignedJobOrder> assignedJobOrders(boolean editable) {
         return setAssignedJobOrderAttr((Collection<AssignedJobOrder>) get(AssignedJobOrder.class), editable);
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<Sampling> sampling(boolean editable) {
+        return setSamplingAttr((Collection<Sampling>) get(Sampling.class), editable);
     }
   
     @SuppressWarnings("unchecked")

@@ -13,7 +13,7 @@ public class AssignedJobOrder extends DroppableMachineEvent implements Serializa
 	private Machine machine;
 	private JobOrder jobOrder;
 	private String title, color;
-	private boolean overlap = true, editable = true, allDay;
+	private boolean overlap = true, editable = true, allDay = true;
 	public String type = "assignedjoborder";
 	
 	@Override

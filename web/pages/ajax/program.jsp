@@ -51,19 +51,15 @@
 						Seleziona la commessa ed imposta la durata. <br />Dopo trascina il
 						blocchetto sul calendario.
 					</p>
-					<div id="sampling-event"></div>
 					<select id="joborder">
 						<c:forEach var="jo" items="${joborders}">
 							<option value="${jo.id}">Commessa: ${jo.id} - Cliente: ${jo.client.name}</option>
 						</c:forEach>
 					</select><br />
-					<select name="machine">
-						<c:forEach var="machine" items="${machines}">
-							<option value="${machine.id}">${machine.id} - ${machine.name}</option>
-						</c:forEach>
-					</select>
-					Ore: <input type="number" min="0" max="24" id="samplinghours" /><br />
-					Minuti: <input type="number" min="0" max="59" id="samplingminutes" /><br />
+					Ore: <input style="display: inline" type="number" min="0" max="24" id="samplinghours" /><br />
+					Minuti: <input style="display: inline" type="number" min="0" max="59" id="samplingminutes" /><br /><br />
+					<div id="sampling-event"></div>
+					<br /><br />
 					<b>Inserimento automatico</b>
 					<form id="autosampling">
 						<select id="autosamplingjoborder">
@@ -71,10 +67,16 @@
 								<option value="${jo.id}">Commessa: ${jo.id} - Cliente: ${jo.client.name}</option>
 							</c:forEach>
 						</select><br />
+						<select name="machine">
+							<c:forEach var="machine" items="${machines}">
+								<option value="${machine.id}">${machine.id} - ${machine.name}</option>
+							</c:forEach>
+						</select>
 						A partire da <sup>*</sup><input type="text" id="autosamplingstart" required /><br />
 						Fino a <sup>*</sup> <input type="text" id="autosamplingend" required /> <br />
 						<br /><input type="submit" value="Auto assegna" />
 					</form>
+					<br />
 				</div>
 			</c:when>
 		</c:choose>
@@ -201,7 +203,7 @@ $("#todoJobOrders").selectmenu({
 			event = {
 				joborder: window.todojoborders[ui.item.element.val()].id,
 				title: title,
-				allDay: last === aDay,
+				allDay: true, // even if it's falsa, avoid start time display
 				last: last,
 				me: $block,
 				color: color,
@@ -267,11 +269,11 @@ $("#todoJobOrders").selectmenu({
 		},
 		eventDrop: function(event, delta, revertFunc) {
 			if(window.user.canAddJobOrder) {
-			    var end = null;
 			    if(!event._end) {
 					end =  new Date(event._start._d.getTime() + event.last * 60000);
 					event._end = moment(end);
 			    }
+
 			    $.post("<%=request.getContextPath()%>/edit?what=" + event.type,
 			            {
 			            	id: event.id,

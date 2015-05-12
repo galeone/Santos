@@ -85,8 +85,9 @@ public class GetServlet extends HttpServlet {
         }catch(NumberFormatException e) {
             throw new Exception("Id macchina non valido");
         }
-        return GetCollection.samplingBetween(m, start, end);
-        
+        return GetCollection.setSamplingAttr(
+                GetCollection.samplingBetween(m, start, end),
+                user.getCanAddJobOrder());
     }
     
     private Date getDate(HttpServletRequest request, String name) {
