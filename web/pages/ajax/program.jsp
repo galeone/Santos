@@ -20,11 +20,10 @@
 %>
 <div class="wrap">
 	<div class="leftc" style="background: #eee">
-		<h4>
-			<label for="todoJobOrders">Commesse non assegnate o
-				parzialmente assegnate<br />
+		<h3>
+			<label for="todoJobOrders">Commesse non/parzialmente assegnate<br />
 			</label>
-		</h4>
+		</h3>
 		<c:choose>
 			<c:when test="${empty todojoborders}">
 				Non esistono commesse non assegnate o parzilamente assegnate<br /> 
@@ -41,20 +40,41 @@
 			</c:otherwise>
 		</c:choose>
 		<c:choose>
-			<c:when test="${!empty todojoborders}">
+			<c:when test="${!empty joborders}">
 				<div id="jobordersummary"></div>
-				<h4>Campionamento</h4>
-				<p>
-					Seleziona la commessa ed imposta la durata. <br /> Dopo trascina il
-					blocchetto sul calendario.
-				</p>
 				<div id="sampling">
+				<h3>Campionamento</h3>
+					<b>Inserimento manuale (drag-and-drop)</b><br />
+					<i>Puoi inserire campionamenti manualmente per la durata massima di 24 ore.</i>
+					<br /><i>Per inserire più giorni di campionamento, usa l'inserimento automatico</i>
+					<p>
+						Seleziona la commessa ed imposta la durata. <br />Dopo trascina il
+						blocchetto sul calendario.
+					</p>
 					<div id="sampling-event"></div>
 					<select id="joborder">
 						<c:forEach var="jo" items="${joborders}">
 							<option value="${jo.id}">Commessa: ${jo.id} - Cliente: ${jo.client.name}</option>
 						</c:forEach>
+					</select><br />
+					<select name="machine">
+						<c:forEach var="machine" items="${machines}">
+							<option value="${machine.id}">${machine.id} - ${machine.name}</option>
+						</c:forEach>
 					</select>
+					Ore: <input type="number" min="0" max="24" id="samplinghours" /><br />
+					Minuti: <input type="number" min="0" max="59" id="samplingminutes" /><br />
+					<b>Inserimento automatico</b>
+					<form id="autosampling">
+						<select id="autosamplingjoborder">
+							<c:forEach var="jo" items="${joborders}">
+								<option value="${jo.id}">Commessa: ${jo.id} - Cliente: ${jo.client.name}</option>
+							</c:forEach>
+						</select><br />
+						A partire da <sup>*</sup><input type="text" id="autosamplingstart" required /><br />
+						Fino a <sup>*</sup> <input type="text" id="autosamplingend" required /> <br />
+						<br /><input type="submit" value="Auto assegna" />
+					</form>
 				</div>
 			</c:when>
 		</c:choose>
@@ -103,12 +123,15 @@ machineSelect += "</select>";
 $("#jobordersummary").on('submit', '#autoassign', function(e) {
    e.preventDefault();
 	if(window.user.canAddJobOrder) {
-	    var start = $("#autostart").datepicker({altFormat: "dd/mm/yy"}).datepicker("getDate"),
-	        end = $("#autoend").datepicker({altFormat: "dd/mm/yy"}).datepicker("getDate");
+	    var start = $("#autostart").datepicker("getDate"),
+	        end = $("#autoend").datepicker("getDate");
+	    // datepicker start from the day before the selection (wtf)
+	    start.setDate(start.getDate() + 1); //always defined (required field)
+	    if(!end) { end = new Date(null); } else { end.setDate(end.getDate() + 1); }
+	    
 	    var machine =  $(this).find('select[name="machine"]').val(),
 	    	jo = $(this).find('input[name="joborder"]').val();
-	    if(!end) { end = new Date(2000000000); }
-	    $.post("<%=request.getContextPath()%>/add?what=autoassignedjoborder",
+	    $.post("<%=request.getContextPath()%>/add?what=assignedjoborder",
 	            {
 	            	start: start.toUTCString(),
 	            	end:   end.toUTCString(),
@@ -116,18 +139,19 @@ $("#jobordersummary").on('submit', '#autoassign', function(e) {
 	            	joborder: jo
 	            }, function(data){
 	        	     var removedTime = parseInt(data);
-	                if(event.type == "assignedjoborder") {
-	                	var remain = $("#remainingTime"), minutes = parseInt(remain.data("minutes"));
+	        	     if(isNaN(removedTime)) {
+	        		 	alert(data);
+	        	     } else {
+	                	var remain = $("#remainingTime"),  minutes = parseInt(remain.data("minutes"));
 	                	minutes -= removedTime;
 	                	remain.data("minutes", minutes);
 	                	// update event globalobject (avoid recration of assigned blocks on select reselection)
 	                	window.todojoborders[remain.data("arrayindex")].missingTime = minutes;
 						var lastHours = Math.floor(minutes / 60), lastMinutes = minutes % 60;
 						remain.html("<b>" + lastHours + " ore e " + lastMinutes + " minuti</b>");
+						$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
+						$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
 	                }
-
-	                $("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
-					$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
 	    });
 	}
 });
@@ -157,8 +181,8 @@ $("#todoJobOrders").selectmenu({
 				'</form>' +
 				"<br /><br /><b>Inserimento manuale (drag and drop)</b><br /><br />");
 		
-		$("#autostart").datepicker();
-		$("#autoend").datepicker();
+		$("#autostart").datepicker( { dateFormat: "dd/mm/yy" } );
+		$("#autoend").datepicker( { dateFormat: "dd/mm/yy" } );
 		
 		var c = 0, aDay = 24*60;
 		

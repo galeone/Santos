@@ -20,6 +20,7 @@ import org.hibernate.exception.ConstraintViolationException;
 import com.google.gson.Gson;
 import com.viaagnolettisrl.hibernate.AssignedJobOrder;
 import com.viaagnolettisrl.hibernate.Client;
+import com.viaagnolettisrl.hibernate.DroppableMachineEvent;
 import com.viaagnolettisrl.hibernate.HibernateUtil;
 import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
@@ -44,68 +45,6 @@ public class AddServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         doPost(req, resp);
-    }
-    
-    private void sampling(HttpServletRequest request) {
-        Map<String, String> params;
-        
-        if (!user.getCanAddJobOrder()) {
-            message.replace(0,message.length(),"Non puoi gestire commesse");
-        } else {
-            String[] fields = new String[] { "start", "end", "machine", "joborder" };
-            Arrays.sort(fields);
-            params = ServletUtils.getParameters(request, fields);
-            if (params.containsValue(null) || params.containsValue("")) {
-                message.replace(0,message.length(),"Completare tutti i campi");
-            } else {
-                try {
-                    Sampling s = new Sampling();
-                    Long id = null;
-                    try {
-                        id = Long.parseLong(params.get("machine"));
-                    } catch (NumberFormatException e) {
-                        message.replace(0,message.length(),"Valore macchine non valido");
-                        return;
-                    }
-                    Machine m = (Machine) hibSession.get(Machine.class, id);
-                    if (m == null) {
-                        message.replace(0,message.length(),"Macchina non trovata");
-                        return;
-                    }
-                    
-                    s.setMachine(m);
-                    
-                    try {
-                        id = Long.parseLong(params.get("joborder"));
-                    } catch (NumberFormatException e) {
-                        message.replace(0,message.length(),"Valore commessa non valido");
-                        return;
-                    }
-                    JobOrder j = (JobOrder) hibSession.get(JobOrder.class, id);
-                    if (j == null) {
-                        message.replace(0,message.length(),"Commessa non trovata");
-                        return;
-                    }
-                    
-                    s.setJobOrder(j);
-                    
-                    s.setEnd(EventUtils.parseDate(params.get("end")));
-                    s.setStart(EventUtils.parseDate(params.get("start")));
-                    
-                    hibSession.saveOrUpdate(s);
-                    
-                    message.replace(0,message.length(),g.toJson(s));
-                    savedObject = s;
-                    
-                    Sampling.shiftRight(s, hibSession);
-                    
-                } catch (NumberFormatException e) {
-                    message.replace(0,message.length(),"Macchina non valida");
-                } catch (ParseException e) {
-                    message.replace(0,message.length(),"Data inizio/fine non valida");
-                }
-            }
-        }
     }
     
     private void nonWorkingDay(HttpServletRequest request) {
@@ -278,30 +217,49 @@ public class AddServlet extends HttpServlet {
     }
     
     private void addOneAssignedJobOrder(JobOrder j, Machine m, Date start, Date end) {
-        AssignedJobOrder aj = new AssignedJobOrder();
-        aj.setJobOrder(j);
-        aj.setMachine(m);
+        addOneMacineEvent(AssignedJobOrder.class, j, m, start, end);
+    }
+    
+    private void addOneSampling(JobOrder j, Machine m, Date start, Date end) {
+        addOneMacineEvent(Sampling.class, j, m, start, end);
+    }
+    
+    private void addOneMacineEvent(Class<? extends DroppableMachineEvent> droppableEvent, JobOrder j, Machine m, Date start, Date end ) {
+        DroppableMachineEvent event = null;
+        try {
+            event = (DroppableMachineEvent) droppableEvent.newInstance();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+            message.replace(0, message.length(), e.getMessage());
+            return;
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+            message.replace(0, message.length(), e.getMessage());
+            return;
+        }
+        event.setJobOrder(j);
+        event.setMachine(m);
         
-        aj.setStart(start);
-        aj.setEnd(end);
+        event.setStart(start);
+        event.setEnd(end);
         
-        if(aj.getStart().after(aj.getEnd()) || EventUtils.getLast(aj) > 1440L) {
+        if(event.getStart().after(event.getEnd()) || EventUtils.getLast(event) > 1440L) {
             message.replace(0,message.length(),"Orario errato. O maggiore di 24h o fine precedente ad inizio");
             return;
         }
         
-        j.setMissingTime(j.getMissingTime() - EventUtils.getLast(aj));
+        j.setMissingTime(j.getMissingTime() - EventUtils.getLast(event));
         
-        hibSession.saveOrUpdate(aj);
+        hibSession.saveOrUpdate(event);
         hibSession.saveOrUpdate(j);
         
-        message.replace(0,message.length(),g.toJson(aj));
-        savedObject = aj;
+        message.replace(0,message.length(),g.toJson(event));
+        savedObject = event;
         
-        AssignedJobOrder.shiftRight(aj, hibSession);
+        DroppableMachineEvent.shiftRight(event, hibSession);
     }
     
-    private void assignedJobOrder(HttpServletRequest request) {
+    private void autoAssignedJobOrder(HttpServletRequest request) {
         if (!user.getCanAddJobOrder()) {
             message.replace(0,message.length(),"Non puoi aggiungere commesse");
         } else {
@@ -336,10 +294,42 @@ public class AddServlet extends HttpServlet {
                         message.replace(0,message.length(),"Commessa non trovata");
                         return;
                     }
+                    
 
-                    Date end = EventUtils.parseDate(params.get("end")),
-                            start = EventUtils.parseDate(params.get("start"));
-                    addOneAssignedJobOrder(j, m, start, end);
+                    Date start = EventUtils.start(EventUtils.parseDate(params.get("start"))),
+                         end   = EventUtils.parseDate(params.get("end"));
+
+                    AssignedJobOrder dummy = new AssignedJobOrder();
+                    dummy.setStart(start);
+                    dummy.setEnd(end);
+                    Long last = EventUtils.getLast(dummy), removedTime = 0L, missingTime = j.getMissingTime();
+                    Date prev = new Date(dummy.getStart().getTime());
+                    boolean fillAll = dummy.getEnd().before(dummy.getStart()) || last > missingTime;
+                    if(last > 1440L || fillAll) {
+                        if(fillAll) {
+                            last = missingTime;
+                        }
+                        while(last > 0) {
+                            dummy.setStart(prev);
+                            Long howLong = last > 1440L ? 1440L : last;
+                            
+                            end = new Date(prev.getTime() + howLong * 60000);
+                            dummy.setEnd(end);
+                            
+                            addOneAssignedJobOrder(j, m, prev, end);
+                            last -= howLong;
+                            removedTime += howLong;
+                            prev = new Date(end.getTime());
+                        }
+                    } else if(last > 0L && last <= 1440L){
+                        addOneAssignedJobOrder(j, m, start, end);
+                        removedTime = last;
+                    } else {
+                        message.replace(0, message.length(), "Evento di durata nulla o negativa");
+                        return;
+                    }
+                    
+                    message.replace(0,message.length(),Long.toString(removedTime));
                     
                 } catch (NumberFormatException e) {
                     message.replace(0,message.length(),"Macchina non valida");
@@ -350,7 +340,7 @@ public class AddServlet extends HttpServlet {
         }
     }
     
-    private void autoAssignedJobOrder(HttpServletRequest request) {
+    private void autoSampling(HttpServletRequest request) {
         if (!user.getCanAddJobOrder()) {
             message.replace(0,message.length(),"Non puoi aggiungere commesse");
         } else {
@@ -395,26 +385,22 @@ public class AddServlet extends HttpServlet {
                     dummy.setEnd(end);
                     Long last = EventUtils.getLast(dummy), removedTime = 0L;
                     Date prev = new Date(dummy.getStart().getTime());
-                    boolean fillAll = dummy.getEnd().before(dummy.getStart());
-                    if(last > 1440L || fillAll) {
-                        if(fillAll)  {
-                            last = j.getMissingTime();
-                        }
-                        while(last > 0) {
-                            dummy.setStart(prev);
-                            Long howLong = last > 1440L ? 1440L : last;
-                            
-                            end = new Date(prev.getTime() + howLong * 60000);
-                            dummy.setEnd(end);
-                            
-                            addOneAssignedJobOrder(j, m, prev, end);
-                            last -= howLong;
-                            removedTime += howLong;
-                            prev = new Date(end.getTime());
-                        }
-                    } else {
-                        addOneAssignedJobOrder(j, m, start, end);
-                        removedTime = last;
+                    if(last <= 0) {
+                        message.replace(0, message.length(), "Evento di durata nulla o negativa");
+                        return;
+                    }
+
+                    while(last > 0) {
+                        dummy.setStart(prev);
+                        Long howLong = last > 1440L ? 1440L : last;
+                        
+                        end = new Date(prev.getTime() + howLong * 60000);
+                        dummy.setEnd(end);
+                        
+                        addOneSampling(j, m, prev, end);
+                        last -= howLong;
+                        removedTime += howLong;
+                        prev = new Date(end.getTime());
                     }
                     
                     message.replace(0,message.length(),Long.toString(removedTime));
@@ -484,19 +470,15 @@ public class AddServlet extends HttpServlet {
             break;
             
             case "assignedjoborder":
-                assignedJobOrder(request);
+                autoAssignedJobOrder(request);
             break;
             
-            case "autoassignedjoborder":
-                autoAssignedJobOrder(request);
+            case "sampling":
+                autoSampling(request);
             break;
             
             case "nonworkingday":
                 nonWorkingDay(request);
-            break;
-            
-            case "sampling":
-                sampling(request);
             break;
             
             default:
