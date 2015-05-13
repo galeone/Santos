@@ -1,4 +1,3 @@
-<%@page import="javax.swing.text.AbstractDocument.Content"%>
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@ page errorPage="../../errors/exception.jsp"%>
 <%@ page session="true"%>
@@ -19,71 +18,80 @@
 	application.setAttribute("joborders", GetCollection.jobOrders());
 %>
 <div class="wrap">
-	<div class="leftc" style="background: #eee">
-		<h3>
-			<label for="todoJobOrders">Commesse non/parzialmente assegnate<br />
-			</label>
-		</h3>
-		<c:choose>
-			<c:when test="${empty todojoborders}">
-				Non esistono commesse non assegnate o parzilamente assegnate<br /> 
-			</c:when>
-			<c:otherwise>
-				<select id="todoJobOrders">
-					<c:forEach var="entry" items="${todojoborders}" varStatus="loop">
-						<option value="${loop.index}">
-						[${entry.id}] Tempo mancante:
-							<fmt:formatNumber value="${entry.missingTime / 60 -0.5}" maxFractionDigits="0"/> ore e
-							${entry.missingTime % 60} minuti</option>
-					</c:forEach>
-				</select>
-			</c:otherwise>
-		</c:choose>
-		<c:choose>
-			<c:when test="${!empty joborders}">
-				<div id="jobordersummary"></div>
-				<div id="sampling">
-				<h3>Campionamento</h3>
-					<b>Inserimento manuale (drag-and-drop)</b><br />
-					<i>Puoi inserire campionamenti manualmente per la durata massima di 24 ore.</i>
-					<br /><i>Per inserire più giorni di campionamento, usa l'inserimento automatico</i>
-					<p>
-						Seleziona la commessa ed imposta la durata. <br />Dopo trascina il
-						blocchetto sul calendario.
-					</p>
-					<select id="joborder">
-						<c:forEach var="jo" items="${joborders}">
-							<option value="${jo.id}">Commessa: ${jo.id} - Cliente: ${jo.client.name}</option>
-						</c:forEach>
-					</select><br />
-					Ore: <input style="display: inline" type="number" min="0" max="24" id="samplinghours" /><br />
-					Minuti: <input style="display: inline" type="number" min="0" max="59" id="samplingminutes" /><br /><br />
-					<div id="sampling-event"></div>
-					<br /><br />
-					<b>Inserimento automatico</b>
-					<form id="autosampling">
-						<select id="autosamplingjoborder">
-							<c:forEach var="jo" items="${joborders}">
-								<option value="${jo.id}">Commessa: ${jo.id} - Cliente: ${jo.client.name}</option>
-							</c:forEach>
-						</select><br />
-						<select name="machine">
-							<c:forEach var="machine" items="${machines}">
-								<option value="${machine.id}">${machine.id} - ${machine.name}</option>
+	<div class="leftc">
+		<h1>Gestione commesse</h1>
+		<div  id="accordionActions">
+			<h3>Assegnamento</h3>
+			<div>
+				<c:choose>
+					<c:when test="${empty todojoborders}">
+						Non esistono commesse non assegnate o parzilamente assegnate<br /> 
+					</c:when>
+					<c:otherwise>
+						<select id="todoJobOrders">
+							<option selected disabled>Scegli una commessa</option>
+							<c:forEach var="entry" items="${todojoborders}" varStatus="loop">
+								<option value="${loop.index}">
+								[${entry.id}] Tempo mancante:
+									<fmt:formatNumber value="${entry.missingTime / 60 -0.5}" maxFractionDigits="0"/> ore e
+									${entry.missingTime % 60} minuti</option>
 							</c:forEach>
 						</select>
-						A partire da <sup>*</sup><input type="text" id="autosamplingstart" required /><br />
-						Fino a <sup>*</sup> <input type="text" id="autosamplingend" required /> <br />
-						<br /><input type="submit" value="Auto assegna" />
-					</form>
-					<br />
-				</div>
-			</c:when>
-		</c:choose>
-	</div>
+					</c:otherwise>
+				</c:choose>
+				<div id="jobordersummary"></div>
+			</div><!-- accordion -->
+			<h3>Campionamento</h3>
+			<div>
+				<c:choose>
+					<c:when test="${!empty joborders}">
+						<div id="sampling">
+						<b>Inserimento automatico</b>
+							<form id="autosampling">
+								<label for="autosamplingjoborder">Commessa</label>
+								<select id="autosamplingjoborder">
+									<option selected disabled>Scegli una commessa</option>
+									<c:forEach var="jo" items="${joborders}">
+										<option value="${jo.id}" title="${jo.description}">${jo.id} - Cliente: ${jo.client.name}</option>
+									</c:forEach>
+								</select><br />
+								Macchina<br />
+								<select name="machine">
+									<option selected disabled>Scegli una macchina</option>
+									<c:forEach var="machine" items="${machines}">
+										<option value="${machine.id}">${machine.id} - ${machine.name}</option>
+									</c:forEach>
+								</select><br />
+								A partire da <sup>*</sup><input type="text" id="autosamplingstart" required /><br />
+								Fino a <sup>*</sup> <input type="text" id="autosamplingend" required /> <br />
+								<br /><input type="submit" value="Auto assegna" />
+							</form>
+							<b>Inserimento manuale (drag-and-drop)</b><br />
+							<i>Puoi inserire campionamenti manualmente per la durata massima di 24 ore.</i>
+							<br /><i>Per inserire più giorni di campionamento, usa l'inserimento automatico</i>
+							<p>
+								Seleziona la commessa ed imposta la durata. <br />Dopo trascina il
+								blocchetto sul calendario.
+							</p>
+							<select id="joborder">
+								<option selected disabled>Scegli una commessa</option>
+								<c:forEach var="jo" items="${joborders}">
+									<option value="${jo.id}" title="${jo.description}">${jo.id} - Cliente: ${jo.client.name}</option>
+								</c:forEach>
+							</select><br />
+							Ore: <input style="display: inline" type="number" min="0" max="24" id="samplinghours" /><br />
+							Minuti: <input style="display: inline" type="number" min="0" max="59" id="samplingminutes" /><br /><br />
+							<div id="sampling-event"></div>
+							<br /><br />
+						</div>
+					</c:when>
+				</c:choose>
+			</div><!-- accordion div -->
+		</div><!-- accorion -->
+	</div><!-- leftc -->
 	<div class="rightc">
 		<h1>Calendario per macchina</h1>
-		<div id="accordion">
+		<div id="accordionCalendars">
 			<c:forEach var="machine" items="${machines}">
 				<h3>ID: ${machine.id} - ${machine.name} - ${machine.type} -
 					Finezza: ${machine.nicety}</h3>
@@ -98,10 +106,9 @@ var $block = $("#sampling-event"), title = 'Campionamento',
 event = {
 		title: title,
 		allDay: true,
-		color: '#00E',
 		type: 'sampling',
 		last: 24
-		// dinamically add machine & joborder reference
+		// dinamically add machine & joborder reference (and color, from joborder)
 };
 $block.html(title);
 $block.data('event', event);
@@ -116,11 +123,13 @@ $block.addClass("fc-draggable-event sampling");
 window.todojoborders = <%= gson.toJson(application.getAttribute("todojoborders")) %>;
 window.machines = <%= gson.toJson(application.getAttribute("machines")) %>;
 
-var machineSelect = '<select name="machine">';
+var machineSelect = '<select name="machine"><option selected disabled>Scegli una macchina</option>';
 window.machines.forEach(function(machine, index, array) {
     machineSelect += '<option value="' + machine.id + '">'+machine.id+' - ' +machine.name +'</option>';
 });
 machineSelect += "</select>";
+
+var aDay = 24*60;
 
 $("#jobordersummary").on('submit', '#autoassign', function(e) {
    e.preventDefault();
@@ -153,6 +162,10 @@ $("#jobordersummary").on('submit', '#autoassign', function(e) {
 						remain.html("<b>" + lastHours + " ore e " + lastMinutes + " minuti</b>");
 						$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
 						$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
+						while(removedTime > 0) {
+						    $("#jobordersummary .block:first").remove();
+						    removedTime -= aDay;
+						}
 	                }
 	    });
 	}
@@ -186,7 +199,7 @@ $("#todoJobOrders").selectmenu({
 		$("#autostart").datepicker( { dateFormat: "dd/mm/yy" } );
 		$("#autoend").datepicker( { dateFormat: "dd/mm/yy" } );
 		
-		var c = 0, aDay = 24*60;
+		var c = 0;
 		
 		while(dataRemainMinutes > 0) {
 			var $block = $(document.createElement("div")),
@@ -215,6 +228,7 @@ $("#todoJobOrders").selectmenu({
 				zIndex: 999
 			});
 			$block.addClass("fc-draggable-event");
+			$block.addClass("block");
 			$block.css('background-color', color);
 			
 			if(c == 3) {
@@ -330,7 +344,7 @@ $("#todoJobOrders").selectmenu({
 		'<img src="<%=request.getContextPath()%>/styles/fullcalendar/trash.png"></img></div>');
 </c:forEach>
 
-$("#accordion").accordion({
+$("#accordionCalendars").accordion({
     collapsible: true,
     heightStyle: "content",
     activate: function( event, ui ) {
@@ -341,6 +355,11 @@ $("#accordion").accordion({
 		    visibleCalendar.fullCalendar( 'rerenderEvents' );
 		}		
     }
+});
+
+$("#accordionActions").accordion({
+    collapsible: true,
+    heightStyle: "content"    
 });
 
 </script>
