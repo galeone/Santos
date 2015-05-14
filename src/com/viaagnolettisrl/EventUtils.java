@@ -13,6 +13,7 @@ public class EventUtils {
 	
 	private static SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
 	public final static TimeZone timezone = TimeZone.getTimeZone("GMT");
+	public final static Long A_DAY_IN_MILLISECONDS = new Long(1000 * 24 * 60 * 60);
 	private static Calendar cal = Calendar.getInstance(timezone);
 	
     public static Long getLast(Event e) {

@@ -7,7 +7,7 @@ function dataTablesColor( data, type, full, meta ) {
 };
 
 function dataTablesLeadTime( data, type, full, meta ) {
-	var leadTime    = parseInt(data),
+	var leadTime        = parseInt(data),
 		minutes	    = leadTime % 60,
 		hours       = Math.floor(leadTime / 60),
 		days        = Math.floor(hours / 24),
@@ -17,7 +17,7 @@ function dataTablesLeadTime( data, type, full, meta ) {
 		minutesString = minutes === 0 ? "" : minutes === 1 ? "1 minuto"    : minutes + " minuti";
 
 		ret = isNaN(leadTime) ? data : daysString + (daysString !== "" && hoursString !== "" ? " e " : "") + hoursString +
-			(minutesString !== "" && (daysString !== "" || hoursString !== "") ? " e " + minutesString : "" ) ;
+			(minutesString !== "" && (daysString !== "" || hoursString !== "") ? " e " : "") + minutesString;
 	return ret === "" ? "Ore completamente assegnate" : ret;
 };
 

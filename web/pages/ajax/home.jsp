@@ -49,6 +49,7 @@ $block.addClass("fc-draggable-event nonworkingday");
 
 $("#globalCalendar").fullCalendar({
 	lang: 'it',
+	weekNumbers: true,
 	editable: window.user.isAdmin,
 	droppable: window.user.isAdmin,
     eventOverlap: window.user.isAdmin,

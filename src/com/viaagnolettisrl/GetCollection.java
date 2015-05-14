@@ -303,7 +303,7 @@ public class GetCollection {
             Long lastInMinutes = EventUtils.getLast(s);
             Long missingHours = lastInMinutes / 60, missingMinutes = lastInMinutes % 60;
             
-            s.setTitle("Campionamento: " +  s.getJobOrder().getId() + "\n" +
+            s.setTitle("CAMPIONAMENTO: " +  s.getJobOrder().getId() + "\n" +
                         s.getJobOrder().getDescription() + "\n" +
                         missingHours + " ore" + (
                                 missingMinutes > 0

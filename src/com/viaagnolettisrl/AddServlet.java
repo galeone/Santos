@@ -217,25 +217,27 @@ public class AddServlet extends HttpServlet {
     }
     
     private void addOneAssignedJobOrder(JobOrder j, Machine m, Date start, Date end) {
-        addOneMacineEvent(AssignedJobOrder.class, j, m, start, end);
+        DroppableMachineEvent event = addOneMacineEvent(AssignedJobOrder.class, j, m, start, end);
+        j.setMissingTime(j.getMissingTime() - EventUtils.getLast(event));
+        hibSession.saveOrUpdate(j);
     }
     
     private void addOneSampling(JobOrder j, Machine m, Date start, Date end) {
         addOneMacineEvent(Sampling.class, j, m, start, end);
     }
     
-    private void addOneMacineEvent(Class<? extends DroppableMachineEvent> droppableEvent, JobOrder j, Machine m, Date start, Date end ) {
+    private DroppableMachineEvent addOneMacineEvent(Class<? extends DroppableMachineEvent> droppableEvent, JobOrder j, Machine m, Date start, Date end ) {
         DroppableMachineEvent event = null;
         try {
             event = (DroppableMachineEvent) droppableEvent.newInstance();
         } catch (InstantiationException e) {
             e.printStackTrace();
             message.replace(0, message.length(), e.getMessage());
-            return;
+            return null;
         } catch (IllegalAccessException e) {
             e.printStackTrace();
             message.replace(0, message.length(), e.getMessage());
-            return;
+            return null;
         }
         event.setJobOrder(j);
         event.setMachine(m);
@@ -245,18 +247,16 @@ public class AddServlet extends HttpServlet {
         
         if(event.getStart().after(event.getEnd()) || EventUtils.getLast(event) > 1440L) {
             message.replace(0,message.length(),"Orario errato. O maggiore di 24h o fine precedente ad inizio");
-            return;
+            return null;
         }
-        
-        j.setMissingTime(j.getMissingTime() - EventUtils.getLast(event));
-        
+                
         hibSession.saveOrUpdate(event);
-        hibSession.saveOrUpdate(j);
         
         message.replace(0,message.length(),g.toJson(event));
         savedObject = event;
         
         DroppableMachineEvent.shiftRight(event, hibSession);
+        return event;
     }
     
     private void autoAssignedJobOrder(HttpServletRequest request) {
