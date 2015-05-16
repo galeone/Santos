@@ -303,15 +303,14 @@ public class GetCollection {
             Long lastInMinutes = EventUtils.getLast(s);
             Long missingHours = lastInMinutes / 60, missingMinutes = lastInMinutes % 60;
             
-            s.setTitle("CAMPIONAMENTO: " +  s.getJobOrder().getId() + "\n" +
-                        s.getJobOrder().getDescription() + "\n" +
+            s.setTitle("CAMPIONAMENTO: " +  s.getClient().getCode() + "\n" +
+                        s.getDescription() + "\n" +
                         missingHours + " ore" + (
                                 missingMinutes > 0
                                 ? " e " + missingMinutes + " minuti"
                                 : "")
                        );
             s.setAllDay(lastInMinutes == 1440L);
-            s.setColor(s.getJobOrder().getColor());
             s.setEditable(editable);
         }
         return l;

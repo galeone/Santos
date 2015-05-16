@@ -22,13 +22,6 @@
 				embed-xml="true" not-found="exception" />
 		</set>
 		
-		<set embed-xml="true" inverse="true" mutable="true" name="sampling"
-			optimistic-lock="true" sort="unsorted" lazy="false">
-			<key column="idJobOrder" on-delete="cascade" />
-			<one-to-many class="com.viaagnolettisrl.hibernate.Sampling"
-				embed-xml="true" not-found="exception" />
-		</set>
-		
 		<property column="LEADTIME" generated="never" lazy="false"
 			name="leadTime" optimistic-lock="true" type="long" unique="false" />
 			
@@ -40,6 +33,9 @@
 			
 		<property column="missing_time" generated="never" lazy="false"
 			name="missingTime" optimistic-lock="true" type="long" unique="false" />
+			
+	 	<property column="production_offset" generated="never" lazy="false"
+			name="offset" optimistic-lock="true" type="long" unique="false" />
 
 		<many-to-one name="Client" class="com.viaagnolettisrl.hibernate.Client"
 			column="IDCLIENT" unique="false" not-null="true" lazy="false" />

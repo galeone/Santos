@@ -23,9 +23,11 @@ import com.viaagnolettisrl.hibernate.HibernateUtil;
 import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
 import com.viaagnolettisrl.hibernate.Machine;
+import com.viaagnolettisrl.hibernate.Maintenance;
 import com.viaagnolettisrl.hibernate.NonWorkingDay;
 import com.viaagnolettisrl.hibernate.Sampling;
 import com.viaagnolettisrl.hibernate.User;
+import com.viaagnolettisrl.hibernate.WorkingHours;
 
 public class EditServlet extends HttpServlet {
     
@@ -47,7 +49,7 @@ public class EditServlet extends HttpServlet {
     
     private void sampling(Long id, HttpServletRequest request) {
 
-        if (!user.getCanAddJobOrder()) {
+        if (!user.getCanAssignJobOrder()) {
             message.replace(0,message.length(),"Non puoi gestire le commesse e nemmeno i campionamenti");
         } else {
             toEdit = (Sampling) hibSession.get(Sampling.class, id);
@@ -80,6 +82,45 @@ public class EditServlet extends HttpServlet {
             if (message.toString().equals("ok")) {
                 hibSession.saveOrUpdate(sd);
                 Sampling.switchOnNext(sd, hibSession,message);
+            }
+        }
+    }
+    
+    private void maintenance(Long id, HttpServletRequest request) {
+
+        if (!user.getCanAssignJobOrder()) {
+            message.replace(0,message.length(),"Non puoi gestire le commesse e nemmeno la manutenzione");
+        } else {
+            toEdit = (Maintenance) hibSession.get(Maintenance.class, id);
+            
+            Maintenance maintenance = new Maintenance();
+            
+            if (toEdit != null) { // edit
+                maintenance = (Maintenance) toEdit;
+                //DroppableMachineEvent switch next
+                maintenance.setOldStart( maintenance.getStart());
+                Map<String,String> params = ServletUtils.getParameters(request, new String[]{"start", "end"});
+                String startS = params.get("start"), endS = params.get("end");
+
+                if (startS == null || "".equals(startS.trim()) || endS == null || "".equals(endS.trim())) {
+                    message.replace(0,message.length(),"Il campo non può essere vuoto");
+                } else {
+                    try {
+                        Date start = EventUtils.parseDate(startS.trim()), end = EventUtils.parseDate(endS.trim());
+                        maintenance.setStart(start);
+                        maintenance.setEnd(end);
+                        message.replace(0,message.length(),"ok");
+                    } catch (ParseException e) {
+                        message.replace(0,message.length(),"formato data non valido");
+                    }
+                }
+            } else {
+                message.replace(0,message.length(),"Giorno di manutenzione da modificare non trovato");
+            }
+            
+            if (message.toString().equals("ok")) {
+                hibSession.saveOrUpdate(maintenance);
+                Sampling.switchOnNext(maintenance, hibSession,message);
             }
         }
     }
@@ -123,8 +164,46 @@ public class EditServlet extends HttpServlet {
         }
     }
     
+    private void workingHours(Long id, HttpServletRequest request) {
+        if (!user.getIsAdmin()) {
+            message.replace(0,message.length(),"Non sei admin");
+        } else {
+            toEdit = (WorkingHours) hibSession.get(WorkingHours.class, id);
+            
+            WorkingHours wh = new WorkingHours();
+            
+            if (toEdit != null) {
+                wh = (WorkingHours) toEdit;
+                String[] fields = new String[] { "start", "end" };
+                Arrays.sort(fields);
+                Map<String, String> params = ServletUtils.getParameters(request, fields);
+                if (params.containsValue(null) || params.containsValue("")) {
+                    message.replace(0,message.length(),"Completare tutti i campi");
+                } else {
+                    try {
+                        wh.setStart(EventUtils.parseDate(params.get("start").trim()));
+                        wh.setEnd(EventUtils.parseDate(params.get("end").trim()));
+                        if(wh.getEnd().before(wh.getStart()) || wh.getEnd().equals(wh.getStart())) {
+                            message.replace(0,message.length(),"Data di inizio e fine evento errate (insensate)");
+                        } else {
+                            message.replace(0,message.length(),"ok");
+                        }
+                    } catch (ParseException e) {
+                        message.replace(0,message.length(),"formato data non valido");
+                    }
+                }
+            } else {
+                message.replace(0,message.length(),"Ore di lavoro da modificare non trovate");
+            }
+            
+            if (message.toString().equals("ok")) {
+                hibSession.saveOrUpdate(wh);
+            }
+        }
+    }
+    
     private void user_e(Long id, HttpServletRequest request) {
-        String[] fields = new String[] { "id", "name", "surname", "username", "password", "canaddjoborder", "canaddclient", "canaddmachine" };
+        String[] fields = new String[] { "id", "name", "surname", "username", "password", "canaddjoborder", "canassignjoborder", "canaddclient", "canaddmachine" };
         Arrays.sort(fields);
         
         if (!user.getIsAdmin()) {
@@ -173,6 +252,11 @@ public class EditServlet extends HttpServlet {
                             result = value.equals("Si");
                             outputResult = Boolean.toString(result);
                             u.setCanAddJobOrder(result);
+                        break;
+                        case "canassignjoborder":
+                            result = value.equals("Si");
+                            outputResult = Boolean.toString(result);
+                            u.setCanAssignJobOrder(result);
                         break;
                         case "canaddmachine":
                             result = value.equals("Si");
@@ -523,8 +607,16 @@ public class EditServlet extends HttpServlet {
                 nonWorkingDay(id, request);
             break;
             
+            case "workingHours":
+                workingHours(id, request);
+            break;
+            
             case "sampling":
                 sampling(id, request);
+            break;
+            
+            case "maintenance":
+                maintenance(id, request);
             break;
             
             case "client":

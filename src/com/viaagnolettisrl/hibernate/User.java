@@ -7,6 +7,7 @@ public class User implements Serializable {
     private static final long      serialVersionUID = 1L;
     
     private Boolean                canAddJobOrder;
+    private Boolean                canAssignJobOrder;
     private String                 name;
     private Boolean                canAddClient;
     private Boolean                canAddMachine;
@@ -122,5 +123,13 @@ public class User implements Serializable {
         return "User [canAddJobOrder=" + canAddJobOrder + ", name=" + name + ", canAddClient=" + canAddClient
                 + ", canAddMachine=" + canAddMachine + ", password=" + password + ", username=" + username + ", id="
                 + id + ", surname=" + surname + ", isAdmin=" + isAdmin + "]";
+    }
+
+    public Boolean getCanAssignJobOrder() {
+        return canAssignJobOrder;
+    }
+
+    public void setCanAssignJobOrder(Boolean canAssignJobOrder) {
+        this.canAssignJobOrder = canAssignJobOrder;
     }
 }

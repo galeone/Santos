@@ -21,8 +21,10 @@
 		<mapping resource="com/viaagnolettisrl/hibernate/Client.hbm.xml" />
 		<mapping resource="com/viaagnolettisrl/hibernate/History.hbm.xml" />
 		<mapping resource="com/viaagnolettisrl/hibernate/JobOrder.hbm.xml" />
-		<mapping resource="com/viaagnolettisrl/hibernate/AssignedJobOrders.hbm.xml" />
 		<mapping resource="com/viaagnolettisrl/hibernate/NonWorkingDay.hbm.xml" />
+		<mapping resource="com/viaagnolettisrl/hibernate/WorkingHours.hbm.xml" />
+		<mapping resource="com/viaagnolettisrl/hibernate/AssignedJobOrders.hbm.xml" />
 		<mapping resource="com/viaagnolettisrl/hibernate/Sampling.hbm.xml" />
+		<mapping resource="com/viaagnolettisrl/hibernate/Maintenance.hbm.xml" />
 	</session-factory>
 </hibernate-configuration>

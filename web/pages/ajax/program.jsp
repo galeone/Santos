@@ -13,7 +13,7 @@
 		response.sendRedirect(request.getContextPath()
 				+ LoginServlet.LOGIN_FORM);
 	}
-	application.setAttribute("todojoborders",GetCollection.todoJobOrders(user.getCanAddJobOrder()));
+	application.setAttribute("todojoborders",GetCollection.todoJobOrders(user.getCanAssignJobOrder()));
 	application.setAttribute("machines", GetCollection.machines());
 	application.setAttribute("joborders", GetCollection.jobOrders());
 %>
@@ -82,8 +82,8 @@
 									<option value="${jo.id}" title="<c:out value="${jo.description}" />">${jo.id} - Cliente: <c:out value="${jo.client.name}" /></option>
 								</c:forEach>
 							</select><br />
-							Ore: <input style="display: inline" type="number" min="0" max="24" id="samplinghours" /><br />
-							Minuti: <input style="display: inline" type="number" min="0" max="59" id="samplingminutes" /><br /><br />
+							Ore<br /><input style="display: inline" type="number" min="0" max="24" id="samplinghours" /><br />
+							Minuti<br /><input style="display: inline" type="number" min="0" max="59" id="samplingminutes" /><br /><br />
 							<div id="sampling-event"></div>
 							<br /><br />
 						</div>
@@ -172,7 +172,7 @@ $("#samplingsummary").on('submit', 'form', function(e) {
 
 $("#jobordersummary").on('submit', '#autoassignjoborders', function(e) {
    e.preventDefault();
-	if(window.user.canAddJobOrder) {
+	if(window.user.canAssignJobOrder) {
 	    var start = $(this).find(".autostart").datepicker("getDate"),
 	        end = $(this).find(".autoend").datepicker("getDate");
 	    // datepicker start from the day before the selection (wtf)
@@ -299,12 +299,12 @@ $("#todoJobOrders").selectmenu({
 	$("#m${machine.id}Calendar").fullCalendar({
 		lang: 'it',
 		weekNumbers: true,
-		editable: window.user.canAddJobOrder,
-		droppable: window.user.canAddJobOrder,
-	    eventOverlap: window.user.canAddJobOrder,
+		editable: window.user.canAssignJobOrder,
+		droppable: window.user.canAssignJobOrder,
+	    eventOverlap: window.user.canAssignJobOrder,
 	    disableResizing: true,
 		eventReceive: function(event) {
-			if(window.user.canAddJobOrder) {
+			if(window.user.canAssignJobOrder) {
 			    var end = new Date(event._start._d.getTime() + event.last * 60000);
 			    $.post("<%=request.getContextPath()%>/add?what=" + event.type,
 			            {
@@ -341,7 +341,7 @@ $("#todoJobOrders").selectmenu({
 			}
 		},
 		eventDrop: function(event, delta, revertFunc) {
-			if(window.user.canAddJobOrder) {
+			if(window.user.canAssignJobOrder) {
 			    if(!event._end) {
 					end =  new Date(event._start._d.getTime() + event.last * 60000);
 					event._end = moment(end);
@@ -374,7 +374,7 @@ $("#todoJobOrders").selectmenu({
 		        "<%=request.getContextPath()%>/get?what=program&machine=${machine.id}"
 		],
 		eventDragStop: function(event,jsEvent) {
-			if(window.user.canAddJobOrder) {
+			if(window.user.canAssignJobOrder) {
 			    var trashEl = $('#programTrashM${machine.id}'), ofs = trashEl.offset(),
 			    x1 = ofs.left, x2 = ofs.left + trashEl.outerWidth(true),
 			    y1 = ofs.top, y2 = ofs.top + trashEl.outerHeight(true);

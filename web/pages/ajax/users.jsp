@@ -30,15 +30,19 @@
 			type="password" name="password" id="password" value="" minlength="5"
 			required class="text ui-widget-content ui-corner-all" rel="4">
 
-		<label for="canaddjoborder">Può gestire le commesse</label> <input
+		<label for="canaddjoborder">Può aggiungere le commesse</label> <input
 			type="checkbox" name="canaddjoborder" id="canaddjoborder" value="Si"
-			class="text ui-widget-content ui-corner-all" rel="5"> <label
+			class="text ui-widget-content ui-corner-all" rel="5">
+		<label for="canassignjoborder">Può modificare la programmazione</label> <input
+			type="checkbox" name="canassignjoborder" id="canassignjoborder" value="Si"
+			class="text ui-widget-content ui-corner-all" rel="6">
+		<label
 			for="canaddclient">Può aggiungere macchine</label> <input
 			type="checkbox" name="canaddmachine" id="canaddmachine" value="Si"
-			class="text ui-widget-content ui-corner-all" rel="6"> <label
+			class="text ui-widget-content ui-corner-all" rel="7"> <label
 			for="canaddclient">Può aggiungere clienti</label> <input
 			type="checkbox" name="canaddclient" id="canaddclient" value="Si"
-			class="text ui-widget-content ui-corner-all" rel="7">
+			class="text ui-widget-content ui-corner-all" rel="8">
 			<input type="submit" value="ok" class="inner">
 	</fieldset>
 </form>
@@ -51,7 +55,8 @@
 			<th>Nome</th>
 			<th>Cognome</th>
 			<th>Password</th>
-			<th>Gestisce Commesse</th>
+			<th>Aggiunge Commesse</th>
+			<th>Modifica la programmazione</th>
 			<th>Aggiunge Macchine</th>
 			<th>Aggiunge Clienti</th>
 		</tr>
@@ -90,6 +95,11 @@ $("#users-table").dataTable({
             	  data: 'canAddJobOrder',
             	  name: 'canaddjoborder',
             	  render: dataTablesCheckbox
+			  },
+		      {
+		          data: 'canAssignJobOrder',
+		          name: 'canassignjoborder',
+		          render: dataTablesCheckbox
 			  },
               {
 				  data: 'canAddMachine',
@@ -134,6 +144,12 @@ $("#users-table").dataTable({
                       cancel    : 'Cancel',
                       checkbox: { trueValue: 'Si', falseValue: 'No' }
                   },
+                  {
+                	  type: 'checkbox',
+                      submit    : 'Ok',
+                      cancel    : 'Cancel',
+                      checkbox: { trueValue: 'Si', falseValue: 'No' }
+    		      },
                   {
                 	  type: 'checkbox',
                       submit    : 'Ok',

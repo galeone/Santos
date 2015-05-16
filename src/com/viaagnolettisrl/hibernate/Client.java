@@ -10,6 +10,7 @@ public class Client implements Serializable {
 	private Long id;
 	private String code;
 	transient private Set<JobOrder> joborders;
+	transient private Set<Sampling> sampling;
 
 	public String getCode() {
 		return code;
@@ -67,4 +68,12 @@ public class Client implements Serializable {
 	public String toString() {
 		return "Client [name=" + name + ", id=" + id + ", code=" + code + "]";
 	}
+
+    public Set<Sampling> getSampling() {
+        return sampling;
+    }
+
+    public void setSampling(Set<Sampling> sampling) {
+        this.sampling = sampling;
+    }
 }

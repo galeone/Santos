@@ -58,7 +58,7 @@ public class GetServlet extends HttpServlet {
             }
             return GetCollection.setAssignedJobOrderAttr(
                     GetCollection.assignedJobOrdersBetween(m, start, end),
-                    user.getCanAddJobOrder());
+                    user.getCanAssignJobOrder());
             
         }catch(NumberFormatException e) {
             throw new Exception("Id macchina non valido");
@@ -87,7 +87,7 @@ public class GetServlet extends HttpServlet {
         }
         return GetCollection.setSamplingAttr(
                 GetCollection.samplingBetween(m, start, end),
-                user.getCanAddJobOrder());
+                user.getCanAssignJobOrder());
     }
     
     private Date getDate(HttpServletRequest request, String name) {

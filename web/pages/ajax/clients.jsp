@@ -38,11 +38,8 @@
 	<tbody>
 	</tbody>
 </table><br />
-<% String style = user.getCanAddClient() ? "" : "display:none"; %>
-<button id="btnAddNewRowClient" style="<%=style%>">Aggiungi
-	cliente</button>
-<button id="btnDeleteRowClient" style="<%=style%>">Cancella
-	cliente</button>
+<button id="btnAddNewRowClient" style="<%=user.getCanAddClient() ? "" : "display:none"%>">Aggiungi cliente</button>
+<button id="btnDeleteRowClient" style="<%=user.getIsAdmin() ? "" : "display:none"%>">Cancella cliente</button>
 <script>
 <%Gson gson = new Gson();%>
 $("#clients-table").dataTable({

@@ -20,9 +20,11 @@ import com.viaagnolettisrl.hibernate.HibernateUtil;
 import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
 import com.viaagnolettisrl.hibernate.Machine;
+import com.viaagnolettisrl.hibernate.Maintenance;
 import com.viaagnolettisrl.hibernate.NonWorkingDay;
 import com.viaagnolettisrl.hibernate.Sampling;
 import com.viaagnolettisrl.hibernate.User;
+import com.viaagnolettisrl.hibernate.WorkingHours;
 
 public class DeleteServlet extends HttpServlet {
     
@@ -73,8 +75,22 @@ public class DeleteServlet extends HttpServlet {
         }
     }
     
+    private void workingHours(Long id) {
+        if (!user.getIsAdmin()) {
+            message = "Non sei amministratore";
+        } else {
+            toDelete = hibSession.get(WorkingHours.class, id);
+            if (toDelete != null) { // exists
+                hibSession.delete((WorkingHours) toDelete);
+                message = "ok";
+            } else {
+                message = "Giorno non lavorativo non esistente";
+            }
+        }
+    }
+    
     private void sampling(Long id) {
-        if (!user.getCanAddJobOrder()) {
+        if (!user.getCanAssignJobOrder()) {
             message = "Non pui gestire le commesse e quindi i campionamenti";
         } else {
             toDelete = hibSession.get(Sampling.class, id);
@@ -87,8 +103,22 @@ public class DeleteServlet extends HttpServlet {
         }
     }
     
+    private void maintenance(Long id) {
+        if (!user.getCanAssignJobOrder()) {
+            message = "Non pui gestire le commesse e quindi la manutenzione";
+        } else {
+            toDelete = hibSession.get(Maintenance.class, id);
+            if (toDelete != null) { // exists
+                hibSession.delete((Maintenance) toDelete);
+                message = "ok";
+            } else {
+                message = "Manutenzione non esistente";
+            }
+        }
+    }
+    
     private void client(Long id) {
-        if (!user.getCanAddClient()) {
+        if (!user.getIsAdmin()) {
             message = "Non puoi eliminare i clienti";
         } else {
             toDelete = hibSession.get(Client.class, id);
@@ -102,7 +132,7 @@ public class DeleteServlet extends HttpServlet {
     }
     
     private void machine(Long id) {
-        if (!user.getCanAddMachine()) {
+        if (!user.getIsAdmin()) {
             message = "Non puoi eliminare le macchine";
         } else {
             toDelete = hibSession.get(Machine.class, id);
@@ -199,8 +229,16 @@ public class DeleteServlet extends HttpServlet {
                 nonWorkingDay(id);
             break;
             
+            case "workingHours":
+                workingHours(id);
+            break;
+            
             case "sampling":
                 sampling(id);
+            break;
+            
+            case "maintenance":
+                maintenance(id);
             break;
             
             case "client":

@@ -8,7 +8,7 @@ public class JobOrder implements Serializable {
 
 	private Client client;
 	private Long id;
-	private Long leadTime, missingTime, numberOfItems, timeForItem;
+	private Long leadTime, missingTime, numberOfItems, timeForItem, offset;
 	private String color, description;
 	
 	transient private Set<AssignedJobOrder> assignedJobOrders;
@@ -118,6 +118,14 @@ public class JobOrder implements Serializable {
 
     public void setSampling(Set<Sampling> sampling) {
         this.sampling = sampling;
+    }
+
+    public Long getOffset() {
+        return offset;
+    }
+
+    public void setOffset(Long offset) {
+        this.offset = offset;
     }
 
 }

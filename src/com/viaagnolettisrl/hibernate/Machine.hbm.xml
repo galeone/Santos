@@ -21,6 +21,12 @@
 			<one-to-many class="com.viaagnolettisrl.hibernate.Sampling"
 				embed-xml="true" not-found="exception" />
 		</set>
+		<set embed-xml="true" inverse="true" mutable="true" name="maintenance"
+			optimistic-lock="true" sort="unsorted" lazy="false">
+			<key column="idMachine" on-delete="cascade" />
+			<one-to-many class="com.viaagnolettisrl.hibernate.Maintenance"
+				embed-xml="true" not-found="exception" />
+		</set>
 		<property column="NAME" generated="never" lazy="false"
 			length="50" name="name" optimistic-lock="true" type="string" unique="false" />
 		<property column="TYPE" generated="never" lazy="false"

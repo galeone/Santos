@@ -11,19 +11,13 @@ public class Sampling extends DroppableMachineEvent implements Serializable {
 	private Long id;
 	private Date start, end;
 	private Machine machine;
-	private JobOrder jobOrder;
+	private Client client;
 	private boolean overlap = true, editable = true, allDay;
+	private String description;
+	private String title;
 	
-	private String title,
-			color;
+	public String color = "#00E";
 	
-	public String getColor() {
-        return color;
-    }
-
-    public void setColor(String color) {
-        this.color = color;
-    }
 
     public boolean isEditable() {
         return editable;
@@ -100,9 +94,9 @@ public class Sampling extends DroppableMachineEvent implements Serializable {
 
     @Override
     public String toString() {
-        return "Sampling [id=" + id + ", start=" + start + ", end=" + end + ", machine=" + machine + ", jobOrder="
-                + jobOrder + ", title=" + title + ", color=" + color + ", type=" + type + ", overlap=" + overlap
-                + ", allDay=" + allDay + ", editable=" + editable + "]";
+        return "Sampling [id=" + id + ", start=" + start + ", end=" + end + ", machine=" + machine + ", client="
+                + client + ", overlap=" + overlap + ", editable=" + editable + ", allDay=" + allDay + ", description="
+                + description + ", title=" + title + ", color=" + color + ", type=" + type + "]";
     }
 
     public Machine getMachine() {
@@ -113,12 +107,20 @@ public class Sampling extends DroppableMachineEvent implements Serializable {
         this.machine = machine;
     }
 
-    public JobOrder getJobOrder() {
-        return jobOrder;
+    public String getDescription() {
+        return description;
     }
 
-    public void setJobOrder(JobOrder jobOrder) {
-        this.jobOrder = jobOrder;
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Client getClient() {
+        return client;
+    }
+
+    public void setClient(Client client) {
+        this.client = client;
     }
 
 }

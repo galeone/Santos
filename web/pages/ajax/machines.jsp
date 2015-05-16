@@ -42,10 +42,9 @@
 	<tbody>
 	</tbody>
 </table><br />
-<% String style = user.getCanAddMachine() ? "" : "display:none"; %>
-<button id="btnAddNewRowMachine" style="<%=style%>">Aggiungi
+<button id="btnAddNewRowMachine" style="<%=user.getCanAddMachine() ? "" : "display:none"%>">Aggiungi
 	macchina</button>
-<button id="btnDeleteRowMachine" style="<%=style%>">Cancella
+<button id="btnDeleteRowMachine" style="<%=user.getIsAdmin() ? "" : "display:none"%>">Cancella
 	macchina</button>
 <%Gson gson = new Gson();%>
 <script>

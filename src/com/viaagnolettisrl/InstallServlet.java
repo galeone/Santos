@@ -41,6 +41,7 @@ public class InstallServlet extends HttpServlet {
                 a0.setCanAddJobOrder(true);
                 a0.setCanAddClient(true);
                 a0.setCanAddMachine(true);
+                a0.setCanAssignJobOrder(true);
                 a0.setUsername("admin");
                 a0.setPassword("admin");
                 a0.setSurname("Santos");

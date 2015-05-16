@@ -11,6 +11,7 @@ public class Machine implements Serializable {
 	private Long id;
 	transient private Set<AssignedJobOrder> assignedJobOrders;
 	transient private Set<Sampling> sampling;
+	transient private Set<Maintenance> maintenance;
 
     @Override
     public int hashCode() {
@@ -79,5 +80,13 @@ public class Machine implements Serializable {
 
     public void setSampling(Set<Sampling> sampling) {
         this.sampling = sampling;
+    }
+
+    public Set<Maintenance> getMaintenance() {
+        return maintenance;
+    }
+
+    public void setMaintenance(Set<Maintenance> maintenance) {
+        this.maintenance = maintenance;
     }
 }
