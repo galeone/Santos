@@ -13,6 +13,29 @@ import com.viaagnolettisrl.EventUtils;
 import com.viaagnolettisrl.GetCollection;
 
 public abstract class DroppableMachineEvent implements MachineEvent {
+	
+	public static void mergeEvents(MachineEvent conflictEvent, Session hibSession) {
+        // After the shift, I have only the event not in conflict with event
+        Collection<DroppableMachineEvent> sameDayEvents = GetCollection.machineEventsTheSameDayOf(conflictEvent);
+        Collection<DroppableMachineEvent> sameClassEvents = new LinkedList<DroppableMachineEvent>();
+        for(DroppableMachineEvent sd : sameDayEvents) {
+            if(sd.getClass().equals(conflictEvent.getClass()) && !sd.equals(conflictEvent)) {
+                sameClassEvents.add(sd);
+            }
+        }
+        
+        if(sameClassEvents.size() != 0) {
+            Long sumOfLast = EventUtils.getLast(conflictEvent);
+            for(DroppableMachineEvent sc : sameClassEvents) {
+                sumOfLast += EventUtils.getLast(sc);
+                hibSession.delete(sc);
+            }
+            conflictEvent.setEnd(new Date(conflictEvent.getStart().getTime() + sumOfLast * 60000));
+            hibSession.merge(conflictEvent);
+            hibSession.getTransaction().commit();
+            hibSession.getTransaction().begin();
+        }
+	}
     
     public static void shiftRight(MachineEvent e, Session hibSession) {
         // Global events after e and the same day of e
@@ -82,6 +105,9 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             hibSession.merge(conflictEvent);
             hibSession.getTransaction().commit();
             hibSession.getTransaction().begin();
+            
+            mergeEvents(conflictEvent, hibSession);
+            
             Collection<DroppableMachineEvent> newConflicts = GetCollection.machineEventsInConflictWith(conflictEvent);
             // remove events already present (avoid duplicate -> avoid loops)
             qq.removeAll(newConflicts);
@@ -118,6 +144,7 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             conflictEvent.setOldStart(oldStart);
             switchOnNext(conflictEvent, hibSession, message);
         }
+        mergeEvents(e, hibSession);
     }
     
 }

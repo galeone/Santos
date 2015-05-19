@@ -289,28 +289,6 @@ public class AddServlet extends HttpServlet {
         savedObject = event;
         
         DroppableMachineEvent.shiftRight(event, hibSession);
-        
-        // After the shift, I have only the event not in conflict with event
-        Collection<DroppableMachineEvent> sameDayEvents = GetCollection.machineEventsTheSameDayOf(event);
-        Collection<DroppableMachineEvent> sameClassEvents = new LinkedList<DroppableMachineEvent>();
-        for(DroppableMachineEvent sd : sameDayEvents) {
-            if(sd.getClass().equals(event.getClass())) {
-                sameClassEvents.add(sd);
-            }
-        }
-        
-        if(sameClassEvents.size() != 0) {
-            Long sumOfLast = 0L;
-            for(DroppableMachineEvent sc : sameClassEvents) {
-                sumOfLast += EventUtils.getLast(sc);
-                hibSession.delete(sc);
-            }
-            event.setEnd(new Date(event.getStart().getTime() + sumOfLast * 60000));
-            hibSession.merge(event);
-            hibSession.getTransaction().commit();
-            hibSession.getTransaction().begin();
-        }
-        
         return event;
     }
     
