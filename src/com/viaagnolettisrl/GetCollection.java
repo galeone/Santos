@@ -18,14 +18,16 @@ import com.viaagnolettisrl.hibernate.HibernateUtil;
 import com.viaagnolettisrl.hibernate.History;
 import com.viaagnolettisrl.hibernate.JobOrder;
 import com.viaagnolettisrl.hibernate.Machine;
+import com.viaagnolettisrl.hibernate.Maintenance;
 import com.viaagnolettisrl.hibernate.NonWorkingDay;
 import com.viaagnolettisrl.hibernate.Sampling;
 import com.viaagnolettisrl.hibernate.User;
+import com.viaagnolettisrl.hibernate.WorkingHours;
 
 public class GetCollection {
         
     @SuppressWarnings("rawtypes")
-    private static Collection get(Class entity, Date start, Date end, Machine m, Long eventId) {
+    public static Collection get(Class entity, Date start, Date end, Machine m, Long eventId) {
         Session session = HibernateUtil.getSessionFactory().openSession();
         boolean between = start != null && end != null,
                 machine = m != null,
@@ -59,9 +61,9 @@ public class GetCollection {
         return ret;
     }
     
-    private static Date oldStart, oldEnd;
+    public static Date oldStart, oldEnd;
     
-    private static void resetDate(Event e) {
+    public static void resetDate(Event e) {
         oldStart = new Date(e.getStart().getTime());
         oldEnd   = new Date(e.getEnd().getTime());
         
@@ -69,43 +71,43 @@ public class GetCollection {
         e.setEnd(EventUtils.end(oldStart));
     }
     
-    private static void restoreDate(Event e) {
+    public static void restoreDate(Event e) {
         e.setStart(oldStart);
         e.setEnd(oldEnd);
     }
     
     @SuppressWarnings("rawtypes")
-    private static Collection get(Class entity) {
+    public static Collection get(Class entity) {
         return get(entity, null, null,null, null);
     }
     
     // Machine
     @SuppressWarnings("rawtypes")
-    private static Collection get(Class entity, Machine m) {
+    public static Collection get(Class entity, Machine m) {
         return get(entity, null, null, m, null);
     }
     
     // After
     @SuppressWarnings("rawtypes")
-    private static Collection get(Class entity, Date after) {
+    public static Collection get(Class entity, Date after) {
         return get(entity, after, null,null, null);
     }
     
     // After on machine
     @SuppressWarnings("rawtypes")
-    private static Collection get(Class entity, Date after, Machine m) {
+    public static Collection get(Class entity, Date after, Machine m) {
         return get(entity, after, null, m, null);
     }
     
     // Between on machine
     @SuppressWarnings("rawtypes")
-    private static Collection get(Class entity, Date start, Date end, Machine m) {
+    public static Collection get(Class entity, Date start, Date end, Machine m) {
         return get(entity, start, end, m, null);
     }
     
     // Global conflict
     @SuppressWarnings("rawtypes")
-    private static Collection get(Class entity, Date start, Date end) {
+    public static Collection get(Class entity, Date start, Date end) {
         return get(entity, start, end, null, null);
     }
     
@@ -156,6 +158,45 @@ public class GetCollection {
     }
     
     @SuppressWarnings("unchecked")
+    public static Collection<WorkingHours> workingHours() {
+        return (Collection<WorkingHours>) get(WorkingHours.class);
+    }
+    
+    public static Collection<WorkingHours> workingHours(Boolean editable) {
+        Collection<WorkingHours> l = workingHours();
+        for(WorkingHours nw : l) {
+            nw.editable = editable;
+        }
+        return l;
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<WorkingHours> workingHoursBetween(Boolean editable, Date start, Date end) {
+        Collection<WorkingHours> l = (Collection<WorkingHours>) get(WorkingHours.class, start, end);
+        for(WorkingHours nw : l) {
+            nw.editable = editable;
+        }
+        return l;
+    }
+    @SuppressWarnings("unchecked")
+    public static Collection<WorkingHours> workingHoursBetween(Date start, Date end) {
+        return (Collection<WorkingHours>) get(WorkingHours.class, start, end);
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<WorkingHours> workingHoursAfterEvent(Event e) {
+        return (Collection<WorkingHours>)get(WorkingHours.class, e.getStart()); 
+    }
+    
+    public static Collection<WorkingHours> workingHoursAfterEvent(GlobalEvent e) {
+        return workingHoursAfterEvent((Event)e);
+    }
+    
+    public static Collection<WorkingHours> workingHoursAfterEvent(MachineEvent e) {
+        return workingHoursAfterEvent((Event)e);
+    }
+    
+    @SuppressWarnings("unchecked")
     public static Collection<NonWorkingDay> nonWorkingDays() {
         return (Collection<NonWorkingDay>) get(NonWorkingDay.class);
     }
@@ -184,7 +225,7 @@ public class GetCollection {
     }
     
     @SuppressWarnings("unchecked")
-    private static Collection<NonWorkingDay> nonWorkingDaysTheSameDayOf(Event e) {
+    public static Collection<NonWorkingDay> nonWorkingDaysTheSameDayOf(Event e) {
         resetDate(e);
         Collection<NonWorkingDay> ret = get(NonWorkingDay.class,e.getStart(), e.getEnd());
         restoreDate(e);
@@ -200,7 +241,7 @@ public class GetCollection {
     }
     
     @SuppressWarnings("unchecked")
-    private static Collection<NonWorkingDay> nonWorkingDaysAfterEvent(Event e) {
+    public static Collection<NonWorkingDay> nonWorkingDaysAfterEvent(Event e) {
         return (Collection<NonWorkingDay>)get(NonWorkingDay.class, e.getStart()); 
     }
     
@@ -210,6 +251,53 @@ public class GetCollection {
     
     public static Collection<NonWorkingDay> nonWorkingDaysAfterEvent(MachineEvent e) {
         return nonWorkingDaysAfterEvent((Event)e);
+    }
+    
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<Maintenance> maintenance() {
+        return (Collection<Maintenance>)get(Maintenance.class);
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<Maintenance> maintenance(Machine m) {
+        return (Collection<Maintenance>)get(Maintenance.class, m);
+    }    
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<Maintenance> maintenanceTheSameDayOf(GlobalEvent e) {
+        resetDate(e);
+        Collection<Maintenance> ret = get(Maintenance.class, e.getStart(), e.getEnd());
+        restoreDate(e);
+        return ret;
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<Maintenance> maintenanceTheSameDayOf(MachineEvent e) {
+        resetDate(e);
+        Collection<Maintenance> ret =  get(Maintenance.class, e.getStart(), e.getEnd(), e.getMachine(), e.getId());
+        restoreDate(e);
+        return ret;
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<Maintenance> maintenanceAfterEvent(GlobalEvent e) {
+        return (Collection<Maintenance>) get(Maintenance.class, e.getStart());
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<Maintenance> maintenanceAfterEvent(MachineEvent e) {
+        return (Collection<Maintenance>) get(Maintenance.class, e.getStart(), e.getMachine());
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<Maintenance> maintenanceBetween(Date start, Date end) {
+        return (Collection<Maintenance>) get(Maintenance.class, start, end);
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<Maintenance> maintenanceBetween(Machine m, Date start, Date end) {
+        return (Collection<Maintenance>)get(Maintenance.class, start, end, m);
     }
     
     @SuppressWarnings("unchecked")
@@ -291,7 +379,7 @@ public class GetCollection {
                                 ? " e " + missingMinutes + " minuti"
                                 : "")
                        );
-            aj.setAllDay(lastInMinutes == 1440L);
+            aj.setAllDay(lastInMinutes == EventUtils.getMaxLastForEventDay(aj));
             aj.setColor(aj.getJobOrder().getColor());
             aj.setEditable(editable);
         }
@@ -310,7 +398,7 @@ public class GetCollection {
                                 ? " e " + missingMinutes + " minuti"
                                 : "")
                        );
-            s.setAllDay(lastInMinutes == 1440L);
+            s.setAllDay(lastInMinutes == EventUtils.getMaxLastForEventDay(s));
             s.setEditable(editable);
         }
         return l;
@@ -350,6 +438,7 @@ public class GetCollection {
         Collection<MachineEvent> ret = new HashSet<MachineEvent>();
         ret.addAll(samplingTheSameDayOf(e));
         ret.addAll(assignedJobOrdersTheSameDayOf(e));
+        ret.addAll(maintenanceTheSameDayOf(e));
         return ret;
     }
     
@@ -359,32 +448,56 @@ public class GetCollection {
         return ret;
     }
     
+    
+    public static Collection<DroppableMachineEvent> machineEventsTheSameDayOf(MachineEvent e) {
+        Collection<DroppableMachineEvent> ret = new HashSet<DroppableMachineEvent>();
+        // The same day of
+        ret.addAll(samplingTheSameDayOf(e));
+        ret.addAll(assignedJobOrdersTheSameDayOf(e));
+        ret.addAll(maintenanceTheSameDayOf(e));
+        return ret;
+    }
+    
     public static Collection<DroppableMachineEvent> machineEventsInConflictWith(MachineEvent e) {
         Collection<DroppableMachineEvent> ret = new HashSet<DroppableMachineEvent>();
         // The same day of
         Collection<Sampling> sampling = samplingTheSameDayOf(e);
         Collection<AssignedJobOrder> ajo = assignedJobOrdersTheSameDayOf(e);
+        Collection<Maintenance> maintenance = maintenanceTheSameDayOf(e);
         
-        Long last = EventUtils.getLast(e);
-
-        if(last >= 1440L) {
+        Long last = EventUtils.getLast(e),
+             hoursPerDay = EventUtils.getMaxLastForEventDay(e);
+        if(last >= hoursPerDay) {
             ret.addAll(sampling);
             ret.addAll(ajo);
+            ret.addAll(maintenance);
         } else {
             Long sumOfLast = 0L;
             for(MachineEvent ev : sampling) {
                 sumOfLast += EventUtils.getLast(ev);
             }
-            if(sumOfLast + last > 1440L) {
+            if(sumOfLast + last > hoursPerDay) {
                 ret.addAll(sampling);
                 ret.addAll(ajo);
+                ret.addAll(maintenance);
             } else {
                 for(MachineEvent ev: ajo) {
                     sumOfLast += EventUtils.getLast(ev);
                 }
-                if(sumOfLast + last > 1440L) {
+                if(sumOfLast + last > hoursPerDay) {
                     ret.addAll(sampling);
                     ret.addAll(ajo);
+                    ret.addAll(maintenance);
+                } else {
+                
+                    for(Maintenance maint : maintenance) {
+                        sumOfLast += EventUtils.getLast(maint);
+                    }
+                    if(sumOfLast + last > hoursPerDay) {
+                        ret.addAll(sampling);
+                        ret.addAll(ajo);
+                        ret.addAll(maintenance);
+                    }
                 }
             }
         }
@@ -415,6 +528,7 @@ public class GetCollection {
         Collection<MachineEvent> ret = new HashSet<MachineEvent>();
         ret.addAll(samplingAfterEvent(e));
         ret.addAll(assignedJobOrdersAfterEvent(e));
+        ret.addAll(maintenanceAfterEvent(e));
         return ret;
     }
     
@@ -422,6 +536,7 @@ public class GetCollection {
         Collection<MachineEvent> ret = new HashSet<MachineEvent>();
         ret.addAll(samplingAfterEvent(e));
         ret.addAll(assignedJobOrdersAfterEvent(e));
+        ret.addAll(maintenanceAfterEvent(e));
         return ret;
     }
     

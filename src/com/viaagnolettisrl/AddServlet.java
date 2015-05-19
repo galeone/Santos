@@ -3,8 +3,10 @@ package com.viaagnolettisrl;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -276,8 +278,8 @@ public class AddServlet extends HttpServlet {
         event.setStart(start);
         event.setEnd(end);
         
-        if(event.getStart().after(event.getEnd()) || EventUtils.getLast(event) > 1440L) {
-            message.replace(0,message.length(),"Orario errato. O maggiore di 24h o fine precedente ad inizio");
+        if(event.getStart().after(event.getEnd()) || EventUtils.getLast(event) > EventUtils.getMaxLastForEventDay(event)) {
+            message.replace(0,message.length(),"Orario errato. O maggiore delle ore lavorative previste o fine precedente ad inizio");
             return null;
         }
                 
@@ -287,6 +289,28 @@ public class AddServlet extends HttpServlet {
         savedObject = event;
         
         DroppableMachineEvent.shiftRight(event, hibSession);
+        
+        // After the shift, I have only the event not in conflict with event
+        Collection<DroppableMachineEvent> sameDayEvents = GetCollection.machineEventsTheSameDayOf(event);
+        Collection<DroppableMachineEvent> sameClassEvents = new LinkedList<DroppableMachineEvent>();
+        for(DroppableMachineEvent sd : sameDayEvents) {
+            if(sd.getClass().equals(event.getClass())) {
+                sameClassEvents.add(sd);
+            }
+        }
+        
+        if(sameClassEvents.size() != 0) {
+            Long sumOfLast = 0L;
+            for(DroppableMachineEvent sc : sameClassEvents) {
+                sumOfLast += EventUtils.getLast(sc);
+                hibSession.delete(sc);
+            }
+            event.setEnd(new Date(event.getStart().getTime() + sumOfLast * 60000));
+            hibSession.merge(event);
+            hibSession.getTransaction().commit();
+            hibSession.getTransaction().begin();
+        }
+        
         return event;
     }
     
@@ -336,13 +360,16 @@ public class AddServlet extends HttpServlet {
                     Long last = EventUtils.getLast(dummy), removedTime = 0L, missingTime = j.getMissingTime();
                     Date prev = new Date(dummy.getStart().getTime());
                     boolean fillAll = dummy.getEnd().before(dummy.getStart()) || last > missingTime;
-                    if(last > 1440L || fillAll) {
+                    Long hoursPerDay = EventUtils.getMaxLastForEventDay(dummy);
+                    if(last > hoursPerDay || fillAll) {
                         if(fillAll) {
                             last = missingTime;
                         }
+
                         while(last > 0) {
                             dummy.setStart(prev);
-                            Long howLong = last > 1440L ? 1440L : last;
+                            hoursPerDay = EventUtils.getMaxLastForEventDay(dummy);
+                            Long howLong = last > hoursPerDay ? hoursPerDay : last;
                             
                             end = new Date(prev.getTime() + howLong * 60000);
                             dummy.setEnd(end);
@@ -350,9 +377,9 @@ public class AddServlet extends HttpServlet {
                             addOneAssignedJobOrder(j, m, prev, end);
                             last -= howLong;
                             removedTime += howLong;
-                            prev = new Date(end.getTime());
+                            prev = EventUtils.tomorrow(end);
                         }
-                    } else if(last > 0L && last <= 1440L){
+                    } else if(last > 0L && last <= hoursPerDay){
                         addOneAssignedJobOrder(j, m, start, end);
                         removedTime = last;
                     } else {
@@ -422,10 +449,11 @@ public class AddServlet extends HttpServlet {
                     }
                     
                     String description = params.get("description");
-
+                    Long hoursPerDay = null;
                     while(last > 0) {
                         dummy.setStart(prev);
-                        Long howLong = last > 1440L ? 1440L : last;
+                        hoursPerDay = EventUtils.getMaxLastForEventDay(dummy);
+                        Long howLong = last > hoursPerDay ? hoursPerDay : last;
                         
                         end = new Date(prev.getTime() + howLong * 60000);
                         dummy.setEnd(end);
@@ -485,10 +513,11 @@ public class AddServlet extends HttpServlet {
                     }
                     
                     String description = params.get("description");
-
+                    Long hoursPerDay = null;
                     while(last > 0) {
                         dummy.setStart(prev);
-                        Long howLong = last > 1440L ? 1440L : last;
+                        hoursPerDay = EventUtils.getMaxLastForEventDay(dummy);
+                        Long howLong = last > hoursPerDay ? hoursPerDay : last;
                         
                         end = new Date(prev.getTime() + howLong * 60000);
                         dummy.setEnd(end);
