@@ -13,29 +13,6 @@ import com.viaagnolettisrl.EventUtils;
 import com.viaagnolettisrl.GetCollection;
 
 public abstract class DroppableMachineEvent implements MachineEvent {
-	
-	public static void mergeEvents(MachineEvent conflictEvent, Session hibSession) {
-        // After the shift, I have only the event not in conflict with event
-        Collection<DroppableMachineEvent> sameDayEvents = GetCollection.machineEventsTheSameDayOf(conflictEvent);
-        Collection<DroppableMachineEvent> sameClassEvents = new LinkedList<DroppableMachineEvent>();
-        for(DroppableMachineEvent sd : sameDayEvents) {
-            if(sd.getClass().equals(conflictEvent.getClass()) && !sd.equals(conflictEvent)) {
-                sameClassEvents.add(sd);
-            }
-        }
-        
-        if(sameClassEvents.size() != 0) {
-            Long sumOfLast = EventUtils.getLast(conflictEvent);
-            for(DroppableMachineEvent sc : sameClassEvents) {
-                sumOfLast += EventUtils.getLast(sc);
-                hibSession.delete(sc);
-            }
-            conflictEvent.setEnd(new Date(conflictEvent.getStart().getTime() + sumOfLast * 60000));
-            hibSession.merge(conflictEvent);
-            hibSession.getTransaction().commit();
-            hibSession.getTransaction().begin();
-        }
-	}
     
     public static void shiftRight(MachineEvent e, Session hibSession) {
         // Global events after e and the same day of e
@@ -102,19 +79,16 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             conflictEvent.setStart(nextDate);
             conflictEvent.setEnd(new Date(nextDate.getTime() + last));
             // hibSession.saveOrUpdate(conflictEvent);
-            hibSession.merge(conflictEvent);
+            conflictEvent = (MachineEvent) hibSession.merge(conflictEvent);
             hibSession.getTransaction().commit();
             hibSession.getTransaction().begin();
-            
-            mergeEvents(conflictEvent, hibSession);
-            
+                        
             Collection<DroppableMachineEvent> newConflicts = GetCollection.machineEventsInConflictWith(conflictEvent);
             // remove events already present (avoid duplicate -> avoid loops)
             qq.removeAll(newConflicts);
             // add elements without duplicate
             qq.addAll(newConflicts);
-
-        }
+        }        
     }
     
     private Date oldStart;
@@ -127,24 +101,31 @@ public abstract class DroppableMachineEvent implements MachineEvent {
         this.oldStart = oldStart;
     }
     
-    public static void switchOnNext(DroppableMachineEvent e, Session hibSession, StringBuilder message) {
+    public static void switchOn(DroppableMachineEvent e, Session hibSession, StringBuilder message) {
         Collection<DroppableMachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
         Collection<GlobalEvent> globaEventsInConflictWith = GetCollection.globalEventsTheSameDayOf(e);
         if(globaEventsInConflictWith.size() > 0) {
             message.replace(0,message.length(),"Non puoi spostare un evento su un evento globale");
             return;
         }
+        
+        Long myLast = EventUtils.getLast(e),
+                maxLast = EventUtils.getMaxLastForEventDay(e);
+
+        if(myLast > maxLast ) {
+            message.replace(0,message.length(),"Non puoi spostare un evento di " + (myLast / 60) + " ore su una giornata lavorativa di "  + (maxLast / 60) + " ore.");
+            return;
+        }
         for (DroppableMachineEvent conflictEvent : machineEventsInConflict) {
             Date oldStart = conflictEvent.getStart();
             conflictEvent.setEnd(new Date(e.getOldStart().getTime() + EventUtils.getLast(conflictEvent) * 60000));
             conflictEvent.setStart(e.getOldStart());
-            hibSession.merge(conflictEvent);
+            conflictEvent = (DroppableMachineEvent) hibSession.merge(conflictEvent);
             hibSession.getTransaction().commit();
             hibSession.getTransaction().begin();
             conflictEvent.setOldStart(oldStart);
-            switchOnNext(conflictEvent, hibSession, message);
+            switchOn(conflictEvent, hibSession, message);
         }
-        mergeEvents(e, hibSession);
     }
     
 }

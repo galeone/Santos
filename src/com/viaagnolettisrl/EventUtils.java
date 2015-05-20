@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import com.viaagnolettisrl.hibernate.AssignedJobOrder;
 import com.viaagnolettisrl.hibernate.Event;
 import com.viaagnolettisrl.hibernate.GlobalEvent;
 import com.viaagnolettisrl.hibernate.MachineEvent;
@@ -24,6 +25,32 @@ public class EventUtils {
 	
     public static Long getLast(Event e) {
         return (e.getEnd().getTime() - e.getStart().getTime()) / (60000);
+    }
+    
+    public static Long getAvaiableHoursBetween(MachineEvent e) {
+        Date start = new Date(e.getStart().getTime()), end = new Date(e.getEnd().getTime());
+        Long hours = 0L;
+        while(start.before(end)) {
+            hours += getLast(workingHoursTheSameDayOf(e));
+            for(MachineEvent conf : GetCollection.assignedJobOrdersTheSameDayOf(e)) {
+                hours -= getLast(conf);
+            }
+            start = tomorrow(start);
+        }
+        return hours;
+    }
+    
+    public static Long getWorkingHoursBetween(MachineEvent e) {
+        Date start = new Date(e.getStart().getTime()), end = new Date(e.getEnd().getTime());
+        AssignedJobOrder dummy = new AssignedJobOrder();
+        dummy.setStart(start);
+        dummy.setEnd(end);
+        Long hours = 0L;
+        while(dummy.getStart().before(dummy.getEnd())) {
+            hours += getLast(workingHoursTheSameDayOf(dummy));
+            dummy.setStart(tomorrow(dummy.getStart()));
+        }
+        return hours;
     }
     
     public static WorkingHours getDefaultWorkingHours(Event e) {

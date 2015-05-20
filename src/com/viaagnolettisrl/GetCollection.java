@@ -460,45 +460,19 @@ public class GetCollection {
     
     public static Collection<DroppableMachineEvent> machineEventsInConflictWith(MachineEvent e) {
         Collection<DroppableMachineEvent> ret = new HashSet<DroppableMachineEvent>();
-        // The same day of
-        Collection<Sampling> sampling = samplingTheSameDayOf(e);
-        Collection<AssignedJobOrder> ajo = assignedJobOrdersTheSameDayOf(e);
-        Collection<Maintenance> maintenance = maintenanceTheSameDayOf(e);
+        Collection<DroppableMachineEvent> machineEventsTheSameDay = machineEventsTheSameDayOf(e);
         
         Long last = EventUtils.getLast(e),
              hoursPerDay = EventUtils.getMaxLastForEventDay(e);
         if(last >= hoursPerDay) {
-            ret.addAll(sampling);
-            ret.addAll(ajo);
-            ret.addAll(maintenance);
+            ret =  machineEventsTheSameDay;
         } else {
             Long sumOfLast = 0L;
-            for(MachineEvent ev : sampling) {
+            for(MachineEvent ev : machineEventsTheSameDay) {
                 sumOfLast += EventUtils.getLast(ev);
             }
             if(sumOfLast + last > hoursPerDay) {
-                ret.addAll(sampling);
-                ret.addAll(ajo);
-                ret.addAll(maintenance);
-            } else {
-                for(MachineEvent ev: ajo) {
-                    sumOfLast += EventUtils.getLast(ev);
-                }
-                if(sumOfLast + last > hoursPerDay) {
-                    ret.addAll(sampling);
-                    ret.addAll(ajo);
-                    ret.addAll(maintenance);
-                } else {
-                
-                    for(Maintenance maint : maintenance) {
-                        sumOfLast += EventUtils.getLast(maint);
-                    }
-                    if(sumOfLast + last > hoursPerDay) {
-                        ret.addAll(sampling);
-                        ret.addAll(ajo);
-                        ret.addAll(maintenance);
-                    }
-                }
+                ret = machineEventsTheSameDay;
             }
         }
         return ret;

@@ -40,11 +40,11 @@
 		<label for="numberofitems">Numero di capi</label> <input type="number" name="numberofitems"
 		id="numberofitems" rel="4" />
 		<input type="hidden" name="leadtime" id="leadtime" rel="5" value="0" />
-		<input type="hidden" name="missingtime" id="missingtime" rel="6"
-			value="0" />
+		<input type="hidden" name="missingtime" id="missingtime" rel="6" value="0" />
+		<input type="hidden" name="offset" id="offset" rel="7" value="0" />
 		<label
 			for="color">Colore</label> <input type="text" name="color" value=""
-			required class="color text ui-widget-content ui-corner-all" rel="7"
+			required class="color text ui-widget-content ui-corner-all" rel="8"
 			readonly>
 		<input type="submit" value="ok" class="inner">
 		<div class="colorpicker"></div>
@@ -61,6 +61,7 @@
 			<th>Numero di capi</th>
 			<th>Tempo totale di produzione</th>
 			<th>Ore non assegnate</th>
+			<th>Variazione</th>
 			<th>Colore</th>
 		</tr>
 	</thead>
@@ -154,6 +155,7 @@ $("#joborders-table").dataTable({
                       td.setAttribute('class', 'read_only');
           	  	  }
               },
+              { data: 'offset', name: "offset", render: dataTablesOffset },
               {
             	  data: 'color',
             	  name: 'color',
@@ -201,6 +203,11 @@ $("#joborders-table").dataTable({
                       cancel    : 'Cancel',
                   },
                   {}, //missing
+                  {
+            	      type: 'leadtime',
+                      submit    : 'Ok',
+                      cancel    : 'Cancel',
+                  },
                   {
             	  	type: 'farbtastic',
                   	submit    : 'Ok',

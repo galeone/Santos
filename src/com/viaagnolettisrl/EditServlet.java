@@ -81,7 +81,7 @@ public class EditServlet extends HttpServlet {
             
             if (message.toString().equals("ok")) {
                 hibSession.saveOrUpdate(sd);
-                Sampling.switchOnNext(sd, hibSession,message);
+                Sampling.switchOn(sd, hibSession,message);
             }
         }
     }
@@ -120,7 +120,7 @@ public class EditServlet extends HttpServlet {
             
             if (message.toString().equals("ok")) {
                 hibSession.saveOrUpdate(maintenance);
-                Sampling.switchOnNext(maintenance, hibSession,message);
+                Sampling.switchOn(maintenance, hibSession,message);
             }
         }
     }
@@ -453,6 +453,21 @@ public class EditServlet extends HttpServlet {
                                 message.replace(0,message.length(),"Tempo per capo <= 0");
                             }
                         break;
+                        case "offset":
+                            try {
+                                Long offset = Long.parseLong(value);
+                                Long newMissingTime = j.getMissingTime() + offset;
+                                if(newMissingTime < 0) {
+                                    message.replace(0, message.length(), "Il valore della variazione nterferisce con le ore già assegnate per la produzione di questa\n" +
+                                "Per farlo devi prima eliminare le ore in più assegnate.");
+                                    return;
+                                }
+                                j.setOffset(offset);
+                                outputResult = value;
+                            } catch (NumberFormatException e) {
+                                message.replace(0,message.length(),"Valore variazione non valido");
+                            }
+                        break;
                         case "color":
                             outputResult = value;
                             j.setColor(value);
@@ -498,7 +513,7 @@ public class EditServlet extends HttpServlet {
                     message.replace(0,message.length(),"Il campo non può essere vuoto");
                 } else {
                     message.replace(0,message.length(),"ok");
-                    try {
+                    try {                        
                         aj.setStart(EventUtils.parseDate(startS.trim()));
                         aj.setEnd(EventUtils.parseDate(endS.trim()));
 
@@ -527,7 +542,8 @@ public class EditServlet extends HttpServlet {
             
             if (message.toString().equals("ok")) {
                 hibSession.saveOrUpdate(aj);
-                AssignedJobOrder.switchOnNext(aj, hibSession, message);
+                AssignedJobOrder.switchOn(aj, hibSession, message);
+                AssignedJobOrder.merge(aj, hibSession);
             }
         }
     }

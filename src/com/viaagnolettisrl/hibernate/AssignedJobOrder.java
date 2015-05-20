@@ -1,7 +1,14 @@
 package com.viaagnolettisrl.hibernate;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedList;
+
+import org.hibernate.Session;
+
+import com.viaagnolettisrl.EventUtils;
+import com.viaagnolettisrl.GetCollection;
 
 public class AssignedJobOrder extends DroppableMachineEvent implements Serializable {
 
@@ -15,6 +22,31 @@ public class AssignedJobOrder extends DroppableMachineEvent implements Serializa
 	private String title, color;
 	private boolean overlap = true, editable = true, allDay = true;
 	public String type = "assignedjoborder";
+	
+   public static void merge(AssignedJobOrder event, Session hibSession) {
+        // After the shift, I have only the event not in conflict with event
+        Collection<AssignedJobOrder> sameDayEvents = GetCollection.assignedJobOrdersTheSameDayOf(event);
+        Collection<AssignedJobOrder> mergeable = new LinkedList<AssignedJobOrder>();
+        
+        for(AssignedJobOrder sd : sameDayEvents) {
+            if(!sd.equals(event) && sd.getJobOrder().equals(event.getJobOrder()) ) {
+                mergeable.add(sd);
+            }
+        }
+        
+        if(mergeable.size() != 0) {
+            Long sumOfLast = EventUtils.getLast(event);
+            hibSession.clear();
+            for(DroppableMachineEvent sc : mergeable) {
+                sumOfLast += EventUtils.getLast(sc);
+                hibSession.delete(sc);
+            }
+            event.setEnd(new Date(event.getStart().getTime() + sumOfLast * 60000));
+            event = (AssignedJobOrder) hibSession.merge(event);
+            hibSession.getTransaction().commit();
+            hibSession.getTransaction().begin();
+        }
+    }
 	
 	@Override
     public int hashCode() {

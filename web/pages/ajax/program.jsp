@@ -134,7 +134,7 @@ window.machines.forEach(function(machine, index, array) {
 });
 machineSelect += "</select>";
 
-var aDay = 24*60;
+var aDay = <%=EventUtils. WEEK_WORKING_HOURS_IN_MINUTES %>;
 
 function onFinishedBlocks() {
 	if($("#jobordersforms .block").length === 0) {

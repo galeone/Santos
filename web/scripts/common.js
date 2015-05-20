@@ -21,6 +21,23 @@ function dataTablesLeadTime( data, type, full, meta ) {
 	return ret === "" ? "Ore completamente assegnate" : ret;
 };
 
+function dataTablesOffset( data, type, full, meta ) {
+	var leadTime        = parseInt(data),
+		sign	    = Math.sign(leadTime),
+		leadTime    = Math.abs(leadTime),
+		minutes	    = leadTime % 60,
+		hours       = Math.floor(leadTime / 60),
+		days        = Math.floor(hours / 24),
+		hours	    = hours - 24*days,
+		daysString  = days === 0  ? "" : days  === 1 ? "1 giorno" : days  + " giorni",
+		hoursString = hours === 0 ? "" : hours === 1 ? "1 ora"    : hours + " ore",
+		minutesString = minutes === 0 ? "" : minutes === 1 ? "1 minuto"    : minutes + " minuti";
+
+		ret = isNaN(leadTime) ? data : daysString + (daysString !== "" && hoursString !== "" ? " e " : "") + hoursString +
+			(minutesString !== "" && (daysString !== "" || hoursString !== "") ? " e " : "") + minutesString;
+	return ret === "" ? "0 ore" : ((sign > 0 ? "+" : "-") + ret);
+};
+
 function createDateAsUTC(date) {
     return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds()));
 };
@@ -43,8 +60,11 @@ $.editable.addInputType('leadtime', {
 		var hours = parseInt($(".ore", this).val()),
 			minutes =  parseInt($(".minuti", this).val());
 		minutes  = isNaN(minutes)  ? 0 : minutes;
-		hours    = isNaN(hours)    ? 0 : hours;
+		hours    = isNaN(hours)    ? 0 : hours,
+		sign     = (Math.sign(hours) >= 0 ? 1 : -1) * (Math.sign(minutes) >= 0 ? 1 : -1);
 		
-		$(':hidden', this).val(hours * 60 + minutes);
+		$(':hidden', this).val(sign*(Math.abs(hours) * 60 + Math.abs(minutes)));
 	  }
 });
+
+

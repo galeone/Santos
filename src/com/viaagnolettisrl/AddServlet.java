@@ -3,10 +3,8 @@ package com.viaagnolettisrl;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -54,7 +52,6 @@ public class AddServlet extends HttpServlet {
     
     private void nonWorkingDay(HttpServletRequest request) {
         if (!user.getIsAdmin()) {
-            message.replace(0,message.length(),"Non puoi aggiungere giorni non lavorativi");
         } else {
             String[] fields = new String[] { "start", "end" };
             Arrays.sort(fields);
@@ -196,7 +193,7 @@ public class AddServlet extends HttpServlet {
         if (!user.getCanAddJobOrder()) {
             message.replace(0,message.length(),"Non puoi aggiungere commesse");
         } else {
-            String[] fields = new String[] { "leadtime", "client", "color", "numberofitems", "timeforitem", "description" };
+            String[] fields = new String[] { "leadtime", "client", "color", "numberofitems", "timeforitem", "description", "offset" };
             Arrays.sort(fields);
             Map<String, String> params = ServletUtils.getParameters(request, fields);
             if (params.containsValue(null) || params.containsValue("")) {
@@ -234,6 +231,9 @@ public class AddServlet extends HttpServlet {
                         message.replace(0,message.length(),"Tempo per capo <= 0");
                         return;
                     }
+                    
+                    j.setOffset(Long.parseLong(params.get("offset")));
+                    
                     leadTime = timeForItem * numberOfItems;
                     j.setNumberOfItems(numberOfItems);
                     j.setTimeForItem(timeForItem);
@@ -241,6 +241,7 @@ public class AddServlet extends HttpServlet {
                     j.setMissingTime(leadTime);
                     j.setColor(params.get("color"));
                     j.setDescription(params.get("description"));
+                    
                     hibSession.saveOrUpdate(j);
                     
                     message.replace(0,message.length(),g.toJson(j));
@@ -252,28 +253,29 @@ public class AddServlet extends HttpServlet {
         }
     }
     
-    private void addOneAssignedJobOrder(JobOrder j, Machine m, Date start, Date end) {
+    private AssignedJobOrder addOneAssignedJobOrder(JobOrder j, Machine m, Date start, Date end) {
         AssignedJobOrder aj = new AssignedJobOrder();
         aj.setJobOrder(j);
-        MachineEvent addedEvent = addOneMacineEvent(aj, m, start, end);
+        MachineEvent addedEvent = addOneMachineEvent(aj, m, start, end);
         j.setMissingTime(j.getMissingTime() - EventUtils.getLast(addedEvent));
         hibSession.saveOrUpdate(j);
+        return (AssignedJobOrder)addedEvent;
     }
     
     private void addOneSampling(String description, Client c, Machine m, Date start, Date end) {
         Sampling s = new Sampling();
         s.setClient(c);
         s.setDescription(description);
-        addOneMacineEvent(s, m, start, end);
+        addOneMachineEvent(s, m, start, end);
     }
     
     private void addOneMaintenance(String description, Machine m, Date start, Date end) {
         Maintenance maintenance = new Maintenance();
         maintenance.setDescription(description);
-        addOneMacineEvent(maintenance, m, start, end);
+        addOneMachineEvent(maintenance, m, start, end);
     }
     
-    private MachineEvent addOneMacineEvent(DroppableMachineEvent event, Machine m, Date start, Date end ) {
+    public MachineEvent addOneMachineEvent(DroppableMachineEvent event, Machine m, Date start, Date end ) {
         event.setMachine(m);
         event.setStart(start);
         event.setEnd(end);
@@ -335,35 +337,33 @@ public class AddServlet extends HttpServlet {
                     AssignedJobOrder dummy = new AssignedJobOrder();
                     dummy.setStart(start);
                     dummy.setEnd(end);
-                    Long last = EventUtils.getLast(dummy), removedTime = 0L, missingTime = j.getMissingTime();
+                    Long myLast = EventUtils.getLast(dummy);
+                    Long last = EventUtils.getWorkingHoursBetween(dummy), removedTime = 0L, missingTime = j.getMissingTime();
                     Date prev = new Date(dummy.getStart().getTime());
-                    boolean fillAll = dummy.getEnd().before(dummy.getStart()) || last > missingTime;
+                    boolean fillAll = end.before(start) || last > missingTime;
                     Long hoursPerDay = EventUtils.getMaxLastForEventDay(dummy);
-                    if(last > hoursPerDay || fillAll) {
-                        if(fillAll) {
-                            last = missingTime;
-                        }
-
-                        while(last > 0) {
-                            dummy.setStart(prev);
-                            hoursPerDay = EventUtils.getMaxLastForEventDay(dummy);
-                            Long howLong = last > hoursPerDay ? hoursPerDay : last;
-                            
-                            end = new Date(prev.getTime() + howLong * 60000);
-                            dummy.setEnd(end);
-                            
-                            addOneAssignedJobOrder(j, m, prev, end);
-                            last -= howLong;
-                            removedTime += howLong;
-                            prev = EventUtils.tomorrow(end);
-                        }
-                    } else if(last > 0L && last <= hoursPerDay){
-                        addOneAssignedJobOrder(j, m, start, end);
-                        removedTime = last;
-                    } else {
-                        message.replace(0, message.length(), "Evento di durata nulla o negativa");
-                        return;
+                    
+                    if(fillAll) {
+                        last = missingTime;
+                    } else if(myLast < last) {
+                        last = myLast;
                     }
+                    
+                    while(last > 0) {
+                        dummy.setStart(prev);
+                        hoursPerDay = EventUtils.getMaxLastForEventDay(dummy);
+                        Long howLong = last > hoursPerDay ? hoursPerDay : last;
+                        
+                        end = new Date(prev.getTime() + howLong * 60000);
+                        dummy.setEnd(end);
+                        
+                        AssignedJobOrder added = addOneAssignedJobOrder(j, m, prev, end);
+                        AssignedJobOrder.merge(added, hibSession);
+                        last -= howLong;
+                        removedTime += howLong;
+                        prev = EventUtils.tomorrow(end);
+                    }
+
                     
                     message.replace(0,message.length(),Long.toString(removedTime));
                     
