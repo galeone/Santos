@@ -7,6 +7,7 @@ import it.galeone_dev.hibernate.models.Machine;
 import it.galeone_dev.hibernate.models.NonWorkingDay;
 import it.galeone_dev.hibernate.models.Sampling;
 import it.galeone_dev.hibernate.models.User;
+import it.galeone_dev.hibernate.models.WorkingDay;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -157,6 +158,8 @@ public class GetServlet extends HttpServlet {
                     Collection<Object> c = new HashSet<Object>();
                     for(NonWorkingDay nw : GetCollection.nonWorkingDaysBetween(user.getIsAdmin(), start, end))
                         c.add(nw);
+                    for(WorkingDay w : GetCollection.workingDaysBetween(user.getIsAdmin(), start, end))
+                    	c.add(w);
                     for(AssignedJobOrder aj : assignedJobOrders(request, start, end))
                         c.add(aj);
                     for(Sampling s : sampling(request, start, end))

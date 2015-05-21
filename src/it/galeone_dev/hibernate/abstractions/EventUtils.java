@@ -1,13 +1,8 @@
 package it.galeone_dev.hibernate.abstractions;
 
-import it.galeone_dev.GetCollection;
-import it.galeone_dev.hibernate.models.AssignedJobOrder;
-import it.galeone_dev.hibernate.models.WorkingHours;
-
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Collection;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -16,73 +11,13 @@ public class EventUtils {
 	
 	private static SimpleDateFormat sdf = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.ENGLISH);
 	public final static TimeZone timezone = TimeZone.getTimeZone("GMT");
-	private static Calendar cal = Calendar.getInstance(timezone);
+	public static Calendar cal = Calendar.getInstance(timezone);
 	
 	public static final Long WEEK_WORKING_HOURS_IN_MINUTES    = 16L * 60;
 	public static final Long WEEKEND_WORKING_HOURS_IN_MINUTES = 8L  * 60;
 	
     public static Long getLast(Event e) {
         return (e.getEnd().getTime() - e.getStart().getTime()) / (60000);
-    }
-    
-    public static Long getAvaiableHoursBetween(MachineEvent e) {
-        Date start = new Date(e.getStart().getTime()), end = new Date(e.getEnd().getTime());
-        Long hours = 0L;
-        while(start.before(end)) {
-            hours += getLast(workingHoursTheSameDayOf(e));
-            for(MachineEvent conf : GetCollection.assignedJobOrdersTheSameDayOf(e)) {
-                hours -= getLast(conf);
-            }
-            start = tomorrow(start);
-        }
-        return hours;
-    }
-    
-    public static Long getWorkingHoursBetween(MachineEvent e) {
-        Date start = new Date(e.getStart().getTime()), end = new Date(e.getEnd().getTime());
-        AssignedJobOrder dummy = new AssignedJobOrder();
-        dummy.setStart(start);
-        dummy.setEnd(end);
-        Long hours = 0L;
-        while(dummy.getStart().before(dummy.getEnd())) {
-            hours += getLast(workingHoursTheSameDayOf(dummy));
-            dummy.setStart(tomorrow(dummy.getStart()));
-        }
-        return hours;
-    }
-    
-    public static WorkingHours getDefaultWorkingHours(Event e) {
-        WorkingHours ret = new WorkingHours();
-        sdf.setTimeZone(timezone);
-        cal.setTime(e.getStart());
-        Date start = start(e.getStart());
-        int dow = cal.get(Calendar.DAY_OF_WEEK);
-        ret.setStart(start);
-        ret.setEnd(new Date(start.getTime() + (
-                dow >= Calendar.MONDAY && dow <= Calendar.FRIDAY
-                ? WEEK_WORKING_HOURS_IN_MINUTES
-                : WEEKEND_WORKING_HOURS_IN_MINUTES) * 60000 ));
-        return ret;
-    }
-    
-    @SuppressWarnings("unchecked")
-    private static WorkingHours workingHoursTheSameDayOf(Event e) {
-        Collection<WorkingHours> ret = GetCollection.get(WorkingHours.class,EventUtils.start(e.getStart()), EventUtils.end(e.getEnd()));
-        return ret.size() == 0
-                ? getDefaultWorkingHours(e)
-                : ret.toArray(new WorkingHours[0])[0];
-    }
-    
-    public static WorkingHours workingHoursTheSameDayOf(GlobalEvent e) {
-        return workingHoursTheSameDayOf((Event)e);
-    }
-    
-    public static WorkingHours workingHoursTheSameDayOf(MachineEvent e) {
-        return workingHoursTheSameDayOf((Event)e); 
-    }
-    
-    public static Long getMaxLastForEventDay(Event e) {
-        return getLast(getDefaultWorkingHours(e));
     }
     
     public static Date parseDate(String date) throws ParseException {

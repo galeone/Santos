@@ -22,7 +22,7 @@
 		<mapping resource="it/galeone_dev/hibernate/models/History.hbm.xml" />
 		<mapping resource="it/galeone_dev/hibernate/models/JobOrder.hbm.xml" />
 		<mapping resource="it/galeone_dev/hibernate/models/NonWorkingDay.hbm.xml" />
-		<mapping resource="it/galeone_dev/hibernate/models/WorkingHours.hbm.xml" />
+		<mapping resource="it/galeone_dev/hibernate/models/WorkingDay.hbm.xml" />
 		<mapping resource="it/galeone_dev/hibernate/models/AssignedJobOrders.hbm.xml" />
 		<mapping resource="it/galeone_dev/hibernate/models/Sampling.hbm.xml" />
 		<mapping resource="it/galeone_dev/hibernate/models/Maintenance.hbm.xml" />

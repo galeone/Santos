@@ -11,7 +11,7 @@ import it.galeone_dev.hibernate.models.Maintenance;
 import it.galeone_dev.hibernate.models.NonWorkingDay;
 import it.galeone_dev.hibernate.models.Sampling;
 import it.galeone_dev.hibernate.models.User;
-import it.galeone_dev.hibernate.models.WorkingHours;
+import it.galeone_dev.hibernate.models.WorkingDay;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -169,12 +169,12 @@ public class EditServlet extends HttpServlet {
         if (!user.getIsAdmin()) {
             message.replace(0,message.length(),"Non sei admin");
         } else {
-            toEdit = (WorkingHours) hibSession.get(WorkingHours.class, id);
+            toEdit = (WorkingDay) hibSession.get(WorkingDay.class, id);
             
-            WorkingHours wh = new WorkingHours();
+            WorkingDay wh = new WorkingDay();
             
             if (toEdit != null) {
-                wh = (WorkingHours) toEdit;
+                wh = (WorkingDay) toEdit;
                 String[] fields = new String[] { "start", "end" };
                 Arrays.sort(fields);
                 Map<String, String> params = ServletUtils.getParameters(request, fields);

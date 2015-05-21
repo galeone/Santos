@@ -1,6 +1,8 @@
 package it.galeone_dev.hibernate.abstractions;
 
 import it.galeone_dev.GetCollection;
+import it.galeone_dev.hibernate.models.NonWorkingDay;
+import it.galeone_dev.hibernate.models.WorkingDay;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -15,10 +17,10 @@ public abstract class DroppableMachineEvent implements MachineEvent {
     
     public static void shiftRight(MachineEvent e, Session hibSession) {
         // Global events after e and the same day of e
-        Collection<GlobalEvent> globalEventsAfterEvent = GetCollection.globalEventsAfter(e);
-        Collection<GlobalEvent> globalEventsInConflictWith = GetCollection.globalEventsTheSameDayOf(e);
+        Collection<NonWorkingDay> nonWorkingDaysAfterEvent = GetCollection.nonWorkingDaysAfterEvent(e);
+        Collection<NonWorkingDay> nonWorkingDaysInConflictWith = GetCollection.nonWorkingDaysTheSameDayOf(e);
         
-        Collection<Event> toSkip = new LinkedList<Event>(globalEventsAfterEvent);
+        Collection<Event> toSkip = new LinkedList<Event>(nonWorkingDaysAfterEvent);
         
         Collection<DroppableMachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
         
@@ -32,7 +34,7 @@ public abstract class DroppableMachineEvent implements MachineEvent {
         // genero la lista degli eventi macchina da dover sistamare, perché a causa
         // di un evento globale ho dovuto shiftare l'evento su un evento maccihna già occupato
         // per ogni evento globale in conflitto con il nuovo evento
-        if(globalEventsInConflictWith.size() != 0) {
+        if(nonWorkingDaysInConflictWith.size() != 0) {
             qq.add(e); // se sto spostando su un evento globale sicuramente dovrà muovermi, dato che lui sta fisso
         }
         
@@ -102,14 +104,13 @@ public abstract class DroppableMachineEvent implements MachineEvent {
     
     public static void switchOn(DroppableMachineEvent e, Session hibSession, StringBuilder message) {
         Collection<DroppableMachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
-        Collection<GlobalEvent> globaEventsInConflictWith = GetCollection.globalEventsTheSameDayOf(e);
-        if(globaEventsInConflictWith.size() > 0) {
-            message.replace(0,message.length(),"Non puoi spostare un evento su un evento globale");
+        
+        if(GetCollection.nonWorkingDaysTheSameDayOf(e).size() > 0) {
+            message.replace(0,message.length(),"Non puoi produrre in un giorno non lavorativo");
             return;
         }
         
-        Long myLast = EventUtils.getLast(e),
-                maxLast = EventUtils.getMaxLastForEventDay(e);
+        Long myLast = EventUtils.getLast(e), maxLast = EventUtils.getLast(WorkingDay.get(e));
 
         if(myLast > maxLast ) {
             message.replace(0,message.length(),"Non puoi spostare un evento di " + (myLast / 60) + " ore su una giornata lavorativa di "  + (maxLast / 60) + " ore.");

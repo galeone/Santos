@@ -11,7 +11,7 @@ import it.galeone_dev.hibernate.models.Maintenance;
 import it.galeone_dev.hibernate.models.NonWorkingDay;
 import it.galeone_dev.hibernate.models.Sampling;
 import it.galeone_dev.hibernate.models.User;
-import it.galeone_dev.hibernate.models.WorkingHours;
+import it.galeone_dev.hibernate.models.WorkingDay;
 
 import java.io.IOException;
 import java.util.Date;
@@ -80,9 +80,9 @@ public class DeleteServlet extends HttpServlet {
         if (!user.getIsAdmin()) {
             message = "Non sei amministratore";
         } else {
-            toDelete = hibSession.get(WorkingHours.class, id);
+            toDelete = hibSession.get(WorkingDay.class, id);
             if (toDelete != null) { // exists
-                hibSession.delete((WorkingHours) toDelete);
+                hibSession.delete((WorkingDay) toDelete);
                 message = "ok";
             } else {
                 message = "Giorno non lavorativo non esistente";

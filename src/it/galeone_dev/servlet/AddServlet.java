@@ -13,7 +13,7 @@ import it.galeone_dev.hibernate.models.Maintenance;
 import it.galeone_dev.hibernate.models.NonWorkingDay;
 import it.galeone_dev.hibernate.models.Sampling;
 import it.galeone_dev.hibernate.models.User;
-import it.galeone_dev.hibernate.models.WorkingHours;
+import it.galeone_dev.hibernate.models.WorkingDay;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -94,7 +94,7 @@ public class AddServlet extends HttpServlet {
                 message.replace(0,message.length(),"Completare tutti i campi");
             } else {
                 try {
-                    WorkingHours wh = new WorkingHours();
+                    WorkingDay wh = new WorkingDay();
                     wh.setStart(EventUtils.parseDate(params.get("start").trim()));
                     wh.setEnd(EventUtils.parseDate(params.get("end").trim()));
                     if(wh.getEnd().before(wh.getStart()) || wh.getEnd().equals(wh.getStart())) {
@@ -282,7 +282,7 @@ public class AddServlet extends HttpServlet {
         event.setStart(start);
         event.setEnd(end);
         
-        if(event.getStart().after(event.getEnd()) || EventUtils.getLast(event) > EventUtils.getMaxLastForEventDay(event)) {
+        if(event.getStart().after(event.getEnd()) || EventUtils.getLast(event) >EventUtils.getLast(WorkingDay.get(event))) {
             message.replace(0,message.length(),"Orario errato. O maggiore delle ore lavorative previste o fine precedente ad inizio");
             return null;
         }
@@ -340,10 +340,9 @@ public class AddServlet extends HttpServlet {
                     dummy.setStart(start);
                     dummy.setEnd(end);
                     Long myLast = EventUtils.getLast(dummy);
-                    Long last = EventUtils.getWorkingHoursBetween(dummy), removedTime = 0L, missingTime = j.getMissingTime();
+                    Long last = WorkingDay.getWorkingHoursBetween(dummy), removedTime = 0L, missingTime = j.getMissingTime();
                     Date prev = new Date(dummy.getStart().getTime());
                     boolean fillAll = end.before(start) || last > missingTime;
-                    Long hoursPerDay = EventUtils.getMaxLastForEventDay(dummy);
                     
                     if(fillAll) {
                         last = missingTime;
@@ -353,7 +352,7 @@ public class AddServlet extends HttpServlet {
                     
                     while(last > 0) {
                         dummy.setStart(prev);
-                        hoursPerDay = EventUtils.getMaxLastForEventDay(dummy);
+                        Long hoursPerDay = EventUtils.getLast(WorkingDay.get(dummy));
                         Long howLong = last > hoursPerDay ? hoursPerDay : last;
                         
                         end = new Date(prev.getTime() + howLong * 60000);
@@ -432,7 +431,7 @@ public class AddServlet extends HttpServlet {
                     Long hoursPerDay = null;
                     while(last > 0) {
                         dummy.setStart(prev);
-                        hoursPerDay = EventUtils.getMaxLastForEventDay(dummy);
+                        hoursPerDay = EventUtils.getLast(WorkingDay.get(dummy));
                         Long howLong = last > hoursPerDay ? hoursPerDay : last;
                         
                         end = new Date(prev.getTime() + howLong * 60000);
@@ -496,7 +495,7 @@ public class AddServlet extends HttpServlet {
                     Long hoursPerDay = null;
                     while(last > 0) {
                         dummy.setStart(prev);
-                        hoursPerDay = EventUtils.getMaxLastForEventDay(dummy);
+                        hoursPerDay =EventUtils.getLast(WorkingDay.get(dummy));
                         Long howLong = last > hoursPerDay ? hoursPerDay : last;
                         
                         end = new Date(prev.getTime() + howLong * 60000);

@@ -15,11 +15,12 @@ import it.galeone_dev.hibernate.models.Maintenance;
 import it.galeone_dev.hibernate.models.NonWorkingDay;
 import it.galeone_dev.hibernate.models.Sampling;
 import it.galeone_dev.hibernate.models.User;
-import it.galeone_dev.hibernate.models.WorkingHours;
+import it.galeone_dev.hibernate.models.WorkingDay;
 
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.hibernate.Query;
@@ -159,42 +160,44 @@ public class GetCollection {
     }
     
     @SuppressWarnings("unchecked")
-    public static Collection<WorkingHours> workingHours() {
-        return (Collection<WorkingHours>) get(WorkingHours.class);
+    public static Collection<WorkingDay> workingDay() {
+        return (Collection<WorkingDay>) setWorkingDayAttr(get(WorkingDay.class), false);
     }
     
-    public static Collection<WorkingHours> workingHours(Boolean editable) {
-        Collection<WorkingHours> l = workingHours();
-        for(WorkingHours nw : l) {
-            nw.editable = editable;
-        }
-        return l;
+    public static Collection<WorkingDay> workingDay(Boolean editable) {
+        Collection<WorkingDay> l = workingDay();
+        return setWorkingDayAttr(l, editable);
+    }
+    
+	public static Collection<WorkingDay> workingDaysBetween(Boolean editable, Date start, Date end) {
+    	Collection<WorkingDay> ret = new LinkedList<WorkingDay>();
+    	AssignedJobOrder dummy =  new AssignedJobOrder();
+    	dummy.setStart(new Date(start.getTime()));
+    	dummy.setEnd(new Date(end.getTime()));
+    	
+    	while(dummy.getStart().before(dummy.getEnd())) {
+            ret.add(WorkingDay.get(dummy));
+    		dummy.setStart(EventUtils.tomorrow(dummy.getStart()));
+    	}
+
+    	return setWorkingDayAttr(ret, editable);
+    }
+
+    public static Collection<WorkingDay> workingDaysBetween(Date start, Date end) {
+        return (Collection<WorkingDay>)workingDaysBetween(false, start, end);
     }
     
     @SuppressWarnings("unchecked")
-    public static Collection<WorkingHours> workingHoursBetween(Boolean editable, Date start, Date end) {
-        Collection<WorkingHours> l = (Collection<WorkingHours>) get(WorkingHours.class, start, end);
-        for(WorkingHours nw : l) {
-            nw.editable = editable;
-        }
-        return l;
-    }
-    @SuppressWarnings("unchecked")
-    public static Collection<WorkingHours> workingHoursBetween(Date start, Date end) {
-        return (Collection<WorkingHours>) get(WorkingHours.class, start, end);
+    public static Collection<WorkingDay> workingDaysAfterEvent(Event e) {
+        return (Collection<WorkingDay>)setWorkingDayAttr(get(WorkingDay.class, e.getStart()), false); 
     }
     
-    @SuppressWarnings("unchecked")
-    public static Collection<WorkingHours> workingHoursAfterEvent(Event e) {
-        return (Collection<WorkingHours>)get(WorkingHours.class, e.getStart()); 
+    public static Collection<WorkingDay> workingDaysAfterEvent(GlobalEvent e) {
+        return workingDaysAfterEvent((Event)e);
     }
     
-    public static Collection<WorkingHours> workingHoursAfterEvent(GlobalEvent e) {
-        return workingHoursAfterEvent((Event)e);
-    }
-    
-    public static Collection<WorkingHours> workingHoursAfterEvent(MachineEvent e) {
-        return workingHoursAfterEvent((Event)e);
+    public static Collection<WorkingDay> workingDaysAfterEvent(MachineEvent e) {
+        return workingDaysAfterEvent((Event)e);
     }
     
     @SuppressWarnings("unchecked")
@@ -380,9 +383,31 @@ public class GetCollection {
                                 ? " e " + missingMinutes + " minuti"
                                 : "")
                        );
-            aj.setAllDay(lastInMinutes == EventUtils.getMaxLastForEventDay(aj));
+            aj.setAllDay(lastInMinutes == EventUtils.getLast(WorkingDay.get((aj))));
             aj.setColor(aj.getJobOrder().getColor());
             aj.setEditable(editable);
+        }
+        return l;
+    }
+    
+    public static Collection<WorkingDay> setWorkingDayAttr(Collection<WorkingDay> l, boolean editable) {
+    	Long i = 1L; // negative id for non persistente working hours
+        for(WorkingDay wh : l) {
+            Long lastInMinutes = EventUtils.getLast(wh);
+            Long missingHours = lastInMinutes / 60, missingMinutes = lastInMinutes % 60;
+            
+            wh.setTitle(missingHours + " ore" +
+            		(
+            				missingMinutes > 0
+                            ? " e " + missingMinutes + " minuti"
+                            : ""
+                    ));
+            if(wh.getId() == null) {
+            	wh.setId(-i);
+            	++i;
+        	}
+            wh.setAllDay(true);
+            wh.setEditable(editable);
         }
         return l;
     }
@@ -399,7 +424,7 @@ public class GetCollection {
                                 ? " e " + missingMinutes + " minuti"
                                 : "")
                        );
-            s.setAllDay(lastInMinutes == EventUtils.getMaxLastForEventDay(s));
+            s.setAllDay(lastInMinutes == EventUtils.getLast(WorkingDay.get((s))));
             s.setEditable(editable);
         }
         return l;
@@ -446,6 +471,7 @@ public class GetCollection {
     public static Collection<GlobalEvent> globalEventsTheSameDayOf(GlobalEvent e) {
         Collection<GlobalEvent> ret = new HashSet<GlobalEvent>();
         ret.addAll(nonWorkingDaysTheSameDayOf(e));
+        ret.add(WorkingDay.get(e));
         return ret;
     }
     
@@ -463,8 +489,7 @@ public class GetCollection {
         Collection<DroppableMachineEvent> ret = new HashSet<DroppableMachineEvent>();
         Collection<DroppableMachineEvent> machineEventsTheSameDay = machineEventsTheSameDayOf(e);
         
-        Long last = EventUtils.getLast(e),
-             hoursPerDay = EventUtils.getMaxLastForEventDay(e);
+        Long last = EventUtils.getLast(e), hoursPerDay = EventUtils.getLast(WorkingDay.get((e)));
         if(last >= hoursPerDay) {
             ret =  machineEventsTheSameDay;
         } else {
@@ -479,9 +504,25 @@ public class GetCollection {
         return ret;
     }
     
+    public static Collection<GlobalEvent> globalEventsBetween(Date start, Date end) {
+    	Collection<GlobalEvent> ret = new HashSet<GlobalEvent>();
+    	ret.addAll(nonWorkingDaysBetween(start, end));
+    	ret.addAll(workingDaysBetween(start, end));
+    	return ret;
+    }
+    
+    public static Collection<MachineEvent> machineEventsBetween(Date start, Date end) {
+    	Collection<MachineEvent> ret = new HashSet<MachineEvent>();
+    	ret.addAll(samplingBetween(start, end));
+    	ret.addAll(assignedJobOrdersBetween(start, end));
+    	ret.addAll(maintenanceBetween(start, end));
+    	return ret;
+    }
+    
     public static Collection<GlobalEvent> globalEventsTheSameDayOf(MachineEvent e) {
         Collection<GlobalEvent> ret = new HashSet<GlobalEvent>();
         ret.addAll(nonWorkingDaysTheSameDayOf(e));
+        ret.add(WorkingDay.get(e));
         return ret;
     }
     
@@ -539,6 +580,13 @@ public class GetCollection {
         ret.addAll(globalEventsAfter(e));
         ret.addAll(machineEventsAfter(e));
         return ret;
+    }
+    
+    public static Collection<Event> eventsBetween(Date start, Date end) {
+    	Collection<Event> ret = new HashSet<Event>();
+    	ret.addAll(globalEventsBetween(start, end));
+    	ret.addAll(machineEventsBetween(start, end));
+    	return ret;
     }
     
 }
