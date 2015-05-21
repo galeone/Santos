@@ -73,7 +73,7 @@ public class JobOrder implements Serializable {
     }
 
     public Long getMissingTime() {
-        return missingTime + offset;
+        return missingTime;
     }
 
     public void setMissingTime(Long missingTime) {

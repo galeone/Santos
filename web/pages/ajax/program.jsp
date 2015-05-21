@@ -16,6 +16,7 @@
 	application.setAttribute("todojoborders",GetCollection.todoJobOrders(user.getCanAssignJobOrder()));
 	application.setAttribute("machines", GetCollection.machines());
 	application.setAttribute("joborders", GetCollection.jobOrders());
+	application.setAttribute("clients", GetCollection.clients());
 %>
 <div class="wrap">
 	<div class="leftc">
@@ -44,18 +45,18 @@
 			<h3>Campionamento</h3>
 			<div>
 				<c:choose>
-					<c:when test="${empty joborders}">
-						Non hai ancora inserito alcuna commessa
+					<c:when test="${empty clients}">
+						Non esistono clienti
 					</c:when>
 					<c:otherwise>
 						<div id="samplingsummary">
 						<b>Inserimento automatico</b>
 							<form id="autosampling">
-								Commessa<br />
-								<select name="joborder">
-									<option selected disabled>Scegli una commessa</option>
-									<c:forEach var="jo" items="${joborders}">
-										<option value="${jo.id}" title="<c:out value="${jo.description}" />">${jo.id} - Cliente: <c:out value="${jo.client.name}" /></option>
+								Cliente<br />
+								<select name="client">
+									<option selected disabled>Scegli il cliente</option>
+									<c:forEach var="c" items="${clients}">
+										<option value="${c.id}" title="<c:out value="${c.name}" />"><c:out value="${c.name} [${c.code}]" /></option>
 									</c:forEach>
 								</select><br />
 								Macchina<br />
@@ -65,6 +66,8 @@
 										<option value="${machine.id}">${machine.id} - <c:out value="${machine.name}" /></option>
 									</c:forEach>
 								</select><br />
+								Descrizione<br />
+								<input type="text" name="description" /><br />
 								A partire da <sup>*</sup><input type="text" class="autostart" required /><br />
 								Fino a <sup>*</sup> <input type="text" class="autoend" required />
 								<br /><input type="submit" value="Auto assegna" /><br />
@@ -73,18 +76,59 @@
 							<i>Puoi inserire campionamenti manualmente per la durata massima di 24 ore.</i>
 							<br /><i>Per inserire più giorni di campionamento, usa l'inserimento automatico</i>
 							<p>
-								Seleziona la commessa ed imposta la durata. <br />Dopo trascina il
-								blocchetto sul calendario.
+								Seleziona il cliente ed imposta la durata. <br />Dopo trascina il blocchetto sul calendario.
 							</p>
-							<select id="joborder">
-								<option selected disabled>Scegli una commessa</option>
-								<c:forEach var="jo" items="${joborders}">
-									<option value="${jo.id}" title="<c:out value="${jo.description}" />">${jo.id} - Cliente: <c:out value="${jo.client.name}" /></option>
+							Cliente<br />
+							<select name="client">
+								<option selected disabled>Scegli il cliente</option>
+								<c:forEach var="c" items="${clients}">
+									<option value="${c.id}" title="<c:out value="${c.name}" />"><c:out value="${c.name} [${c.code}]" /></option>
 								</c:forEach>
 							</select><br />
+							Descrizione<br />
+							<input type="text" name="description" /><br />
 							Ore<br /><input style="display: inline" type="number" min="0" max="24" id="samplinghours" /><br />
 							Minuti<br /><input style="display: inline" type="number" min="0" max="59" id="samplingminutes" /><br /><br />
 							<div id="sampling-event"></div>
+							<br /><br />
+						</div>
+					</c:otherwise>
+				</c:choose>
+			</div><!-- accordion div -->
+			<h3>Manutenzione</h3>
+			<div>
+				<c:choose>
+					<c:when test="${empty machines}">
+						Non esistono macchine
+					</c:when>
+					<c:otherwise>
+						<div id="maintenancesummary">
+						<b>Inserimento automatico</b>
+							<form id="automaintenance">
+								Macchina<br />
+								<select name="machine">
+									<option selected disabled>Scegli una macchina</option>
+									<c:forEach var="machine" items="${machines}">
+										<option value="${machine.id}">${machine.id} - <c:out value="${machine.name}" /></option>
+									</c:forEach>
+								</select><br />
+								Descrizione<br />
+								<input type="text" name="description" /><br />
+								A partire da <sup>*</sup><input type="text" class="autostart" required /><br />
+								Fino a <sup>*</sup> <input type="text" class="autoend" required />
+								<br /><input type="submit" value="Auto assegna" /><br />
+							</form>
+							<b>Inserimento manuale (drag-and-drop)</b><br />
+							<i>Puoi inserire manutenzione manualmente per la durata massima di 24 ore.</i>
+							<br /><i>Per inserire più giorni di manutenzione, usa l'inserimento automatico</i>
+							<p>
+								Inserisci la descrizione, <br />dopo trascina il blocchetto sul calendario delle macchina
+							</p>
+							Descrizione<br />
+							<input type="text" name="description" /><br />
+							Ore<br /><input style="display: inline" type="number" min="0" max="24" id="maintenancehours" /><br />
+							Minuti<br /><input style="display: inline" type="number" min="0" max="59" id="maintenanceminutes" /><br /><br />
+							<div id="maintenance-event"></div>
 							<br /><br />
 						</div>
 					</c:otherwise>
