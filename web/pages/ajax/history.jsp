@@ -1,8 +1,9 @@
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@ page errorPage="../../errors/exception.jsp"%>
 <%@ page session="true"%>
-<%@ page import="com.viaagnolettisrl.hibernate.*"%>
-<%@ page import="com.viaagnolettisrl.*"%>
+<%@ page import="it.galeone_dev.*"%>
+<%@ page import="it.galeone_dev.servlet.*"%>
+<%@ page import="it.galeone_dev.hibernate.models.*"%>
 <%@ page import="com.google.gson.*"%>
 <%@ page import="java.util.Collection"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
@@ -13,7 +14,7 @@
 				+ LoginServlet.LOGIN_FORM);
 	}
 %>
-<table id="history-table" class="display" cellspacing="0" width="100%">
+<table id="history-table" class="display" style="width:100%">
 	<thead>
 		<tr class="ui-widget-header ">
 			<th>Data</th>

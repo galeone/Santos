@@ -16,15 +16,15 @@
 		<property name="cache.provider_class">org.hibernate.cache.NoCacheProvider</property>
 		<property name="show_sql">true</property>
 		<property name="hbm2ddl.auto">update</property>
-		<mapping resource="com/viaagnolettisrl/hibernate/User.hbm.xml" />
-		<mapping resource="com/viaagnolettisrl/hibernate/Machine.hbm.xml" />
-		<mapping resource="com/viaagnolettisrl/hibernate/Client.hbm.xml" />
-		<mapping resource="com/viaagnolettisrl/hibernate/History.hbm.xml" />
-		<mapping resource="com/viaagnolettisrl/hibernate/JobOrder.hbm.xml" />
-		<mapping resource="com/viaagnolettisrl/hibernate/NonWorkingDay.hbm.xml" />
-		<mapping resource="com/viaagnolettisrl/hibernate/WorkingHours.hbm.xml" />
-		<mapping resource="com/viaagnolettisrl/hibernate/AssignedJobOrders.hbm.xml" />
-		<mapping resource="com/viaagnolettisrl/hibernate/Sampling.hbm.xml" />
-		<mapping resource="com/viaagnolettisrl/hibernate/Maintenance.hbm.xml" />
+		<mapping resource="it/galeone_dev/hibernate/models/User.hbm.xml" />
+		<mapping resource="it/galeone_dev/hibernate/models/Machine.hbm.xml" />
+		<mapping resource="it/galeone_dev/hibernate/models/Client.hbm.xml" />
+		<mapping resource="it/galeone_dev/hibernate/models/History.hbm.xml" />
+		<mapping resource="it/galeone_dev/hibernate/models/JobOrder.hbm.xml" />
+		<mapping resource="it/galeone_dev/hibernate/models/NonWorkingDay.hbm.xml" />
+		<mapping resource="it/galeone_dev/hibernate/models/WorkingHours.hbm.xml" />
+		<mapping resource="it/galeone_dev/hibernate/models/AssignedJobOrders.hbm.xml" />
+		<mapping resource="it/galeone_dev/hibernate/models/Sampling.hbm.xml" />
+		<mapping resource="it/galeone_dev/hibernate/models/Maintenance.hbm.xml" />
 	</session-factory>
 </hibernate-configuration>

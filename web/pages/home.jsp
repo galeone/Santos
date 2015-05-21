@@ -1,8 +1,8 @@
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@ page errorPage="../errors/exception.jsp"%>
 <%@ page session="true"%>
-<%@ page import="com.viaagnolettisrl.*"%>
-<%@ page import="com.viaagnolettisrl.hibernate.*"%>
+<%@ page import="it.galeone_dev.servlet.*"%>
+<%@ page import="it.galeone_dev.hibernate.models.*"%>
 <%@ page import="com.google.gson.*"%>
 <%
 	User user = (User)session.getAttribute(LoginServlet.USER);
@@ -37,9 +37,9 @@
 		<li class="ui-state-default ui-corner-all" style="float: right">
 			<a href='<%= request.getContextPath() %>/pages/ajax/logout.jsp'>Esci</a>
 		</li>
-		<div id="reload-current-tab" class="ui-state-default ui-corner-all" style="float:right; margin-right:8px; margin-top:-2px; cursor:pointer">
+		<li id="reload-current-tab" class="ui-state-default ui-corner-all" style="float:right; margin-right:8px; margin-top:-2px; cursor:pointer">
 			<img src="<%= request.getContextPath() %>/styles/images/reload.png" />
-		</div>
+		</li>
 		<%
 	if(user.getIsAdmin()) {
 %>

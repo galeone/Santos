@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping auto-import="true" default-access="property"
+	default-cascade="none" default-lazy="true">
+	<class dynamic-insert="false" dynamic-update="false" mutable="true"
+		name="it.galeone_dev.hibernate.models.User" optimistic-lock="version"
+		polymorphism="implicit" select-before-update="false" table="users">
+		<id column="id" name="id">
+			<generator class="increment" />
+		</id>
+		<set embed-xml="true" inverse="true" mutable="true" name="history"
+			optimistic-lock="true" sort="unsorted">
+			<key column="idUser" on-delete="cascade" />
+			<one-to-many class="it.galeone_dev.hibernate.models.History"
+				embed-xml="true" not-found="exception" />
+		</set>
+		<property column="CANADDJOBORDER" generated="never" lazy="false"
+			name="canAddJobOrder" optimistic-lock="true" type="boolean" unique="false" />
+		<property column="CANASSIGNJOBORDER" generated="never" lazy="false"
+			name="canAssignJobOrder" optimistic-lock="true" type="boolean" unique="false" />
+		<property column="NAME" generated="never" lazy="false"
+			length="50" name="name" optimistic-lock="true" type="string" unique="false" />
+		<property column="CANADDCLIENT" generated="never" lazy="false"
+			name="canAddClient" optimistic-lock="true" type="boolean" unique="false" />
+		<property column="CANADDMACHINE" generated="never" lazy="false"
+			name="canAddMachine" optimistic-lock="true" type="boolean" unique="false" />
+		<property column="PASSWORD" generated="never" lazy="false"
+			length="50" name="password" optimistic-lock="true" type="string"
+			unique="false" />
+		<property column="USERNAME" generated="never" lazy="false"
+			length="50" name="username" optimistic-lock="true" type="string"
+			unique="true" />
+		<property column="SURNAME" generated="never" lazy="false"
+			length="50" name="surname" optimistic-lock="true" type="string"
+			unique="false" />
+		<property column="ISADMIN" generated="never" lazy="false"
+			name="isAdmin" optimistic-lock="true" type="boolean" unique="false" />
+	</class>
+</hibernate-mapping>

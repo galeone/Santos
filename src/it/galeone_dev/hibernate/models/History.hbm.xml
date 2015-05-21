@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="it.galeone_dev.hibernate.models.History" table="history">
+		<id name="id" column="id">
+			<generator class="increment" />
+		</id>
+		<property column="TIME" name="time" type="timestamp" />
+		<property column="ACTION" name="action" type="string" length="50" />
+		<property column="WHAT" name="what" type="string" length="5000" />
+		<many-to-one name="User" class="it.galeone_dev.hibernate.models.User"
+			column="IDUSER" unique="false" not-null="true" lazy="false" />
+	</class>
+</hibernate-mapping>

@@ -1,8 +1,8 @@
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@ page errorPage="../errors/exception.jsp"%>
 <%@ page session="true"%>
-<%@ page import="com.viaagnolettisrl.*"%>
-<%@ page import="com.viaagnolettisrl.hibernate.*"%>
+<%@ page import="it.galeone_dev.servlet.*"%>
+<%@ page import="it.galeone_dev.hibernate.models.*"%>
 <%
 	User user = (User)session.getAttribute(LoginServlet.USER);
 	if( user != null ) {

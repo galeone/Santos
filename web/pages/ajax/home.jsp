@@ -3,8 +3,8 @@
 <%@ page session="true"%>
 <%@ page import="java.util.Collection"%>
 <%@ page import="com.google.gson.*"%>
-<%@ page import="com.viaagnolettisrl.*"%>
-<%@ page import="com.viaagnolettisrl.hibernate.*"%>
+<%@ page import="it.galeone_dev.servlet.*"%>
+<%@ page import="it.galeone_dev.hibernate.models.*"%>
 <%
 	User user = (User)session.getAttribute(LoginServlet.USER);
 	if( user == null ) {
