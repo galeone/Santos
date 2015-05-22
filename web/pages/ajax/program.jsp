@@ -182,12 +182,6 @@ machineSelect += "</select>";
 
 var aDay = <%=EventUtils. WEEK_WORKING_HOURS_IN_MINUTES %>;
 
-function onFinishedBlocks() {
-	if($("#jobordersforms .block").length === 0) {
-	    $("#jobordersforms").remove();
-	}
-};
-
 $("#samplingsummary").on('submit', 'form', function(e) {
     e.preventDefault();
  	if(window.user.canAddJobOrder) {
@@ -215,6 +209,47 @@ $("#samplingsummary").on('submit', 'form', function(e) {
  	}
 });
 
+function newAssignedJobOrder(data, machine) {
+    var removedTime = parseInt(data);
+    if(isNaN(removedTime)) {
+	 	alert(data);
+    } else {
+		var remain = $("#remainingTime"),  minutes = parseInt(remain.data("minutes"));
+		minutes -= removedTime;
+		remain.data("minutes", minutes);
+		// update event globalobject (avoid recration of assigned blocks on select reselection)
+		window.todojoborders[remain.data("arrayindex")].missingTime = minutes;
+		var lastHours = Math.floor(minutes / 60), lastMinutes = minutes % 60;
+		out = lastHours + " ore e " + lastMinutes + " minuti";
+		remain.html("<b>" + out +"</b>");
+		var selectVal = $("#selectvalue");
+		$('#todoJobOrders option[value="'+selectVal.data('value')+'"]').html("[" + selectVal.data('joborderid') + "] Tempo rimanente:" + out);
+		$("#todoJobOrders").selectmenu("refresh");
+		$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
+		$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
+		if(minutes <= 0) {
+		    $("#jobordersforms").remove();
+		}
+    }
+}
+
+function toSend(event, machine) {
+    if(event.type == 'assignedjoborder') return {
+			start: event._start._d.toUTCString(),
+			machine: machine,
+			joborder: event.joborder };
+			
+	if(event.type == 'sampling') return {
+			start: event._start._d.toUTCString(),
+			machine: machine,
+			joborder: $("#joborder").val() };
+			
+	if(event.type == 'maintenance') return {
+            	start: event._start._d.toUTCString(),
+            	machine: machine };
+    return {};
+};
+
 
 $("#jobordersummary").on('submit', '#autoassignjoborders', function(e) {
    e.preventDefault();
@@ -233,35 +268,9 @@ $("#jobordersummary").on('submit', '#autoassignjoborders', function(e) {
 	            	end:   end.toUTCString(),
 	            	machine: machine,
 	            	joborder: jo
-	            }, function(data){
-	        	     var removedTime = parseInt(data);
-	        	     if(isNaN(removedTime)) {
-	        		 	alert(data);
-	        	     } else {
-	                	var remain = $("#remainingTime"),  minutes = parseInt(remain.data("minutes"));
-	                	minutes -= removedTime;
-	                	remain.data("minutes", minutes);
-	                	// update event globalobject (avoid recration of assigned blocks on select reselection)
-	                	window.todojoborders[remain.data("arrayindex")].missingTime = minutes;
-						var lastHours = Math.floor(minutes / 60), lastMinutes = minutes % 60;
-						out = lastHours + " ore e " + lastMinutes + " minuti";
-						remain.html("<b>" + out +"</b>");
-						var selectVal = $("#selectvalue");
-						$('#todoJobOrders option[value="'+selectVal.data('value')+'"]').html("[" + selectVal.data('joborderid') + "] Tempo rimanente:" + out);
-						$("#todoJobOrders").selectmenu("refresh")
-						$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
-						$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
-						var blockToRemove = 0;
-						while(removedTime > 0) {
-						    removedTime -= aDay;
-						    ++blockToRemove;
-						}
-						if(blockToRemove > 0) {
-							$("#jobordersforms .block:lt("+blockToRemove+")").remove();
-						}
-						onFinishedBlocks();
-	                }
-	    });
+	            }, function(data) {
+	        		newAssignedJobOrder(data, machine);
+	   });
 	}
 });
 
@@ -290,53 +299,37 @@ $("#todoJobOrders").selectmenu({
 					'Fino a <input type="text" class="autoend" /> <br />' +
 					machineSelect + '<br /><br /><input type="submit" value="Auto assegna" />' +
 					'</form>' +
-					"<br /><br /><b>Inserimento manuale (drag and drop)</b><br /><br /></div>");
+					"<br /><br /><b>Inserimento manuale (drag and drop)</b><br /><br /></div>" +
+					"<div id='joborderevent'></div>");
 			
 			$("#jobordersummary .autostart").datepicker( { dateFormat: "dd/mm/yy" } );
 			$("#jobordersummary .autoend").datepicker( { dateFormat: "dd/mm/yy" } );
 			
-			var c = 0;
-			
-			while(dataRemainMinutes > 0) {
-				var $block = $(document.createElement("div")),
-				last =  dataRemainMinutes >= aDay ? aDay : dataRemainMinutes,
-				lastHours = Math.floor(last / 60), lastMinutes = last % 60,
+			var $block = $("#joborderevent"),
 				title = '[' + window.todojoborders[index].id + "] " +
-						window.todojoborders[index].client.code +  " - " +
-						window.todojoborders[index].client.name + 
-						"<br>" + lastHours + " ore" + (
-							lastMinutes > 0 ? " e " + lastMinutes + " minuti" : ""
-								),
+					window.todojoborders[index].client.code +  " - " +
+					window.todojoborders[index].client.name,
 				color = window.todojoborders[index].color;
-				$block.html(title);
-				event = {
-					joborder: window.todojoborders[index].id,
-					title: title,
-					allDay: true, // even if it's falsa, avoid start time display
-					last: last,
-					me: $block,
-					color: color,
-					type: "assignedjoborder"
-				};
-				$block.data('event', event);
-				
-				$block.draggable({
-					zIndex: 999,
-					appendTo: "body",
-				    helper: "clone"
-				});
-				$block.addClass("fc-draggable-event");
-				$block.addClass("block");
-				$block.css('background-color', color);
-				
-				if(c == 3) {
-					c = 0;
-					$("#jobordersforms").append("<br />");
-				}
-				$("#jobordersforms").append($block);
-				c++;
-				dataRemainMinutes -= aDay;
-			}
+			
+			$block.html(title);
+			event = {
+				joborder: window.todojoborders[index].id,
+				title: title,
+				color: color,
+				type: "assignedjoborder"
+			};
+			$block.data('event', event);
+			
+			$block.draggable({
+				zIndex: 999,
+				appendTo: "body",
+			    helper: "clone",
+			    revert: true,
+			    revertduration: 0,
+			});
+			$block.addClass("fc-draggable-event");
+			$block.addClass("block");
+			$block.css('background-color', color);
 	    }
 	}
 });
@@ -351,53 +344,21 @@ $("#todoJobOrders").selectmenu({
 	    disableResizing: true,
 		eventReceive: function(event) {
 			if(window.user.canAssignJobOrder) {
-			    var end = new Date(event._start._d.getTime() + event.last * 60000);
-			    $.post("<%=request.getContextPath()%>/add?what=" + event.type,
-			            {
-			            	start: event._start._d.toUTCString(),
-			            	end:   end.toUTCString(),
-			            	machine: ${machine.id},
-			            	joborder: event.type == 'sampling' ? $("#joborder").val() : event.joborder
-			            }, function(data){
-			        		//handle only machine events, will never add global event from here
-			        		var ret = jQuery.parseJSON(data);
-			            	event.id = ret.id;
-			            	event.machine = ret.machine;
-			            	event.jobOrder = ret.jobOrder;
-			                $("#m${machine.id}Calendar").fullCalendar('updateEvent',event , false);
-			                if(event.type == "assignedjoborder") {
-			                	var remain = $("#remainingTime"), minutes = parseInt(remain.data("minutes"));
-			                	minutes -= event.last;
-			                	remain.data("minutes", minutes);
-			                	// update event globalobject (avoid recration of assigned blocks on select reselection)
-			                	window.todojoborders[remain.data("arrayindex")].missingTime = minutes;
-								var lastHours = Math.floor(minutes / 60), lastMinutes = minutes % 60,
-									out = lastHours + " ore e " + lastMinutes + " minuti";
-								remain.html("<b>" + out +"</b>");
-								var selectVal = $("#selectvalue");
-								$('#todoJobOrders option[value="'+selectVal.data('value')+'"]').html("[" + selectVal.data('joborderid') + "] Tempo rimanente: " + out);
-								$("#todoJobOrders").selectmenu("refresh")
-								event.me.remove();
-								onFinishedBlocks();
-			                }
-
-			                $("#m${machine.id}Calendar").fullCalendar( 'refetchEvents' );
-							$("#m${machine.id}Calendar").fullCalendar( 'rerenderEvents' );
-			    });
+			    $.post("<%=request.getContextPath()%>/add?what=" + event.type, toSend(event, ${machine.id}), function(data) {
+			            	if(event.type == "assignedjoborder") {
+			            		newAssignedJobOrder(data, ${machine.id});
+			            	} else {
+			            	    console.log(data);
+			            	}
+				    });
 			}
 		},
 		eventDrop: function(event, delta, revertFunc) {
 			if(window.user.canAssignJobOrder) {
-			    if(!event._end) {
-					end =  new Date(event._start._d.getTime() + event.last * 60000);
-					event._end = moment(end);
-			    }
-
 			    $.post("<%=request.getContextPath()%>/edit?what=" + event.type,
 			            {
 			            	id: event.id,
 			            	start: event._start._d.toUTCString(),
-			            	end:   event._end._d.toUTCString(),
 			            	// global events (does not have machine/joborder)
 			            	machine:  typeof(event.machine)  == 'undefined' ? '' : event.machine.id,
 				            joborder: typeof(event.jobOrder) == 'undefined' ? '' : event.jobOrder.id

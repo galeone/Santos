@@ -16,8 +16,8 @@ import it.galeone_dev.hibernate.models.User;
 import it.galeone_dev.hibernate.models.WorkingDay;
 
 import java.io.IOException;
+import java.security.InvalidParameterException;
 import java.text.ParseException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
@@ -37,11 +37,11 @@ import com.google.gson.Gson;
 public class AddServlet extends HttpServlet {
     
     private static final long serialVersionUID = 74377157203911L;
-    private User user;
-    private StringBuilder message = new StringBuilder();
-    private Object savedObject = null;
-    private Gson g = new Gson();
-    private Session hibSession;
+    private User              user;
+    private StringBuilder     message          = new StringBuilder();
+    private Object            savedObject      = null;
+    private Gson              g                = new Gson();
+    private Session           hibSession;
     
     @Override
     public void init() throws ServletException {
@@ -54,205 +54,199 @@ public class AddServlet extends HttpServlet {
     
     private void nonWorkingDay(HttpServletRequest request) {
         if (!user.getIsAdmin()) {
-        } else {
-            String[] fields = new String[] { "start", "end" };
-            Arrays.sort(fields);
-            Map<String, String> params = ServletUtils.getParameters(request, fields);
-            if (params.containsValue(null) || params.containsValue("")) {
-                message.replace(0,message.length(),"Completare tutti i campi");
-            } else {
-                try {
-                    NonWorkingDay nw = new NonWorkingDay();
-                    nw.setStart(EventUtils.parseDate(params.get("start").trim()));
-                    nw.setEnd(EventUtils.parseDate(params.get("end").trim()));
-                    if(nw.getEnd().before(nw.getStart()) || nw.getEnd().equals(nw.getStart())) {
-                        message.replace(0,message.length(),"Data di inizio e fine evento errate (insensate)");
-                        return;
-                    }
-                    
-                    hibSession.saveOrUpdate(nw);
-                    message.replace(0,message.length(),g.toJson(nw));
-                    savedObject = nw;
-                    
-                    NonWorkingDay.shiftMachineEventsRight(nw, hibSession);
-                    
-                } catch (ParseException e) {
-                    message.replace(0,message.length(),"formato data non valido");
-                }
-            }
+            message.replace(0, message.length(), "Non puoi impostare i giorni non lavorativi");
+            return;
         }
+        
+        try {
+            Map<String, String> params = ServletUtils.getParameters(request, new String[] { "start", "end" });
+            NonWorkingDay nw = new NonWorkingDay();
+            nw.setStart(EventUtils.parseDate(params.get("start").trim()));
+            nw.setEnd(EventUtils.parseDate(params.get("end").trim()));
+            if (nw.getEnd().before(nw.getStart()) || nw.getEnd().equals(nw.getStart())) {
+                message.replace(0, message.length(), "Data di inizio e fine evento errate (insensate)");
+                return;
+            }
+            
+            hibSession.saveOrUpdate(nw);
+            savedObject = nw;
+            
+            NonWorkingDay.shiftMachineEventsRight(nw, hibSession);
+            
+        } catch (ParseException e) {
+            message.replace(0, message.length(), "formato data non valido");
+        } catch (InvalidParameterException e1) {
+            message.replace(0, message.length(), e1.getMessage());
+        }
+        
     }
     
     private void workingHours(HttpServletRequest request) {
         if (!user.getIsAdmin()) {
-            message.replace(0,message.length(),"Non puoi assegnare le ore lavorative");
-        } else {
-            String[] fields = new String[] { "start", "end" };
-            Arrays.sort(fields);
-            Map<String, String> params = ServletUtils.getParameters(request, fields);
-            if (params.containsValue(null) || params.containsValue("")) {
-                message.replace(0,message.length(),"Completare tutti i campi");
-            } else {
-                try {
-                    WorkingDay wh = new WorkingDay();
-                    wh.setStart(EventUtils.parseDate(params.get("start").trim()));
-                    wh.setEnd(EventUtils.parseDate(params.get("end").trim()));
-                    if(wh.getEnd().before(wh.getStart()) || wh.getEnd().equals(wh.getStart())) {
-                        message.replace(0,message.length(),"Data di inizio e fine evento errate (insensate)");
-                        return;
-                    }
-                    
-                    hibSession.saveOrUpdate(wh);
-                    message.replace(0,message.length(),g.toJson(wh));
-                    savedObject = wh;
-                   
-                } catch (ParseException e) {
-                    message.replace(0,message.length(),"formato data non valido");
-                }
-            }
+            message.replace(0, message.length(), "Non puoi assegnare le ore lavorative");
+            return;
         }
+        
+        try {
+            Map<String, String> params = ServletUtils.getParameters(request, new String[] { "start", "end" });
+            WorkingDay wh = new WorkingDay();
+            wh.setStart(EventUtils.parseDate(params.get("start").trim()));
+            wh.setEnd(EventUtils.parseDate(params.get("end").trim()));
+            if (wh.getEnd().before(wh.getStart()) || wh.getEnd().equals(wh.getStart())) {
+                message.replace(0, message.length(), "Data di inizio e fine evento errate (insensate)");
+                return;
+            }
+            
+            hibSession.saveOrUpdate(wh);
+            savedObject = wh;
+            
+        } catch (ParseException e) {
+            message.replace(0, message.length(), "formato data non valido");
+        } catch (InvalidParameterException e1) {
+            message.replace(0, message.length(), e1.getMessage());
+        }
+        
     }
     
     private void user_a(HttpServletRequest request) {
         if (!user.getIsAdmin()) {
-            message.replace(0,message.length(),"Non sei admin");
-        } else {
-            String[] fields = new String[] { "name", "surname", "username", "password", "canaddjoborder", "canassignjoborder", "canaddclient", "canaddmachine" };
-            Arrays.sort(fields);
-            Map<String, String> params = ServletUtils.getParameters(request, fields);
-            if (params.containsValue(null) || params.containsValue("")) {
-                message.replace(0,message.length(),"Completare tutti i campi");
-            } else {
-                User u = new User();
-                u.setCanAddClient(params.get("canaddclient").equals("Si"));
-                u.setCanAddJobOrder(params.get("canaddjoborder").equals("Si"));
-                u.setCanAssignJobOrder(params.get("canassignjoborder").equals("Si"));
-                u.setCanAddMachine(params.get("canaddmachine").equals("Si"));
-                u.setIsAdmin(false);
-                u.setName(params.get("name"));
-                u.setPassword(params.get("password"));
-                u.setSurname(params.get("surname"));
-                u.setUsername(params.get("username"));
-                u.setHistory(new HashSet<History>());
-                hibSession.saveOrUpdate(u);
-                savedObject = u;
-                
-                message.replace(0,message.length(),g.toJson(u));
-            }
+            message.replace(0, message.length(), "Non sei admin");
+            return;
         }
+        
+        try {
+            Map<String, String> params = ServletUtils.getParameters(request, new String[] { "name", "surname",
+                    "username", "password", "canaddjoborder", "canassignjoborder", "canaddclient", "canaddmachine" });
+            User u = new User();
+            u.setCanAddClient(params.get("canaddclient").equals("Si"));
+            u.setCanAddJobOrder(params.get("canaddjoborder").equals("Si"));
+            u.setCanAssignJobOrder(params.get("canassignjoborder").equals("Si"));
+            u.setCanAddMachine(params.get("canaddmachine").equals("Si"));
+            u.setIsAdmin(false);
+            u.setName(params.get("name"));
+            u.setPassword(params.get("password"));
+            u.setSurname(params.get("surname"));
+            u.setUsername(params.get("username"));
+            u.setHistory(new HashSet<History>());
+            hibSession.saveOrUpdate(u);
+            savedObject = u;
+            
+            message.replace(0, message.length(), g.toJson(u));
+        } catch (InvalidParameterException e1) {
+            message.replace(0, message.length(), e1.getMessage());
+        }
+        
     }
     
     private void client(HttpServletRequest request) {
         if (!user.getCanAddClient()) {
-            message.replace(0,message.length(),"Non puoi aggiungere clienti");
-        } else {
-            String[] fields = new String[] { "name", "code" };
-            Arrays.sort(fields);
-            Map<String, String> params = ServletUtils.getParameters(request, fields);
-            if (params.containsValue(null) || params.containsValue("")) {
-                message.replace(0,message.length(),"Completare tutti i campi");
-            } else {
-                Client c = new Client();
-                c.setCode(params.get("code"));
-                c.setName(params.get("name"));
-                c.setJobOrders(new HashSet<JobOrder>());
-                hibSession.saveOrUpdate(c);
-                savedObject = c;
-                
-                message.replace(0,message.length(),g.toJson(c));
-            }
+            message.replace(0, message.length(), "Non puoi aggiungere clienti");
+            return;
         }
+        
+        try {
+            Map<String, String> params = ServletUtils.getParameters(request, new String[] { "name", "code" });
+            Client c = new Client();
+            c.setCode(params.get("code"));
+            c.setName(params.get("name"));
+            c.setJobOrders(new HashSet<JobOrder>());
+            hibSession.saveOrUpdate(c);
+            savedObject = c;
+            
+            message.replace(0, message.length(), g.toJson(c));
+        } catch (InvalidParameterException e1) {
+            message.replace(0, message.length(), e1.getMessage());
+        }
+        
     }
     
     private void machine(HttpServletRequest request) {
         if (!user.getCanAddMachine()) {
-            message.replace(0,message.length(),"Non puoi aggiungere macchine");
-        } else {
-            String[] fields = new String[] { "name", "type", "nicety" };
-            Arrays.sort(fields);
-            Map<String, String> params = ServletUtils.getParameters(request, fields);
-            if (params.containsValue(null) || params.containsValue("")) {
-                message.replace(0,message.length(),"Completare tutti i campi");
-            } else {
-                try {
-                    Machine m = new Machine();
-                    m.setName(params.get("name"));
-                    m.setNicety(Float.parseFloat(params.get("nicety")));
-                    m.setType(params.get("type"));
-                    m.setAssignedJobOrders(new HashSet<AssignedJobOrder>());
-                    hibSession.saveOrUpdate(m);
-                    savedObject = m;
-                    
-                    message.replace(0,message.length(),g.toJson(m));
-                } catch (NumberFormatException e) {
-                    message.replace(0,message.length(),"Valore della finezza non valido");
-                }
-            }
+            message.replace(0, message.length(), "Non puoi aggiungere macchine");
+            return;
         }
+        
+        try {
+            Map<String, String> params = ServletUtils.getParameters(request, new String[] { "name", "type", "nicety" });
+            Machine m = new Machine();
+            m.setName(params.get("name"));
+            m.setNicety(Float.parseFloat(params.get("nicety")));
+            m.setType(params.get("type"));
+            m.setAssignedJobOrders(new HashSet<AssignedJobOrder>());
+            hibSession.saveOrUpdate(m);
+            savedObject = m;
+            message.replace(0, message.length(), g.toJson(m));
+        } catch (NumberFormatException e) {
+            message.replace(0, message.length(), "Valore della finezza non valido");
+        } catch (InvalidParameterException e1) {
+            message.replace(0, message.length(), e1.getMessage());
+            
+        }
+        
     }
     
     private void jobOrder(HttpServletRequest request) {
         if (!user.getCanAddJobOrder()) {
-            message.replace(0,message.length(),"Non puoi aggiungere commesse");
-        } else {
-            String[] fields = new String[] { "leadtime", "client", "color", "numberofitems", "timeforitem", "description", "offset" };
-            Arrays.sort(fields);
-            Map<String, String> params = ServletUtils.getParameters(request, fields);
-            if (params.containsValue(null) || params.containsValue("")) {
-                message.replace(0,message.length(),"Completare tutti i campi");
-            } else {
-                try {
-                    JobOrder j = new JobOrder();
-                    Long id = null;
-                    try {
-                        id = Long.parseLong(params.get("client"));
-                    } catch (NumberFormatException e) {
-                        message.replace(0,message.length(),"Valore cliente non valido");
-                        return;
-                    }
-                    Client c = (Client) hibSession.get(Client.class, id);
-                    if (c == null) {
-                        message.replace(0,message.length(),"Cliente non trovato");
-                        return;
-                    }
-                    
-                    j.setAssignedJobOrders(new HashSet<AssignedJobOrder>());
-                    j.setClient(c);
-                    Long leadTime = Long.parseLong(params.get("leadtime"));
-                    if (leadTime <= 0) {
-                        message.replace(0,message.length(),"Tempo di produzione <= 0");
-                        return;
-                    }
-                    Long numberOfItems = Long.parseLong(params.get("numberofitems"));
-                    if(numberOfItems <= 0) {
-                        message.replace(0,message.length(),"Numero di capi <= 0");
-                        return;
-                    }
-                    Long timeForItem = Long.parseLong(params.get("timeforitem"));
-                    if(timeForItem <= 0) {
-                        message.replace(0,message.length(),"Tempo per capo <= 0");
-                        return;
-                    }
-                    
-                    j.setOffset(Long.parseLong(params.get("offset")));
-                    
-                    leadTime = timeForItem * numberOfItems;
-                    j.setNumberOfItems(numberOfItems);
-                    j.setTimeForItem(timeForItem);
-                    j.setLeadTime(leadTime);
-                    j.setMissingTime(leadTime);
-                    j.setColor(params.get("color"));
-                    j.setDescription(params.get("description"));
-                    
-                    hibSession.saveOrUpdate(j);
-                    
-                    message.replace(0,message.length(),g.toJson(j));
-                    savedObject = j;
-                } catch (NumberFormatException e) {
-                    message.replace(0,message.length(),"Tempo di produzione non valido");
-                }
-            }
+            message.replace(0, message.length(), "Non puoi aggiungere commesse");
+            return;
         }
+        
+        try {
+            Map<String, String> params = ServletUtils.getParameters(request, new String[] { "leadtime", "client",
+                    "color", "numberofitems", "timeforitem", "description", "offset" });
+            
+            JobOrder j = new JobOrder();
+            Long id = null;
+            try {
+                id = Long.parseLong(params.get("client"));
+            } catch (NumberFormatException e) {
+                message.replace(0, message.length(), "Valore cliente non valido");
+                return;
+            }
+            Client c = (Client) hibSession.get(Client.class, id);
+            if (c == null) {
+                message.replace(0, message.length(), "Cliente non trovato");
+                return;
+            }
+            
+            j.setAssignedJobOrders(new HashSet<AssignedJobOrder>());
+            j.setClient(c);
+            Long leadTime = Long.parseLong(params.get("leadtime"));
+            if (leadTime <= 0) {
+                message.replace(0, message.length(), "Tempo di produzione <= 0");
+                return;
+            }
+            Long numberOfItems = Long.parseLong(params.get("numberofitems"));
+            if (numberOfItems <= 0) {
+                message.replace(0, message.length(), "Numero di capi <= 0");
+                return;
+            }
+            Long timeForItem = Long.parseLong(params.get("timeforitem"));
+            if (timeForItem <= 0) {
+                message.replace(0, message.length(), "Tempo per capo <= 0");
+                return;
+            }
+            
+            j.setOffset(Long.parseLong(params.get("offset")));
+            
+            leadTime = timeForItem * numberOfItems;
+            j.setNumberOfItems(numberOfItems);
+            j.setTimeForItem(timeForItem);
+            j.setLeadTime(leadTime);
+            j.setMissingTime(leadTime);
+            j.setColor(params.get("color"));
+            j.setDescription(params.get("description"));
+            
+            hibSession.saveOrUpdate(j);
+            
+            message.replace(0, message.length(), g.toJson(j));
+            savedObject = j;
+        } catch (NumberFormatException e) {
+            message.replace(0, message.length(), "Tempo di produzione non valido");
+        } catch (InvalidParameterException e1) {
+            message.replace(0, message.length(), e1.getMessage());
+        }
+        
     }
     
     private AssignedJobOrder addOneAssignedJobOrder(JobOrder j, Machine m, Date start, Date end) {
@@ -261,7 +255,7 @@ public class AddServlet extends HttpServlet {
         MachineEvent addedEvent = addOneMachineEvent(aj, m, start, end);
         j.setMissingTime(j.getMissingTime() - EventUtils.getLast(addedEvent));
         hibSession.saveOrUpdate(j);
-        return (AssignedJobOrder)addedEvent;
+        return (AssignedJobOrder) addedEvent;
     }
     
     private void addOneSampling(String description, Client c, Machine m, Date start, Date end) {
@@ -277,19 +271,21 @@ public class AddServlet extends HttpServlet {
         addOneMachineEvent(maintenance, m, start, end);
     }
     
-    public MachineEvent addOneMachineEvent(DroppableMachineEvent event, Machine m, Date start, Date end ) {
+    public MachineEvent addOneMachineEvent(DroppableMachineEvent event, Machine m, Date start, Date end) {
         event.setMachine(m);
         event.setStart(start);
         event.setEnd(end);
         
-        if(event.getStart().after(event.getEnd()) || EventUtils.getLast(event) >EventUtils.getLast(WorkingDay.get(event))) {
-            message.replace(0,message.length(),"Orario errato. O maggiore delle ore lavorative previste o fine precedente ad inizio");
+        if (event.getStart().after(event.getEnd())
+                || EventUtils.getLast(event) > EventUtils.getLast(WorkingDay.get(event))) {
+            message.replace(0, message.length(),
+                    "Orario errato. O maggiore delle ore lavorative previste o fine precedente ad inizio");
             return null;
         }
-                
+        
         hibSession.saveOrUpdate(event);
         
-        message.replace(0,message.length(),g.toJson(event));
+        message.replace(0, message.length(), g.toJson(event));
         savedObject = event;
         
         DroppableMachineEvent.shiftRight(event, hibSession);
@@ -298,223 +294,216 @@ public class AddServlet extends HttpServlet {
     
     private void autoAssignedJobOrder(HttpServletRequest request) {
         if (!user.getCanAssignJobOrder()) {
-            message.replace(0,message.length(),"Non puoi programmare le macchine");
-        } else {
-            String[] fields = new String[] { "start", "end", "machine", "joborder" };
-            Arrays.sort(fields);
-            Map<String, String> params = ServletUtils.getParameters(request, fields);
-            if (params.containsValue(null) || params.containsValue("")) {
-                message.replace(0,message.length(),"Completare tutti i campi");
-            } else {
-                try {
-                    Long id = null;
-                    try {
-                        id = Long.parseLong(params.get("machine"));
-                    } catch (NumberFormatException e) {
-                        message.replace(0,message.length(),"Valore macchine non valido");
-                        return;
-                    }
-                    Machine m = (Machine) hibSession.get(Machine.class, id);
-                    if (m == null) {
-                        message.replace(0,message.length(),"Macchina non trovata");
-                        return;
-                    }
-                                        
-                    try {
-                        id = Long.parseLong(params.get("joborder"));
-                    } catch (NumberFormatException e) {
-                        message.replace(0,message.length(),"Valore commessa non valido");
-                        return;
-                    }
-                    JobOrder j = (JobOrder) hibSession.get(JobOrder.class, id);
-                    if (j == null) {
-                        message.replace(0,message.length(),"Commessa non trovata");
-                        return;
-                    }
-                    
-
-                    Date start = EventUtils.start(EventUtils.parseDate(params.get("start"))),
-                         end   = EventUtils.parseDate(params.get("end"));
-
-                    AssignedJobOrder dummy = new AssignedJobOrder();
-                    dummy.setStart(start);
-                    dummy.setEnd(end);
-                    Long myLast = EventUtils.getLast(dummy);
-                    Long last = WorkingDay.getWorkingHoursBetween(dummy), removedTime = 0L, missingTime = j.getMissingTime();
-                    Date prev = new Date(dummy.getStart().getTime());
-                    boolean fillAll = end.before(start) || last > missingTime;
-                    
-                    if(fillAll) {
-                        last = missingTime;
-                    } else if(myLast < last) {
-                        last = myLast;
-                    }
-                    
-                    while(last > 0) {
-                        dummy.setStart(prev);
-                        Long hoursPerDay = EventUtils.getLast(WorkingDay.get(dummy));
-                        Long howLong = last > hoursPerDay ? hoursPerDay : last;
-                        
-                        end = new Date(prev.getTime() + howLong * 60000);
-                        dummy.setEnd(end);
-                        
-                        AssignedJobOrder added = addOneAssignedJobOrder(j, m, prev, end);
-                        AssignedJobOrder.merge(added, hibSession);
-                        last -= howLong;
-                        removedTime += howLong;
-                        prev = EventUtils.tomorrow(end);
-                    }
-
-                    
-                    message.replace(0,message.length(),Long.toString(removedTime));
-                    
-                } catch (NumberFormatException e) {
-                    message.replace(0,message.length(),"Macchina non valida");
-                } catch (ParseException e) {
-                    message.replace(0,message.length(),"Data inizio/fine non valida");
-                }
+            message.replace(0, message.length(), "Non puoi programmare le macchine");
+            return;
+        }
+        
+        try {
+            Map<String, String> params = ServletUtils.getParameters(request, new String[] { "start", "end", "machine",
+                    "joborder" });
+            Long id = null;
+            try {
+                id = Long.parseLong(params.get("machine"));
+            } catch (NumberFormatException e) {
+                message.replace(0, message.length(), "Valore macchine non valido");
+                return;
             }
+            Machine m = (Machine) hibSession.get(Machine.class, id);
+            if (m == null) {
+                message.replace(0, message.length(), "Macchina non trovata");
+                return;
+            }
+            
+            try {
+                id = Long.parseLong(params.get("joborder"));
+            } catch (NumberFormatException e) {
+                message.replace(0, message.length(), "Valore commessa non valido");
+                return;
+            }
+            JobOrder j = (JobOrder) hibSession.get(JobOrder.class, id);
+            if (j == null) {
+                message.replace(0, message.length(), "Commessa non trovata");
+                return;
+            }
+            
+            Date start = EventUtils.start(EventUtils.parseDate(params.get("start"))), end = EventUtils.parseDate(params
+                    .get("end"));
+            
+            AssignedJobOrder dummy = new AssignedJobOrder();
+            dummy.setStart(start);
+            dummy.setEnd(end);
+            Long myLast = EventUtils.getLast(dummy);
+            Long last = WorkingDay.getWorkingHoursBetween(dummy), removedTime = 0L, missingTime = j.getMissingTime();
+            Date prev = new Date(dummy.getStart().getTime());
+            boolean fillAll = end.before(start) || last > missingTime;
+            
+            if (fillAll) {
+                last = missingTime;
+            } else if (myLast < last) {
+                last = myLast;
+            }
+            
+            while (last > 0) {
+                dummy.setStart(prev);
+                Long hoursPerDay = EventUtils.getLast(WorkingDay.get(dummy));
+                Long howLong = last > hoursPerDay ? hoursPerDay : last;
+                
+                end = new Date(prev.getTime() + howLong * 60000);
+                dummy.setEnd(end);
+                
+                AssignedJobOrder added = addOneAssignedJobOrder(j, m, prev, end);
+                AssignedJobOrder.merge(added, hibSession);
+                last -= howLong;
+                removedTime += howLong;
+                prev = EventUtils.tomorrow(end);
+            }
+            
+            message.replace(0, message.length(), Long.toString(removedTime));
+            
+        } catch (NumberFormatException e) {
+            message.replace(0, message.length(), "Macchina non valida");
+        } catch (ParseException e) {
+            message.replace(0, message.length(), "Data inizio/fine non valida");
+        } catch (InvalidParameterException e1) {
+            message.replace(0, message.length(), e1.getMessage());
         }
     }
     
     private void autoSampling(HttpServletRequest request) {
         if (!user.getCanAssignJobOrder()) {
-            message.replace(0,message.length(),"Non puoi programmare le macchine");
-        } else {
-            String[] fields = new String[] { "start", "end", "machine", "client", "description" };
-            Arrays.sort(fields);
-            Map<String, String> params = ServletUtils.getParameters(request, fields);
-            if (params.containsValue(null) || params.containsValue("")) {
-                message.replace(0,message.length(),"Completare tutti i campi");
-            } else {
-                try {
-                    Long id = null;
-                    try {
-                        id = Long.parseLong(params.get("machine"));
-                    } catch (NumberFormatException e) {
-                        message.replace(0,message.length(),"Valore macchine non valido");
-                        return;
-                    }
-                    Machine m = (Machine) hibSession.get(Machine.class, id);
-                    if (m == null) {
-                        message.replace(0,message.length(),"Macchina non trovata");
-                        return;
-                    }
-                                        
-                    try {
-                        id = Long.parseLong(params.get("client"));
-                    } catch (NumberFormatException e) {
-                        message.replace(0,message.length(),"Valore commessa non valido");
-                        return;
-                    }
-                    Client c = (Client) hibSession.get(Client.class, id);
-                    if (c == null) {
-                        message.replace(0,message.length(),"Cliente non trovato");
-                        return;
-                    }
-                    
-
-                    Date start = EventUtils.start(EventUtils.parseDate(params.get("start"))),
-                         end   = EventUtils.start(EventUtils.parseDate(params.get("end")));;
-
-                    AssignedJobOrder dummy = new AssignedJobOrder();
-                    dummy.setStart(start);
-                    dummy.setEnd(end);
-                    Long last = EventUtils.getLast(dummy), removedTime = 0L;
-                    Date prev = new Date(dummy.getStart().getTime());
-                    if(last <= 0) {
-                        message.replace(0, message.length(), "Evento di durata nulla o negativa");
-                        return;
-                    }
-                    
-                    String description = params.get("description");
-                    Long hoursPerDay = null;
-                    while(last > 0) {
-                        dummy.setStart(prev);
-                        hoursPerDay = EventUtils.getLast(WorkingDay.get(dummy));
-                        Long howLong = last > hoursPerDay ? hoursPerDay : last;
-                        
-                        end = new Date(prev.getTime() + howLong * 60000);
-                        dummy.setEnd(end);
-                        
-                        addOneSampling(description, c, m, prev, end);
-                        last -= howLong;
-                        removedTime += howLong;
-                        prev = new Date(end.getTime());
-                    }
-                    
-                    message.replace(0,message.length(),Long.toString(removedTime));
-                    
-                } catch (NumberFormatException e) {
-                    message.replace(0,message.length(),"Macchina non valida");
-                } catch (ParseException e) {
-                    message.replace(0,message.length(),"Data inizio/fine non valida");
-                }
-            }
+            message.replace(0, message.length(), "Non puoi programmare le macchine");
+            return;
         }
+        
+        try {
+            Map<String, String> params = ServletUtils.getParameters(request, new String[] { "start", "end", "machine",
+                    "client", "description" });
+            Long id = null;
+            try {
+                id = Long.parseLong(params.get("machine"));
+            } catch (NumberFormatException e) {
+                message.replace(0, message.length(), "Valore macchine non valido");
+                return;
+            }
+            Machine m = (Machine) hibSession.get(Machine.class, id);
+            if (m == null) {
+                message.replace(0, message.length(), "Macchina non trovata");
+                return;
+            }
+            
+            try {
+                id = Long.parseLong(params.get("client"));
+            } catch (NumberFormatException e) {
+                message.replace(0, message.length(), "Valore commessa non valido");
+                return;
+            }
+            Client c = (Client) hibSession.get(Client.class, id);
+            if (c == null) {
+                message.replace(0, message.length(), "Cliente non trovato");
+                return;
+            }
+            
+            Date start = EventUtils.start(EventUtils.parseDate(params.get("start"))), end = EventUtils.start(EventUtils
+                    .parseDate(params.get("end")));
+            
+            AssignedJobOrder dummy = new AssignedJobOrder();
+            dummy.setStart(start);
+            dummy.setEnd(end);
+            Long last = EventUtils.getLast(dummy), removedTime = 0L;
+            Date prev = new Date(dummy.getStart().getTime());
+            if (last <= 0) {
+                message.replace(0, message.length(), "Evento di durata nulla o negativa");
+                return;
+            }
+            
+            String description = params.get("description");
+            Long hoursPerDay = null;
+            while (last > 0) {
+                dummy.setStart(prev);
+                hoursPerDay = EventUtils.getLast(WorkingDay.get(dummy));
+                Long howLong = last > hoursPerDay ? hoursPerDay : last;
+                
+                end = new Date(prev.getTime() + howLong * 60000);
+                dummy.setEnd(end);
+                
+                addOneSampling(description, c, m, prev, end);
+                last -= howLong;
+                removedTime += howLong;
+                prev = new Date(end.getTime());
+            }
+            
+            message.replace(0, message.length(), Long.toString(removedTime));
+            
+        } catch (NumberFormatException e) {
+            message.replace(0, message.length(), "Macchina non valida");
+        } catch (ParseException e) {
+            message.replace(0, message.length(), "Data inizio/fine non valida");
+        } catch (InvalidParameterException e1) {
+            message.replace(0, message.length(), e1.getMessage());
+        }
+        
     }
     
     private void autoMaintenance(HttpServletRequest request) {
         if (!user.getCanAddJobOrder()) {
-            message.replace(0,message.length(),"Non puoi programmare le macchine");
-        } else {
-            String[] fields = new String[] { "start", "end", "machine", "description" };
-            Arrays.sort(fields);
-            Map<String, String> params = ServletUtils.getParameters(request, fields);
-            if (params.containsValue(null) || params.containsValue("")) {
-                message.replace(0,message.length(),"Completare tutti i campi");
-            } else {
-                try {
-                    Long id = null;
-                    try {
-                        id = Long.parseLong(params.get("machine"));
-                    } catch (NumberFormatException e) {
-                        message.replace(0,message.length(),"Valore macchine non valido");
-                        return;
-                    }
-                    Machine m = (Machine) hibSession.get(Machine.class, id);
-                    if (m == null) {
-                        message.replace(0,message.length(),"Macchina non trovata");
-                        return;
-                    }
-
-                    Date start = EventUtils.start(EventUtils.parseDate(params.get("start"))),
-                         end   = EventUtils.start(EventUtils.parseDate(params.get("end")));;
-
-                    AssignedJobOrder dummy = new AssignedJobOrder();
-                    dummy.setStart(start);
-                    dummy.setEnd(end);
-                    Long last = EventUtils.getLast(dummy), removedTime = 0L;
-                    Date prev = new Date(dummy.getStart().getTime());
-                    if(last <= 0) {
-                        message.replace(0, message.length(), "Evento di durata nulla o negativa");
-                        return;
-                    }
-                    
-                    String description = params.get("description");
-                    Long hoursPerDay = null;
-                    while(last > 0) {
-                        dummy.setStart(prev);
-                        hoursPerDay =EventUtils.getLast(WorkingDay.get(dummy));
-                        Long howLong = last > hoursPerDay ? hoursPerDay : last;
-                        
-                        end = new Date(prev.getTime() + howLong * 60000);
-                        dummy.setEnd(end);
-                        
-                        addOneMaintenance(description, m, prev, end);
-                        last -= howLong;
-                        removedTime += howLong;
-                        prev = new Date(end.getTime());
-                    }
-                    
-                    message.replace(0,message.length(),Long.toString(removedTime));
-                    
-                } catch (NumberFormatException e) {
-                    message.replace(0,message.length(),"Macchina non valida");
-                } catch (ParseException e) {
-                    message.replace(0,message.length(),"Data inizio/fine non valida");
-                }
+            message.replace(0, message.length(), "Non puoi programmare le macchine");
+            return;
+        }
+        
+        try {
+            Map<String, String> params = ServletUtils.getParameters(request, new String[] { "start", "end", "machine",
+                    "description" });
+            
+            Long id = null;
+            try {
+                id = Long.parseLong(params.get("machine"));
+            } catch (NumberFormatException e) {
+                message.replace(0, message.length(), "Valore macchine non valido");
+                return;
             }
+            Machine m = (Machine) hibSession.get(Machine.class, id);
+            if (m == null) {
+                message.replace(0, message.length(), "Macchina non trovata");
+                return;
+            }
+            
+            Date start = EventUtils.start(EventUtils.parseDate(params.get("start"))), end = EventUtils.start(EventUtils
+                    .parseDate(params.get("end")));
+            
+            AssignedJobOrder dummy = new AssignedJobOrder();
+            dummy.setStart(start);
+            dummy.setEnd(end);
+            Long last = EventUtils.getLast(dummy), removedTime = 0L;
+            Date prev = new Date(dummy.getStart().getTime());
+            if (last <= 0) {
+                message.replace(0, message.length(), "Evento di durata nulla o negativa");
+                return;
+            }
+            
+            String description = params.get("description");
+            Long hoursPerDay = null;
+            while (last > 0) {
+                dummy.setStart(prev);
+                hoursPerDay = EventUtils.getLast(WorkingDay.get(dummy));
+                Long howLong = last > hoursPerDay ? hoursPerDay : last;
+                
+                end = new Date(prev.getTime() + howLong * 60000);
+                dummy.setEnd(end);
+                
+                addOneMaintenance(description, m, prev, end);
+                last -= howLong;
+                removedTime += howLong;
+                prev = new Date(end.getTime());
+            }
+            
+            message.replace(0, message.length(), Long.toString(removedTime));
+            
+        } catch (NumberFormatException e) {
+            message.replace(0, message.length(), "Macchina non valida");
+        } catch (ParseException e) {
+            message.replace(0, message.length(), "Data inizio/fine non valida");
+        } catch (InvalidParameterException e1) {
+            message.replace(0, message.length(), e1.getMessage());
         }
     }
     
@@ -530,7 +519,7 @@ public class AddServlet extends HttpServlet {
             }
             hibSession.getTransaction().commit();
         } catch (ConstraintViolationException e) {
-            message.replace(0,message.length(),"Esiste già un record con questo nome");
+            message.replace(0, message.length(), "Esiste già un record con questo nome");
             hibSession.getTransaction().rollback();
         }
     }
