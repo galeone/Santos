@@ -11,30 +11,31 @@
 		</id>
 		<property column="COLOR" generated="never" lazy="false"
 			length="50" name="color" optimistic-lock="true" type="string" unique="true" />
-			
+
 		<property column="DESCRIPTION" generated="never" lazy="false"
-			length="200" name="description" optimistic-lock="true" type="string" unique="false" />
-			
+			length="200" name="description" optimistic-lock="true" type="string"
+			unique="false" />
+
 		<set embed-xml="true" inverse="true" mutable="true" name="assignedJobOrders"
 			optimistic-lock="true" sort="unsorted" lazy="false">
 			<key column="idJobOrder" on-delete="cascade" />
 			<one-to-many class="it.galeone_dev.hibernate.models.AssignedJobOrder"
 				embed-xml="true" not-found="exception" />
 		</set>
-		
+
 		<property column="LEADTIME" generated="never" lazy="false"
 			name="leadTime" optimistic-lock="true" type="long" unique="false" />
-			
+
 		<property column="number_of_items" generated="never" lazy="false"
 			name="numberOfItems" optimistic-lock="true" type="long" unique="false" />
-			
+
 		<property column="time_for_item" generated="never" lazy="false"
 			name="timeForItem" optimistic-lock="true" type="long" unique="false" />
-			
+
 		<property column="missing_time" generated="never" lazy="false"
 			name="missingTime" optimistic-lock="true" type="long" unique="false" />
-			
-	 	<property column="production_offset" generated="never" lazy="false"
+
+		<property column="production_offset" generated="never" lazy="false"
 			name="offset" optimistic-lock="true" type="long" unique="false" />
 
 		<many-to-one name="Client" class="it.galeone_dev.hibernate.models.Client"

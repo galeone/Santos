@@ -26,8 +26,8 @@
 			class="text ui-widget-content ui-corner-all" rel="2"> <label
 			for="nicety">Finezza (decimale)</label> <input type="text"
 			name="nicety" id="nicety" value="" required
-			class="text ui-widget-content ui-corner-all" rel="3">
-			<input type="submit" value="ok" class="inner">
+			class="text ui-widget-content ui-corner-all" rel="3"> <input
+			type="submit" value="ok" class="inner">
 	</fieldset>
 </form>
 
@@ -42,10 +42,13 @@
 	</thead>
 	<tbody>
 	</tbody>
-</table><br />
-<button id="btnAddNewRowMachine" style="<%=user.getCanAddMachine() ? "" : "display:none"%>">Aggiungi
+</table>
+<br />
+<button id="btnAddNewRowMachine"
+	style="<%=user.getCanAddMachine() ? "" : "display:none"%>">Aggiungi
 	macchina</button>
-<button id="btnDeleteRowMachine" style="<%=user.getIsAdmin() ? "" : "display:none"%>">Cancella
+<button id="btnDeleteRowMachine"
+	style="<%=user.getIsAdmin() ? "" : "display:none"%>">Cancella
 	macchina</button>
 <%Gson gson = new Gson();%>
 <script>

@@ -18,7 +18,8 @@
 		<property column="CANADDJOBORDER" generated="never" lazy="false"
 			name="canAddJobOrder" optimistic-lock="true" type="boolean" unique="false" />
 		<property column="CANASSIGNJOBORDER" generated="never" lazy="false"
-			name="canAssignJobOrder" optimistic-lock="true" type="boolean" unique="false" />
+			name="canAssignJobOrder" optimistic-lock="true" type="boolean"
+			unique="false" />
 		<property column="NAME" generated="never" lazy="false"
 			length="50" name="name" optimistic-lock="true" type="string" unique="false" />
 		<property column="CANADDCLIENT" generated="never" lazy="false"

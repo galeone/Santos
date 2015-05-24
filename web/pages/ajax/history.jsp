@@ -14,7 +14,7 @@
 				+ LoginServlet.LOGIN_FORM);
 	}
 %>
-<table id="history-table" class="display" style="width:100%">
+<table id="history-table" class="display" style="width: 100%">
 	<thead>
 		<tr class="ui-widget-header ">
 			<th>Data</th>

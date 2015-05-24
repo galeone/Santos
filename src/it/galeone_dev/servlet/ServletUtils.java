@@ -20,7 +20,7 @@ public class ServletUtils {
 		
 	    for(String param : optionals) {
 	        String value = request.getParameter(param);
-	        map.put(param, value == null ? "" : value.trim());
+	        map.put(param, value == null ? null : value.trim());
 	    }
 		
 		return map;

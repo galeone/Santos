@@ -28,7 +28,8 @@
 	</thead>
 	<tbody>
 	</tbody>
-</table><br />
+</table>
+<br />
 <%
 Gson gson = new Gson();
 %>

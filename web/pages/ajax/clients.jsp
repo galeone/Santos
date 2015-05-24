@@ -23,8 +23,8 @@
 			class="text ui-widget-content ui-corner-all" rel="1"> <label
 			for="code">Codice (almeno 1 carattere)</label> <input type="text"
 			name="code" id="code" value="" minlength="1" required
-			class="text ui-widget-content ui-corner-all" rel="2">
-			<input type="submit" value="ok" class="inner">
+			class="text ui-widget-content ui-corner-all" rel="2"> <input
+			type="submit" value="ok" class="inner">
 	</fieldset>
 </form>
 
@@ -38,9 +38,14 @@
 	</thead>
 	<tbody>
 	</tbody>
-</table><br />
-<button id="btnAddNewRowClient" style="<%=user.getCanAddClient() ? "" : "display:none"%>">Aggiungi cliente</button>
-<button id="btnDeleteRowClient" style="<%=user.getIsAdmin() ? "" : "display:none"%>">Cancella cliente</button>
+</table>
+<br />
+<button id="btnAddNewRowClient"
+	style="<%=user.getCanAddClient() ? "" : "display:none"%>">Aggiungi
+	cliente</button>
+<button id="btnDeleteRowClient"
+	style="<%=user.getIsAdmin() ? "" : "display:none"%>">Cancella
+	cliente</button>
 <script>
 <%Gson gson = new Gson();%>
 $("#clients-table").dataTable({

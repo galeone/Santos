@@ -37,7 +37,8 @@
 		<li class="ui-state-default ui-corner-all" style="float: right">
 			<a href='<%= request.getContextPath() %>/pages/ajax/logout.jsp'>Esci</a>
 		</li>
-		<li id="reload-current-tab" class="ui-state-default ui-corner-all" style="float:right; margin-right:8px; margin-top:-2px; cursor:pointer">
+		<li id="reload-current-tab" class="ui-state-default ui-corner-all"
+			style="float: right; margin-right: 8px; margin-top: -2px; cursor: pointer">
 			<img src="<%= request.getContextPath() %>/styles/images/reload.png" />
 		</li>
 		<%

@@ -30,8 +30,8 @@
 		action="<%= request.getContextPath() %>/login">
 		<label for="username">Nome utente:</label> <input type="text"
 			name="username" id="username"> <label for="password">Password:</label>
-		<input type="password" name="password" id="password">
-		<input type="submit" value="Login" class="inner">
+		<input type="password" name="password" id="password"> <input
+			type="submit" value="Login" class="inner">
 	</form>
 </div>
 <script>

@@ -8,7 +8,7 @@
 <%@ page import="com.google.gson.*"%>
 <%@ page import="java.util.Collection"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
-<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%
 	User user = (User) session.getAttribute(LoginServlet.USER);
 	if (user == null) {
@@ -23,27 +23,30 @@
 <div class="wrap">
 	<div class="leftc">
 		<h1>Gestione commesse</h1>
-		<div  id="accordionActions">
+		<div id="accordionActions">
 			<h3>Assegnamento</h3>
 			<div>
 				<c:choose>
 					<c:when test="${empty todojoborders}">
-						Non esistono commesse non assegnate o parzilamente assegnate<br /> 
+						Non esistono commesse non assegnate o parzilamente assegnate<br />
 					</c:when>
 					<c:otherwise>
 						<select id="todoJobOrders">
 							<option selected disabled>Scegli una commessa</option>
 							<c:forEach var="entry" items="${todojoborders}" varStatus="loop">
-								<option value="${loop.index}">
-								[${entry.id}] Tempo rimanente:
-									<fmt:formatNumber value="${entry.missingTime / 60 -0.5}" maxFractionDigits="0"/> ore e
-									${entry.missingTime % 60} minuti</option>
+								<option value="${loop.index}">[${entry.id}] Tempo
+									rimanente:
+									<fmt:formatNumber value="${entry.missingTime / 60 -0.5}"
+										maxFractionDigits="0" /> ore e ${entry.missingTime % 60}
+									minuti
+								</option>
 							</c:forEach>
 						</select>
 					</c:otherwise>
 				</c:choose>
 				<div id="jobordersummary"></div>
-			</div><!-- accordion -->
+			</div>
+			<!-- accordion -->
 			<h3>Campionamento</h3>
 			<div>
 				<c:choose>
@@ -52,51 +55,56 @@
 					</c:when>
 					<c:otherwise>
 						<div id="samplingsummary">
-						<b>Inserimento automatico</b>
+							<b>Inserimento automatico</b>
 							<form id="autosampling">
-								Cliente<br />
-								<select name="client">
+								Cliente<br /> <select name="client">
 									<option selected disabled>Scegli il cliente</option>
 									<c:forEach var="c" items="${clients}">
-										<option value="${c.id}" title="<c:out value="${c.name}" />"><c:out value="${c.name} [${c.code}]" /></option>
+										<option value="${c.id}" title="<c:out value="${c.name}" />"><c:out
+												value="${c.name} [${c.code}]" /></option>
 									</c:forEach>
-								</select><br />
-								Macchina<br />
-								<select name="machine">
+								</select><br /> Macchina<br /> <select name="machine">
 									<option selected disabled>Scegli una macchina</option>
 									<c:forEach var="machine" items="${machines}">
-										<option value="${machine.id}">${machine.id} - <c:out value="${machine.name}" /></option>
+										<option value="${machine.id}">${machine.id}-
+											<c:out value="${machine.name}" /></option>
 									</c:forEach>
-								</select><br />
-								Descrizione<br />
-								<input type="text" name="description" /><br />
-								A partire da <sup>*</sup><input type="text" class="autostart" required /><br />
-								Fino a <sup>*</sup> <input type="text" class="autoend" required />
-								<br /><input type="submit" value="Auto assegna" /><br />
+								</select><br /> Descrizione<br /> <input type="text" name="description" /><br />
+								A partire da <sup>*</sup><input type="text" class="autostart"
+									required /><br /> Fino a <sup>*</sup> <input type="text"
+									class="autoend" required /> <br />
+								<input type="submit" value="Auto assegna" /><br />
 							</form>
-							<b>Inserimento manuale (drag-and-drop)</b><br />
-							<i>Puoi inserire campionamenti manualmente per la durata massima di 24 ore.</i>
-							<br /><i>Per inserire più giorni di campionamento, usa l'inserimento automatico</i>
+							<b>Inserimento manuale (drag-and-drop)</b><br /> <i>Puoi
+								inserire campionamenti manualmente per la durata massima di 24
+								ore.</i> <br />
+							<i>Per inserire più giorni di campionamento, usa
+								l'inserimento automatico</i>
 							<p>
-								Seleziona il cliente ed imposta la durata. <br />Dopo trascina il blocchetto sul calendario.
+								Seleziona il cliente ed imposta la durata. <br />Dopo trascina
+								il blocchetto sul calendario.
 							</p>
-							Cliente<br />
-							<select name="client">
+							Cliente<br /> <select name="client">
 								<option selected disabled>Scegli il cliente</option>
 								<c:forEach var="c" items="${clients}">
-									<option value="${c.id}" title="<c:out value="${c.name}" />"><c:out value="${c.name} [${c.code}]" /></option>
+									<option value="${c.id}" title="<c:out value="${c.name}" />"><c:out
+											value="${c.name} [${c.code}]" /></option>
 								</c:forEach>
-							</select><br />
-							Descrizione<br />
-							<input type="text" name="description" /><br />
-							Ore<br /><input style="display: inline" type="number" min="0" max="24" id="samplinghours" /><br />
-							Minuti<br /><input style="display: inline" type="number" min="0" max="59" id="samplingminutes" /><br /><br />
+							</select><br /> Descrizione<br /> <input type="text" name="description" /><br />
+							Ore<br />
+							<input style="display: inline" type="number" min="0" max="24"
+								id="samplinghours" /><br /> Minuti<br />
+							<input style="display: inline" type="number" min="0" max="59"
+								id="samplingminutes" /><br />
+							<br />
 							<div id="sampling-event"></div>
-							<br /><br />
+							<br />
+							<br />
 						</div>
 					</c:otherwise>
 				</c:choose>
-			</div><!-- accordion div -->
+			</div>
+			<!-- accordion div -->
 			<h3>Manutenzione</h3>
 			<div>
 				<c:choose>
@@ -105,46 +113,61 @@
 					</c:when>
 					<c:otherwise>
 						<div id="maintenancesummary">
-						<b>Inserimento automatico</b>
+							<b>Inserimento automatico</b>
 							<form id="automaintenance">
-								Macchina<br />
-								<select name="machine">
+								Macchina<br /> <select name="machine">
 									<option selected disabled>Scegli una macchina</option>
 									<c:forEach var="machine" items="${machines}">
-										<option value="${machine.id}">${machine.id} - <c:out value="${machine.name}" /></option>
+										<option value="${machine.id}">${machine.id}-
+											<c:out value="${machine.name}" /></option>
 									</c:forEach>
-								</select><br />
-								Descrizione<br />
-								<input type="text" name="description" /><br />
-								A partire da <sup>*</sup><input type="text" class="autostart" required /><br />
-								Fino a <sup>*</sup> <input type="text" class="autoend" required />
-								<br /><input type="submit" value="Auto assegna" /><br />
+								</select><br /> Descrizione<br /> <input type="text" name="description" /><br />
+								A partire da <sup>*</sup><input type="text" class="autostart"
+									required /><br /> Fino a <sup>*</sup> <input type="text"
+									class="autoend" required /> <br />
+								<input type="submit" value="Auto assegna" /><br />
 							</form>
-							<b>Inserimento manuale (drag-and-drop)</b><br />
-							<i>Puoi inserire manutenzione manualmente per la durata massima di 24 ore.</i>
-							<br /><i>Per inserire più giorni di manutenzione, usa l'inserimento automatico</i>
+							<b>Inserimento manuale (drag-and-drop)</b><br /> <i>Puoi
+								inserire manutenzione manualmente per la durata massima di 24
+								ore.</i> <br />
+							<i>Per inserire più giorni di manutenzione, usa l'inserimento
+								automatico</i>
 							<p>
-								Inserisci la descrizione, <br />dopo trascina il blocchetto sul calendario delle macchina
+								Inserisci la descrizione, <br />dopo trascina il blocchetto sul
+								calendario delle macchina
 							</p>
-							Descrizione<br />
-							<input type="text" name="description" /><br />
-							Ore<br /><input style="display: inline" type="number" min="0" max="24" id="maintenancehours" /><br />
-							Minuti<br /><input style="display: inline" type="number" min="0" max="59" id="maintenanceminutes" /><br /><br />
+							Descrizione<br /> <input type="text" name="description" /><br />
+							Ore<br />
+							<input style="display: inline" type="number" min="0" max="24"
+								id="maintenancehours" /><br /> Minuti<br />
+							<input style="display: inline" type="number" min="0" max="59"
+								id="maintenanceminutes" /><br />
+							<br />
 							<div id="maintenance-event"></div>
-							<br /><br />
+							<br />
+							<br />
 						</div>
 					</c:otherwise>
 				</c:choose>
-			</div><!-- accordion div -->
-		</div><!-- accorion -->
-	</div><!-- leftc -->
+			</div>
+			<!-- accordion div -->
+		</div>
+		<!-- accorion -->
+	</div>
+	<!-- leftc -->
 	<div class="rightc">
 		<h1>Calendario per macchina</h1>
 		<div id="accordionCalendars">
 			<c:forEach var="machine" items="${machines}">
-				<h3>ID: ${machine.id} - <c:out value="${machine.name}" /> - <c:out value="${machine.type}" /> -
-					Finezza: ${machine.nicety}</h3>
-				<div id="m${machine.id}Calendar" data-calendarid="m${machine.id}Calendar"></div>
+				<h3>
+					ID: ${machine.id} -
+					<c:out value="${machine.name}" />
+					-
+					<c:out value="${machine.type}" />
+					- Finezza: ${machine.nicety}
+				</h3>
+				<div id="m${machine.id}Calendar"
+					data-calendarid="m${machine.id}Calendar"></div>
 			</c:forEach>
 		</div>
 	</div>

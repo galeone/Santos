@@ -11,8 +11,10 @@
 		<property column="starts" name="start" type="timestamp" />
 		<property column="ends" name="end" type="timestamp" />
 		<property column="DESCRIPTION" generated="never" lazy="false"
-			length="200" name="description" optimistic-lock="true" type="string" unique="false" />
-		<many-to-one name="Machine" class="it.galeone_dev.hibernate.models.Machine"
-			column="idMachine" unique="false" not-null="true" lazy="false" />
+			length="200" name="description" optimistic-lock="true" type="string"
+			unique="false" />
+		<many-to-one name="Machine"
+			class="it.galeone_dev.hibernate.models.Machine" column="idMachine"
+			unique="false" not-null="true" lazy="false" />
 	</class>
 </hibernate-mapping>

@@ -33,18 +33,17 @@
 
 		<label for="canaddjoborder">Può aggiungere le commesse</label> <input
 			type="checkbox" name="canaddjoborder" id="canaddjoborder" value="Si"
-			class="text ui-widget-content ui-corner-all" rel="5">
-		<label for="canassignjoborder">Può modificare la programmazione</label> <input
-			type="checkbox" name="canassignjoborder" id="canassignjoborder" value="Si"
-			class="text ui-widget-content ui-corner-all" rel="6">
-		<label
-			for="canaddclient">Può aggiungere macchine</label> <input
+			class="text ui-widget-content ui-corner-all" rel="5"> <label
+			for="canassignjoborder">Può modificare la programmazione</label> <input
+			type="checkbox" name="canassignjoborder" id="canassignjoborder"
+			value="Si" class="text ui-widget-content ui-corner-all" rel="6">
+		<label for="canaddclient">Può aggiungere macchine</label> <input
 			type="checkbox" name="canaddmachine" id="canaddmachine" value="Si"
 			class="text ui-widget-content ui-corner-all" rel="7"> <label
 			for="canaddclient">Può aggiungere clienti</label> <input
 			type="checkbox" name="canaddclient" id="canaddclient" value="Si"
-			class="text ui-widget-content ui-corner-all" rel="8">
-			<input type="submit" value="ok" class="inner">
+			class="text ui-widget-content ui-corner-all" rel="8"> <input
+			type="submit" value="ok" class="inner">
 	</fieldset>
 </form>
 
@@ -64,7 +63,8 @@
 	</thead>
 	<tbody>
 	</tbody>
-</table><br />
+</table>
+<br />
 <button id="btnAddNewRowUser">Crea un nuovo utente</button>
 <button id="btnDeleteRowUser">Cancella utente</button>
 <%Gson gson = new Gson();%>

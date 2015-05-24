@@ -18,12 +18,12 @@
 		<servlet-name>edit</servlet-name>
 		<servlet-class>it.galeone_dev.servlet.EditServlet</servlet-class>
 	</servlet>
-	
+
 	<servlet>
 		<servlet-name>get</servlet-name>
 		<servlet-class>it.galeone_dev.servlet.GetServlet</servlet-class>
 	</servlet>
-	
+
 	<servlet>
 		<servlet-name>install</servlet-name>
 		<servlet-class>it.galeone_dev.servlet.InstallServlet</servlet-class>
@@ -33,8 +33,8 @@
 		<servlet-name>add</servlet-name>
 		<servlet-class>it.galeone_dev.servlet.AddServlet</servlet-class>
 	</servlet>
-	
-	<!--  filters -->
+
+	<!-- filters -->
 	<filter>
 		<filter-name>setTimeZoneToGMT</filter-name>
 		<filter-class>it.galeone_dev.servlet.FilterSetTimeZoneToGMT</filter-class>
@@ -55,7 +55,7 @@
 		<servlet-name>install</servlet-name>
 		<url-pattern>/install</url-pattern>
 	</servlet-mapping>
-	
+
 	<servlet-mapping>
 		<servlet-name>delete</servlet-name>
 		<url-pattern>/delete</url-pattern>
@@ -75,7 +75,7 @@
 		<servlet-name>get</servlet-name>
 		<url-pattern>/get</url-pattern>
 	</servlet-mapping>
-	
+
 	<!-- Welcome files -->
 	<!-- Define, in order of preference, which file to show when no filename 
 		is defined in the path -->

@@ -176,7 +176,7 @@ public class GetCollection {
     	dummy.setEnd(new Date(end.getTime()));
     	
     	while(dummy.getStart().before(dummy.getEnd())) {
-            ret.add(WorkingDay.get(dummy));
+            ret.add(WorkingDay.get(dummy.getStart()));
     		dummy.setStart(EventUtils.tomorrow(dummy.getStart()));
     	}
 
@@ -383,7 +383,7 @@ public class GetCollection {
                                 ? " e " + missingMinutes + " minuti"
                                 : "")
                        );
-            aj.setAllDay(lastInMinutes == EventUtils.getLast(WorkingDay.get((aj))));
+            aj.setAllDay(lastInMinutes == EventUtils.getLast(WorkingDay.get((aj.getStart()))));
             aj.setColor(aj.getJobOrder().getColor());
             aj.setEditable(editable);
         }
@@ -424,7 +424,7 @@ public class GetCollection {
                                 ? " e " + missingMinutes + " minuti"
                                 : "")
                        );
-            s.setAllDay(lastInMinutes == EventUtils.getLast(WorkingDay.get((s))));
+            s.setAllDay(lastInMinutes == EventUtils.getLast(WorkingDay.get((s.getStart()))));
             s.setEditable(editable);
         }
         return l;
@@ -471,7 +471,7 @@ public class GetCollection {
     public static Collection<GlobalEvent> globalEventsTheSameDayOf(GlobalEvent e) {
         Collection<GlobalEvent> ret = new HashSet<GlobalEvent>();
         ret.addAll(nonWorkingDaysTheSameDayOf(e));
-        ret.add(WorkingDay.get(e));
+        ret.add(WorkingDay.get(e.getStart()));
         return ret;
     }
     
@@ -489,7 +489,7 @@ public class GetCollection {
         Collection<DroppableMachineEvent> ret = new HashSet<DroppableMachineEvent>();
         Collection<DroppableMachineEvent> machineEventsTheSameDay = machineEventsTheSameDayOf(e);
         
-        Long last = EventUtils.getLast(e), hoursPerDay = EventUtils.getLast(WorkingDay.get((e)));
+        Long last = EventUtils.getLast(e), hoursPerDay = EventUtils.getLast(WorkingDay.get(e.getStart()));
         if(last >= hoursPerDay) {
             ret =  machineEventsTheSameDay;
         } else {
@@ -522,7 +522,7 @@ public class GetCollection {
     public static Collection<GlobalEvent> globalEventsTheSameDayOf(MachineEvent e) {
         Collection<GlobalEvent> ret = new HashSet<GlobalEvent>();
         ret.addAll(nonWorkingDaysTheSameDayOf(e));
-        ret.add(WorkingDay.get(e));
+        ret.add(WorkingDay.get(e.getStart()));
         return ret;
     }
     

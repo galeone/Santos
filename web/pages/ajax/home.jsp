@@ -88,7 +88,7 @@ $("#globalCalendar").fullCalendar({
 		center: 'title'
 	},
 	eventSources:[ {
-	        url: "<%=request.getContextPath()%>/get?what=nonworkingdays"
+	        url: "<%=request.getContextPath()%>/get?what=globalevents"
 	    }
 	],
 	eventDragStop: function(event,jsEvent) {

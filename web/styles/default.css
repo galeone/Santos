@@ -118,13 +118,12 @@ div.contain table td, div.contain table th {
 }
 
 .inner {
-    position: fixed;
-    height: 1px;
-    width: 1px;
-    right: -50px;
-    top: 50px;
+	position: fixed;
+	height: 1px;
+	width: 1px;
+	right: -50px;
+	top: 50px;
 }
-
 
 html {
 	box-sizing: border-box;

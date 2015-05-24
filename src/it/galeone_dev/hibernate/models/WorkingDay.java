@@ -2,7 +2,6 @@ package it.galeone_dev.hibernate.models;
 
 import it.galeone_dev.GetCollection;
 import it.galeone_dev.hibernate.abstractions.DroppableGlobalEvent;
-import it.galeone_dev.hibernate.abstractions.Event;
 import it.galeone_dev.hibernate.abstractions.EventUtils;
 import it.galeone_dev.hibernate.abstractions.GlobalEvent;
 import it.galeone_dev.hibernate.abstractions.MachineEvent;
@@ -85,7 +84,7 @@ public class WorkingDay extends DroppableGlobalEvent implements Serializable, Gl
         Date start = new Date(e.getStart().getTime()), end = new Date(e.getEnd().getTime());
         Long hours = 0L;
         while(start.before(end)) {
-            hours += EventUtils.getLast(get(e));
+            hours += EventUtils.getLast(get(e.getStart()));
             for(MachineEvent conf : GetCollection.assignedJobOrdersTheSameDayOf(e)) {
                 hours -= EventUtils.getLast(conf);
             }
@@ -101,28 +100,28 @@ public class WorkingDay extends DroppableGlobalEvent implements Serializable, Gl
         dummy.setEnd(end);
         Long hours = 0L;
         while(dummy.getStart().before(dummy.getEnd())) {
-            hours += EventUtils.getLast(get(dummy));
+            hours += EventUtils.getLast(get(dummy.getStart()));
             dummy.setStart(EventUtils.tomorrow(dummy.getStart()));
         }
         Collection<NonWorkingDay> nonWorks = GetCollection.nonWorkingDaysBetween(start, end);
         for(NonWorkingDay nw : nonWorks) {
-        	hours -= EventUtils.getLast(getDefault(nw));
+        	hours -= EventUtils.getLast(getDefault(nw.getStart()));
         }
         return hours;
     }
     
     
 	@SuppressWarnings("unchecked")
-	public static WorkingDay get(Event e) {
-        Collection<WorkingDay> tmp = GetCollection.get(WorkingDay.class, EventUtils.start(e.getStart()), EventUtils.end(e.getStart()));
+	public static WorkingDay get(Date day) {
+        Collection<WorkingDay> tmp = GetCollection.get(WorkingDay.class, EventUtils.start(day), EventUtils.end(day));
         return tmp.size() == 0
-        		? getDefault(e)
+        		? getDefault(day)
                 : tmp.toArray(new WorkingDay[tmp.size()])[0];
     }
     
-    private static WorkingDay getDefault(Event e) {
+    private static WorkingDay getDefault(Date day) {
         WorkingDay ret = new WorkingDay();
-        Date start = EventUtils.start(e.getStart());
+        Date start = EventUtils.start(day);
         EventUtils.cal.setTime(start);
         int dow = EventUtils.cal.get(Calendar.DAY_OF_WEEK);
         ret.setStart(start);

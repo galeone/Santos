@@ -4,10 +4,8 @@ import it.galeone_dev.GetCollection;
 import it.galeone_dev.hibernate.HibernateUtils;
 import it.galeone_dev.hibernate.models.AssignedJobOrder;
 import it.galeone_dev.hibernate.models.Machine;
-import it.galeone_dev.hibernate.models.NonWorkingDay;
 import it.galeone_dev.hibernate.models.Sampling;
 import it.galeone_dev.hibernate.models.User;
-import it.galeone_dev.hibernate.models.WorkingDay;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -128,12 +126,16 @@ public class GetServlet extends HttpServlet {
         
         Date start = getDate(request, "start");
         Date end = getDate(request, "end");
-        System.out.println(start + " " + end);
         
+        Collection<Object> c = new HashSet<Object>();
         switch (what) {
             case "nonworkingdays":
                 out.print(gson.toJson(GetCollection.nonWorkingDaysBetween(user.getIsAdmin(), start, end)));
             break;
+            
+            case "workingdays":
+                out.print(gson.toJson(GetCollection.workingDaysBetween(user.getIsAdmin(), start, end)));
+                break;
             
             case "assignedjoborders":
                 try {
@@ -153,17 +155,18 @@ public class GetServlet extends HttpServlet {
                 }
             break;
             
+            case "globalevents":
+                c.addAll(GetCollection.nonWorkingDaysBetween(user.getIsAdmin(), start, end));
+                c.addAll(GetCollection.workingDaysBetween(user.getIsAdmin(), start, end));
+                out.print(gson.toJson(c));
+                break;
+            
             case "program":
                 try {
-                    Collection<Object> c = new HashSet<Object>();
-                    for(NonWorkingDay nw : GetCollection.nonWorkingDaysBetween(user.getIsAdmin(), start, end))
-                        c.add(nw);
-                    for(WorkingDay w : GetCollection.workingDaysBetween(user.getIsAdmin(), start, end))
-                    	c.add(w);
-                    for(AssignedJobOrder aj : assignedJobOrders(request, start, end))
-                        c.add(aj);
-                    for(Sampling s : sampling(request, start, end))
-                        c.add(s);
+                    c.addAll(GetCollection.nonWorkingDaysBetween(user.getIsAdmin(), start, end));                        
+                    c.addAll(GetCollection.workingDaysBetween(user.getIsAdmin(), start, end));
+                    c.addAll(assignedJobOrders(request, start, end));
+                    c.addAll(sampling(request, start, end));
                     out.print(gson.toJson(c));
                 } catch (Exception e) {
                     out.print(e.getMessage());

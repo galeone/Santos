@@ -28,26 +28,21 @@
 			<c:forEach var="client" items="${clients}">
 				<option value="${client.id}">${client.name}</option>
 			</c:forEach>
-		</select>
-		<label for="description">Descrizione</label>
-		<input type="text" required id="description" name="description" rel="2" value="" />
-		<label>Tempo per capo:</label>
-		<label for="giorni">Ore</label> <input type="number" name="ore"
-			id="ore" />
-		<label for="minuti">Minuti</label> <input type="number"
-			name="minuti" id="minuti" />
-		<input type="hidden" name="timeforitem" id="timeforitem" rel="3" value="0" />
+		</select> <label for="description">Descrizione</label> <input type="text"
+			required id="description" name="description" rel="2" value="" /> <label>Tempo
+			per capo:</label> <label for="giorni">Ore</label> <input type="number"
+			name="ore" id="ore" /> <label for="minuti">Minuti</label> <input
+			type="number" name="minuti" id="minuti" /> <input type="hidden"
+			name="timeforitem" id="timeforitem" rel="3" value="0" />
 		<!-- tempo in gg e ore -->
-		<label for="numberofitems">Numero di capi</label> <input type="number" name="numberofitems"
-		id="numberofitems" rel="4" />
-		<input type="hidden" name="leadtime" id="leadtime" rel="5" value="0" />
-		<input type="hidden" name="missingtime" id="missingtime" rel="6" value="0" />
-		<input type="hidden" name="offset" id="offset" rel="7" value="0" />
-		<label
+		<label for="numberofitems">Numero di capi</label> <input type="number"
+			name="numberofitems" id="numberofitems" rel="4" /> <input
+			type="hidden" name="leadtime" id="leadtime" rel="5" value="0" /> <input
+			type="hidden" name="missingtime" id="missingtime" rel="6" value="0" />
+		<input type="hidden" name="offset" id="offset" rel="7" value="0" /> <label
 			for="color">Colore</label> <input type="text" name="color" value=""
 			required class="color text ui-widget-content ui-corner-all" rel="8"
-			readonly>
-		<input type="submit" value="ok" class="inner">
+			readonly> <input type="submit" value="ok" class="inner">
 		<div class="colorpicker"></div>
 	</fieldset>
 </form>
@@ -68,7 +63,8 @@
 	</thead>
 	<tbody>
 	</tbody>
-</table><br />
+</table>
+<br />
 <% String style = user.getCanAddJobOrder() ? "" : "display:none"; %>
 <button id="btnAddNewRowJobOrder" style="<%=style%>">Aggiungi
 	commessa</button>

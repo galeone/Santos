@@ -110,7 +110,7 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             return;
         }
         
-        Long myLast = EventUtils.getLast(e), maxLast = EventUtils.getLast(WorkingDay.get(e));
+        Long myLast = EventUtils.getLast(e), maxLast = EventUtils.getLast(WorkingDay.get(e.getStart()));
 
         if(myLast > maxLast ) {
             message.replace(0,message.length(),"Non puoi spostare un evento di " + (myLast / 60) + " ore su una giornata lavorativa di "  + (maxLast / 60) + " ore.");

@@ -20,7 +20,7 @@
 			<one-to-many class="it.galeone_dev.hibernate.models.Sampling"
 				embed-xml="true" not-found="exception" />
 		</set>
-		
+
 		<property column="NAME" generated="never" lazy="false"
 			length="50" name="name" optimistic-lock="true" type="string" unique="false" />
 		<property column="CODE" generated="never" lazy="false"
