@@ -17,7 +17,14 @@
 if(user.getIsAdmin()) { %>
 	<div class="leftc" style="background: #eee">
 		<h4>Giorni non lavorativi</h4>
-		<div id="nonworkingevent"></div>
+		<div id="nonworkingevent"></div><br />
+		<hr />
+		<h4>Giorni lavorativi</h4>
+		<p><i>Imposta le ore lavorative per i giorni successivi ad oggi.</i></p>
+		<form id="whform">
+			Ore: <input style="display: inline" type="number" min="1" max="24" id="wdhours" value="0" /><br />
+		</form>
+		<div id="workingday-event"></div>
 	</div>
 	<div class="rightc">
 		<div id='globalCalendar'></div>
@@ -46,6 +53,29 @@ $block.draggable({
 });
 $block.addClass("fc-draggable-event nonworkingday");
 
+$block = $("#workingday-event"), title = 'Ore lavorative',
+event = {
+	title: title,
+	allDay: true,
+	color: '#afafaf',
+	type: 'workingday'
+};
+$block.html(title);
+$block.data('event', event);
+
+$block.draggable({
+	zIndex: 999,
+	revert: true,
+	revertduration: 0,
+	start: function() {
+	    var whform = $("#whform");
+	    if(!whform[0].checkValidity()) {
+			alert("numero di ore non valido");
+	    }
+	}
+});
+$block.addClass("fc-draggable-event workingday");
+
 
 $("#globalCalendar").fullCalendar({
 	lang: 'it',
@@ -56,27 +86,28 @@ $("#globalCalendar").fullCalendar({
 	eventReceive: function(event) {
 		if(window.user.isAdmin) {
 		    var end = new Date(event._start._d);
-		    end.setHours(end.getHours() + 24);
+		    if(event.type == "nonworkingday") {
+		    	end.setHours(end.getHours() + 24);
+		    } else if(event.type == "workingday") {
+				end.setHours(end.getHours() + parseInt($("#wdhours").val()));
+		    }
 		    $.post("<%=request.getContextPath()%>/add?what=" + event.type,
 		            {
 		            	start: event._start._d.toUTCString(),
 		            	end: end.toUTCString()
 		            }, function(data) {
-		        		var id = jQuery.parseJSON(data).id;
-		                event.id = id;
-		                $("#globalCalendar").fullCalendar('updateEvent',event);
+		        		if(data != 'ok') { alert(data); }
+	 		   			$("#globalCalendar").fullCalendar( 'refetchEvents' );
+						$("#globalCalendar").fullCalendar( 'rerenderEvents' );
 		    });
 		}
 	},
 	eventDrop: function(event, delta, revertFunc) {
 		if(window.user.isAdmin) {
-		    var end = new Date(event._start._d);
-		    end.setHours(end.getHours() + 24);
 		    $.post("<%=request.getContextPath()%>/edit?what=" + event.type,
 		            {
 		            	id: event.id,
-		            	start: event._start._d.toUTCString(),
-		            	end: end.toUTCString()
+		            	start: event._start._d.toUTCString()
 		            },
 					function(data){
 		            	if(data != 'ok') { alert(data); revertFunc(); } 

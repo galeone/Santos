@@ -76,7 +76,7 @@ public class DeleteServlet extends HttpServlet {
         }
     }
     
-    private void workingHours(Long id) {
+    private void workingDay(Long id) {
         if (!user.getIsAdmin()) {
             message = "Non sei amministratore";
         } else {
@@ -85,7 +85,7 @@ public class DeleteServlet extends HttpServlet {
                 hibSession.delete((WorkingDay) toDelete);
                 message = "ok";
             } else {
-                message = "Giorno non lavorativo non esistente";
+                message = "Giorno lavorativo non esistente";
             }
         }
     }
@@ -230,8 +230,8 @@ public class DeleteServlet extends HttpServlet {
                 nonWorkingDay(id);
             break;
             
-            case "workingHours":
-                workingHours(id);
+            case "workinghours":
+                workingDay(id);
             break;
             
             case "sampling":
@@ -257,6 +257,10 @@ public class DeleteServlet extends HttpServlet {
             case "assignedjoborder":
                 assignedJobOrder(id);
             break;
+            
+            default:
+                message = "Parametro " + what + " non riconosciuto";
+                break;
         }
         
         log();

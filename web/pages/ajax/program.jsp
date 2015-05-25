@@ -224,10 +224,8 @@ $("#samplingsummary").on('submit', 'form', function(e) {
  	            	joborder: jo
  	            }, function(data){
  	        		if(isNaN(parseInt(data))) { alert(data); }
- 	        		else {
- 	        			$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
-						$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
- 	        		}
+ 	        		$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
+					$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
  	            });
  	}
 });
@@ -248,8 +246,6 @@ function newAssignedJobOrder(data, machine) {
 		var selectVal = $("#selectvalue");
 		$('#todoJobOrders option[value="'+selectVal.data('value')+'"]').html("[" + selectVal.data('joborderid') + "] Tempo rimanente:" + out);
 		$("#todoJobOrders").selectmenu("refresh");
-		$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
-		$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
 		if(minutes <= 0) {
 		    $("#jobordersforms").remove();
 		}
@@ -293,6 +289,8 @@ $("#jobordersummary").on('submit', '#autoassignjoborders', function(e) {
 	            	joborder: jo
 	            }, function(data) {
 	        		newAssignedJobOrder(data, machine);
+	        		$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
+					$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
 	   });
 	}
 });
@@ -373,6 +371,8 @@ $("#todoJobOrders").selectmenu({
 			            	} else {
 			            	    console.log(data);
 			            	}
+							$("#m${machine.id}Calendar").fullCalendar( 'refetchEvents' );
+							$("#m${machine.id}Calendar").fullCalendar( 'rerenderEvents' );
 				    });
 			}
 		},

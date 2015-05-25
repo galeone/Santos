@@ -84,9 +84,9 @@ public class AddServlet extends HttpServlet {
 
     }
 
-    private void workingHours(HttpServletRequest request) {
+    private void workingDay(HttpServletRequest request) {
         if (!user.getIsAdmin()) {
-            message.replace(0, message.length(), "Non puoi assegnare le ore lavorative");
+            message.replace(0, message.length(), "Non puoi assegnare i giorni lavorativi");
             return;
         }
 
@@ -490,8 +490,8 @@ public class AddServlet extends HttpServlet {
                 nonWorkingDay(request);
                 break;
 
-            case "workinghours":
-                workingHours(request);
+            case "workingday":
+                workingDay(request);
                 break;
 
             default:
