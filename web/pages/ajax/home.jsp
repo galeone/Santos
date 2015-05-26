@@ -3,8 +3,8 @@
 <%@ page session="true"%>
 <%@ page import="java.util.Collection"%>
 <%@ page import="com.google.gson.*"%>
-<%@ page import="it.galeone_dev.servlet.*"%>
-<%@ page import="it.galeone_dev.hibernate.models.*"%>
+<%@ page import="it.galeone_dev.santos.servlet.*"%>
+<%@ page import="it.galeone_dev.santos.hibernate.models.*"%>
 <%
 	User user = (User)session.getAttribute(LoginServlet.USER);
 	if( user == null ) {
@@ -16,15 +16,37 @@
 	<%
 if(user.getIsAdmin()) { %>
 	<div class="leftc" style="background: #eee">
+	<h1>Gestione giorni/ore lavorative</h1>
+	<div id="accordion">
 		<h4>Giorni non lavorativi</h4>
-		<div id="nonworkingevent"></div><br />
-		<hr />
+		<div>
+			<i>Trascina il blocchetto sul giorno che vuoi rendere non lavorativo.<br />
+			La produzione delle macchine slitterà in avanti automaticamente.
+			</i>
+			<div id="nonworkingevent"></div><br />
+		</div>
 		<h4>Giorni lavorativi</h4>
-		<p><i>Imposta le ore lavorative per i giorni successivi ad oggi.</i></p>
-		<form id="whform">
-			Ore: <input style="display: inline" type="number" min="1" max="24" id="wdhours" value="0" /><br />
-		</form>
-		<div id="workingday-event"></div>
+		<div>
+			<i>Puoi modificare le ore lavorative solo per date successive o uguali ad oggi.<br />
+			La produzione si adeguerà di conseguenza.
+			</i><br />
+			<h1>Inserimento manuale (drag and drop)</h1>
+			<i>Inserisci il numero di ore e trascina il blocchetto sul calendario</i>
+			<form id="whform">
+				Ore: <input style="display: inline" type="number" min="1" max="24" id="wdhours" value="0" /><br />
+			</form><br />
+			<div id="workingday-event"></div>
+			<hr />
+			<h1>Inserimento automatico</h1>
+			<p><i>Scegli la data di inzio, fine e le ore. Poi assegna</i></p>
+			<form id="autoassignworkingdays">
+				A partire da <sup>*</sup><input type="text" class="autostart" required /> <br />
+				Fino a <sup>*</sup><input type="text" class="autoend" required /> <br />
+				<input type="number" min="1" max="24" id="wdhours" value="0" /><br />
+				<br /><br /><input type="submit" value="Auto assegna" />
+			</form>
+		</div>
+		</div>
 	</div>
 	<div class="rightc">
 		<div id='globalCalendar'></div>
@@ -49,7 +71,9 @@ $block.data('event', event);
 $block.draggable({
 	zIndex: 999,
 	revert: true,
-	revertduration: 0
+	revertduration: 0,
+	appendTo: "body",
+	helper: "clone"
 });
 $block.addClass("fc-draggable-event nonworkingday");
 
@@ -72,7 +96,9 @@ $block.draggable({
 	    if(!whform[0].checkValidity()) {
 			alert("numero di ore non valido");
 	    }
-	}
+	},
+	appendTo: "body",
+	helper: "clone"
 });
 $block.addClass("fc-draggable-event workingday");
 
@@ -143,4 +169,9 @@ $("#globalCalendar").fullCalendar({
 	}
 }).find(".fc-left").append('<div id="homeTrash" class="calendar-trash">' +
 '<img src="<%=request.getContextPath()%>/styles/fullcalendar/trash.png"></img></div>');
+
+$("#accordion").accordion({
+    collapsible: true,
+    heightStyle: "content"
+});
 </script>

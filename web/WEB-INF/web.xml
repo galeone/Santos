@@ -6,38 +6,38 @@
 	<!-- Name the servlets -->
 	<servlet>
 		<servlet-name>login</servlet-name>
-		<servlet-class>it.galeone_dev.servlet.LoginServlet</servlet-class>
+		<servlet-class>it.galeone_dev.santos.servlet.LoginServlet</servlet-class>
 	</servlet>
 
 	<servlet>
 		<servlet-name>delete</servlet-name>
-		<servlet-class>it.galeone_dev.servlet.DeleteServlet</servlet-class>
+		<servlet-class>it.galeone_dev.santos.servlet.DeleteServlet</servlet-class>
 	</servlet>
 
 	<servlet>
 		<servlet-name>edit</servlet-name>
-		<servlet-class>it.galeone_dev.servlet.EditServlet</servlet-class>
+		<servlet-class>it.galeone_dev.santos.servlet.EditServlet</servlet-class>
 	</servlet>
 
 	<servlet>
 		<servlet-name>get</servlet-name>
-		<servlet-class>it.galeone_dev.servlet.GetServlet</servlet-class>
+		<servlet-class>it.galeone_dev.santos.servlet.GetServlet</servlet-class>
 	</servlet>
 
 	<servlet>
 		<servlet-name>install</servlet-name>
-		<servlet-class>it.galeone_dev.servlet.InstallServlet</servlet-class>
+		<servlet-class>it.galeone_dev.santos.servlet.InstallServlet</servlet-class>
 	</servlet>
 
 	<servlet>
 		<servlet-name>add</servlet-name>
-		<servlet-class>it.galeone_dev.servlet.AddServlet</servlet-class>
+		<servlet-class>it.galeone_dev.santos.servlet.AddServlet</servlet-class>
 	</servlet>
 
 	<!-- filters -->
 	<filter>
 		<filter-name>setTimeZoneToGMT</filter-name>
-		<filter-class>it.galeone_dev.servlet.FilterSetTimeZoneToGMT</filter-class>
+		<filter-class>it.galeone_dev.santos.servlet.FilterSetTimeZoneToGMT</filter-class>
 	</filter>
 	<filter-mapping>
 		<filter-name>setTimeZoneToGMT</filter-name>

@@ -1,10 +1,10 @@
 <%@ page contentType="text/html; charset=UTF-8"%>
 <%@ page errorPage="../../errors/exception.jsp"%>
 <%@ page session="true"%>
-<%@ page import="it.galeone_dev.*"%>
-<%@ page import="it.galeone_dev.servlet.*"%>
-<%@ page import="it.galeone_dev.hibernate.models.*"%>
-<%@ page import="it.galeone_dev.hibernate.abstractions.EventUtils"%>
+<%@ page import="it.galeone_dev.santos.*"%>
+<%@ page import="it.galeone_dev.santos.servlet.*"%>
+<%@ page import="it.galeone_dev.santos.hibernate.models.*"%>
+<%@ page import="it.galeone_dev.santos.hibernate.abstractions.EventUtils"%>
 <%@ page import="com.google.gson.*"%>
 <%@ page import="java.util.Collection"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
@@ -313,7 +313,7 @@ $("#todoJobOrders").selectmenu({
 					"Tempo totale: <div><b>" + leadHours + " ore e " + leadMinutes + " minuti</b></div><br />" +
 					"Tempo rimanente : <div id='remainingTime' data-minutes="+dataRemainMinutes+" data-arrayindex="+index+"><b>" + remainHours + " ore e " + remainMinutes + " minuti</div></b><br /><br />" +
 					"<div id=\"jobordersforms\"><i>Puoi inserire in un unico colpo quante ore di produzione desideri scegliendo la data di inizio e fine e la macchina a cui assegnale<br />" +
-					"Oppure fare drag and drop delle ore sul calendario della macchina alla quale si desidere assegnare il lavoro</i><br /><br />" +
+					"Oppure fare drag and drop del blocchetto sul calendario della macchina alla quale si desidere assegnare il lavoro</i><br /><br />" +
 					"<b>Inserimento automatico</b>" +
 					'<form id="autoassignjoborders">' + '<input type="hidden" name="joborder" value="' + window.todojoborders[index].id + '" />' +
 					'A partire da <sup>*</sup><input type="text" class="autostart" required /> <br />' +
