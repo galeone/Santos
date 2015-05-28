@@ -66,5 +66,3 @@ $.editable.addInputType('leadtime', {
 		$(':hidden', this).val(sign*(Math.abs(hours) * 60 + Math.abs(minutes)));
 	  }
 });
-
-

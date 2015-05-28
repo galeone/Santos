@@ -266,7 +266,12 @@ public class GetCollection {
     @SuppressWarnings("unchecked")
     public static Collection<Maintenance> maintenance(Machine m) {
         return (Collection<Maintenance>)get(Maintenance.class, m);
-    }    
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<Maintenance> maintenance(boolean editable) {
+        return setMaintenanceAttr((Collection<Maintenance>) get(Maintenance.class), editable);
+    }
     
     @SuppressWarnings("unchecked")
     public static Collection<Maintenance> maintenanceTheSameDayOf(GlobalEvent e) {
@@ -312,7 +317,12 @@ public class GetCollection {
     @SuppressWarnings("unchecked")
     public static Collection<Sampling> sampling(Machine m) {
         return (Collection<Sampling>)get(Sampling.class, m);
-    }    
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static Collection<Sampling> sampling(boolean editable) {
+        return setSamplingAttr((Collection<Sampling>) get(Sampling.class), editable);
+    }
     
     @SuppressWarnings("unchecked")
     public static Collection<Sampling> samplingTheSameDayOf(GlobalEvent e) {
@@ -419,8 +429,25 @@ public class GetCollection {
             Long lastInMinutes = EventUtils.getLast(s);
             Long missingHours = lastInMinutes / 60, missingMinutes = lastInMinutes % 60;
             
-            s.setTitle("CAMPIONAMENTO: " +  s.getClient().getCode() + "\n" +
+            s.setTitle("CAMPIONAMENTO\n" +  s.getClient().getCode() + "\n" +
                         s.getDescription() + "\n" +
+                        missingHours + " ore" + (
+                                missingMinutes > 0
+                                ? " e " + missingMinutes + " minuti"
+                                : "")
+                       );
+            s.setAllDay(lastInMinutes == EventUtils.getLast(WorkingDay.get((s.getStart()))));
+            s.setEditable(editable);
+        }
+        return l;
+    }
+    
+    public static Collection<Maintenance> setMaintenanceAttr(Collection<Maintenance> l, boolean editable) {
+        for(Maintenance s : l) {
+            Long lastInMinutes = EventUtils.getLast(s);
+            Long missingHours = lastInMinutes / 60, missingMinutes = lastInMinutes % 60;
+            
+            s.setTitle("MANUTENZIONE\n" +  s.getDescription() + "\n" +
                         missingHours + " ore" + (
                                 missingMinutes > 0
                                 ? " e " + missingMinutes + " minuti"
@@ -435,11 +462,6 @@ public class GetCollection {
     @SuppressWarnings("unchecked")
     public static Collection<AssignedJobOrder> assignedJobOrders(boolean editable) {
         return setAssignedJobOrderAttr((Collection<AssignedJobOrder>) get(AssignedJobOrder.class), editable);
-    }
-    
-    @SuppressWarnings("unchecked")
-    public static Collection<Sampling> sampling(boolean editable) {
-        return setSamplingAttr((Collection<Sampling>) get(Sampling.class), editable);
     }
   
     @SuppressWarnings("unchecked")

@@ -4,6 +4,7 @@ import it.galeone_dev.santos.GetCollection;
 import it.galeone_dev.santos.hibernate.HibernateUtils;
 import it.galeone_dev.santos.hibernate.models.AssignedJobOrder;
 import it.galeone_dev.santos.hibernate.models.Machine;
+import it.galeone_dev.santos.hibernate.models.Maintenance;
 import it.galeone_dev.santos.hibernate.models.Sampling;
 import it.galeone_dev.santos.hibernate.models.User;
 
@@ -91,6 +92,31 @@ public class GetServlet extends HttpServlet {
                 user.getCanAssignJobOrder());
     }
     
+    private Collection<Maintenance> maintenance(HttpServletRequest request, Date start, Date end) throws Exception {
+        String machine;
+        if((machine = request.getParameter("machine")) == null || machine.isEmpty()) {
+            throw new Exception("error, machine required");
+        }
+        Long machineId;
+        Machine m;
+        try {
+            machineId = Long.parseLong(machine);
+            Session hibSession = HibernateUtils.getSessionFactory().openSession();
+            hibSession.beginTransaction();
+            m = (Machine) hibSession.get(Machine.class, machineId);
+            hibSession.close();
+            if(m == null) {
+                throw new NumberFormatException();
+            }
+            
+        }catch(NumberFormatException e) {
+            throw new Exception("Id macchina non valido");
+        }
+        return GetCollection.setMaintenanceAttr(
+                GetCollection.maintenanceBetween(m, start, end),
+                user.getCanAssignJobOrder());
+    }
+    
     private Date getDate(HttpServletRequest request, String name) {
         String dateS = request.getParameter(name);
         if (dateS == null || "".equals(dateS)) {
@@ -155,6 +181,15 @@ public class GetServlet extends HttpServlet {
                 }
             break;
             
+            case "maintenance":
+                try {
+                    out.print(gson.toJson(maintenance(request, start, end)));
+                } catch (Exception e) {
+                    out.print(e.getMessage());
+                    e.printStackTrace();
+                }
+            break;
+            
             case "globalevents":
                 out.print(gson.toJson(GetCollection.globalEventsBetween(user.getIsAdmin(), start, end)));
                 break;
@@ -164,6 +199,7 @@ public class GetServlet extends HttpServlet {
                     c.addAll(GetCollection.globalEventsBetween(user.getIsAdmin(), start, end));
                     c.addAll(assignedJobOrders(request, start, end));
                     c.addAll(sampling(request, start, end));
+                    c.addAll(maintenance(request, start, end));
                     out.print(gson.toJson(c));
                 } catch (Exception e) {
                     out.print(e.getMessage());

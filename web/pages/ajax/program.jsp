@@ -215,13 +215,44 @@ $("#samplingsummary").on('submit', 'form', function(e) {
  	    end.setDate(end.getDate() + 1); // idem for sampling ^
  	    
  	    var machine =  $(this).find('select[name="machine"]').val(),
- 	    	jo = $(this).find('select[name="joborder"]').val();
+ 	    	client = $(this).find('select[name="client"]').val(),
+ 	    	description = $(this).find('input[name="description"]').val(),
+ 	    	machine =  $(this).find('select[name="machine"]').val();
+ 	    
  	    $.post("<%=request.getContextPath()%>/add?what=sampling",
  	            {
  	            	start: start.toUTCString(),
  	            	end:   end.toUTCString(),
+ 	            	client: client,
  	            	machine: machine,
- 	            	joborder: jo
+ 	            	description: description
+ 	            }, function(data){
+ 	        		if(isNaN(parseInt(data))) { alert(data); }
+ 	        		$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
+					$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
+ 	            });
+ 	}
+});
+
+$("#maintenancesummary").on('submit', 'form', function(e) {
+    e.preventDefault();
+ 	if(window.user.canAddJobOrder) {
+ 	    var start = $(this).find(".autostart").datepicker("getDate"),
+ 	        end = $(this).find(".autoend").datepicker("getDate");
+ 	    // datepicker start from the day before the selection (wtf)
+ 	    start.setDate(start.getDate() + 1); //always defined (required field)
+ 	    end.setDate(end.getDate() + 1); // ^
+ 	    
+ 	    var machine =  $(this).find('select[name="machine"]').val(),
+ 	    	description = $(this).find('input[name="description"]').val(),
+ 	    	machine =  $(this).find('select[name="machine"]').val();
+ 	    
+ 	    $.post("<%=request.getContextPath()%>/add?what=maintenance",
+ 	            {
+ 	            	start: start.toUTCString(),
+ 	            	end:   end.toUTCString(),
+ 	            	machine: machine,
+ 	            	description: description
  	            }, function(data){
  	        		if(isNaN(parseInt(data))) { alert(data); }
  	        		$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );

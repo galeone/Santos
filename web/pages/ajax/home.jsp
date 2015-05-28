@@ -42,7 +42,7 @@ if(user.getIsAdmin()) { %>
 			<form id="autoassignworkingdays">
 				A partire da <sup>*</sup><input type="text" class="autostart" required /> <br />
 				Fino a <sup>*</sup><input type="text" class="autoend" required /> <br />
-				<input type="number" min="1" max="24" id="wdhours" value="0" /><br />
+				<input type="number" min="1" max="24" id="hours" value="0" name="hours" required/><br />
 				<br /><br /><input type="submit" value="Auto assegna" />
 			</form>
 		</div>
@@ -170,8 +170,33 @@ $("#globalCalendar").fullCalendar({
 }).find(".fc-left").append('<div id="homeTrash" class="calendar-trash">' +
 '<img src="<%=request.getContextPath()%>/styles/fullcalendar/trash.png"></img></div>');
 
+$("#autoassignworkingdays").on('submit', function(e) {
+    e.preventDefault();
+ 	if(window.user.isAdmin) {
+ 	    var start = $(this).find(".autostart").datepicker("getDate"),
+ 	        end = $(this).find(".autoend").datepicker("getDate");
+ 	    // datepicker start from the day before the selection (wtf)
+ 	    start.setDate(start.getDate() + 1); //always defined (required field)
+ 	    end.setDate(end.getDate() + 1);
+ 	    
+ 	    var hours = $(this).find('input[name="hours"]').val();
+ 	    $.post("<%=request.getContextPath()%>/add?what=workingday",
+ 	            {
+ 	            	start: start.toUTCString(),
+ 	            	end:   end.toUTCString(),
+ 	            	hours: hours
+ 	            }, function(data) {
+ 	        		if(data != 'ok') { alert(data); }
+ 	        		$("#globalCalendar").fullCalendar( 'refetchEvents' );
+ 					$("#globalCalendar").fullCalendar( 'rerenderEvents' );
+ 	   });
+ 	}
+ });
+
 $("#accordion").accordion({
     collapsible: true,
     heightStyle: "content"
 });
+$(".autostart").datepicker( { dateFormat: "dd/mm/yy" } );
+$(".autoend").datepicker( { dateFormat: "dd/mm/yy" } );
 </script>

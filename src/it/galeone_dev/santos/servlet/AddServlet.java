@@ -22,6 +22,7 @@ import java.security.InvalidParameterException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -57,6 +58,7 @@ public class AddServlet extends HttpServlet {
         doPost(req, resp);
     }
     
+    @SuppressWarnings("unchecked")
     private GlobalEvent addOneGlobalEvent(GlobalEvent event, Date start, Date end) {
         event.setEnd(end);
         event.setStart(start);
@@ -68,10 +70,25 @@ public class AddServlet extends HttpServlet {
             return null;
         }
         
-        Query q = hibSession.createQuery("delete from " + event.getClass().getSimpleName() + " where starts between :start and :end")
+        Query q = hibSession.createQuery("from " + event.getClass().getSimpleName() + " where starts between :start and :end")
                         .setDate("start", EventUtils.start(event.getStart()))
                         .setDate("end", EventUtils.end(event.getStart()));
-        q.executeUpdate();
+        List<GlobalEvent> l = q.list();
+        if(l.size() != 0) {
+            event = l.get(0);
+            event.setEnd(end);
+            event.setStart(start);
+        } else {
+            try {
+                event = event.getClass().newInstance();
+                event.setEnd(end);
+                event.setStart(start);
+            } catch (InstantiationException | IllegalAccessException e) {
+                message.replace(0, message.length(), e.getMessage());
+                return null;
+            }
+            
+        }
         
         hibSession.saveOrUpdate(event);
         savedObject = event;
@@ -109,9 +126,29 @@ public class AddServlet extends HttpServlet {
         }
 
         try {
-            Map<String, String> params = ServletUtils.getParameters(request, new String[] { "start", "end" });
+            Map<String, String> params = ServletUtils.getParameters(request, new String[] { "start", "end" }, new String[] {"hours"});
             WorkingDay wh = new WorkingDay();
-            addOneGlobalEvent(wh, EventUtils.parseDate(params.get("start")), EventUtils.parseDate(params.get("end")));
+            Date start = EventUtils.start(EventUtils.parseDate(params.get("start")));
+            if(params.get("hours") != null) {
+                Long hours = Long.parseLong(params.get("hours"));
+                Date end = EventUtils.start(EventUtils.parseDate(params.get("end")));
+                
+                if(start.after(end)) {
+                    message.replace(0, message.length(), "Data di inizio precedente a data di fine");
+                    return;
+                }
+                while(start.before(end) || start.equals(end)) {
+                    wh.setStart(start);
+                    Date eventEnd = new Date(start.getTime() + hours * 60 * 60 *1000);
+                    wh.setEnd(eventEnd);
+                    addOneGlobalEvent(wh, start, eventEnd);
+                    start = EventUtils.tomorrow(start);
+                }
+                
+            } else {
+                Date end = EventUtils.parseDate(params.get("end"));
+                addOneGlobalEvent(wh, start, end);
+            }
         } catch (ParseException e) {
             message.replace(0, message.length(), "formato data non valido");
         } catch (InvalidParameterException e1) {
