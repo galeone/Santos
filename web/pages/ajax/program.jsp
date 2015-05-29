@@ -69,7 +69,7 @@
 										<option value="${machine.id}">${machine.id}-
 											<c:out value="${machine.name}" /></option>
 									</c:forEach>
-								</select><br /> Descrizione<br /> <input type="text" name="description" /><br />
+								</select><br /> Descrizione<br /> <input type="text" name="description" required /><br />
 								A partire da <sup>*</sup><input type="text" class="autostart"
 									required /><br /> Fino a <sup>*</sup> <input type="text"
 									class="autoend" required /> <br />
@@ -84,18 +84,17 @@
 								Seleziona il cliente ed imposta la durata. <br />Dopo trascina
 								il blocchetto sul calendario.
 							</p>
-							Cliente<br /> <select name="client">
-								<option selected disabled>Scegli il cliente</option>
-								<c:forEach var="c" items="${clients}">
-									<option value="${c.id}" title="<c:out value="${c.name}" />"><c:out
-											value="${c.name} [${c.code}]" /></option>
-								</c:forEach>
-							</select><br /> Descrizione<br /> <input type="text" name="description" /><br />
-							Ore<br />
-							<input style="display: inline" type="number" min="0" max="24"
-								id="samplinghours" /><br /> Minuti<br />
-							<input style="display: inline" type="number" min="0" max="59"
-								id="samplingminutes" /><br />
+							Cliente<br />
+							<form id="sform">
+								<select name="client" required>
+									<option selected disabled>Scegli il cliente</option>
+									<c:forEach var="c" items="${clients}">
+										<option value="${c.id}" title="<c:out value="${c.name}" />"><c:out
+												value="${c.name} [${c.code}]" /></option>
+									</c:forEach>
+								</select><br /> Descrizione<br /> <input type="text" name="description" required /><br />
+								Ore: <input style="display: inline" type="number" min="1" max="24" value="0" name="hours" required/><br />
+							</form>
 							<br />
 							<div id="sampling-event"></div>
 							<br />
@@ -136,12 +135,10 @@
 								Inserisci la descrizione, <br />dopo trascina il blocchetto sul
 								calendario delle macchina
 							</p>
-							Descrizione<br /> <input type="text" name="description" /><br />
-							Ore<br />
-							<input style="display: inline" type="number" min="0" max="24"
-								id="maintenancehours" /><br /> Minuti<br />
-							<input style="display: inline" type="number" min="0" max="59"
-								id="maintenanceminutes" /><br />
+							<form id="mform">
+								Descrizione<br /> <input type="text" name="description" required /><br />
+								Ore: <input style="display: inline" type="number" min="1" max="24" value="0" name="hours" required/><br />
+							</form>
 							<br />
 							<div id="maintenance-event"></div>
 							<br />
@@ -174,25 +171,64 @@
 </div>
 <% Gson gson = new Gson(); %>
 <script>
-var $block = $("#sampling-event"), title = 'CAMPIONAMENTO',
-event = {
+var $sBlock = $("#sampling-event"), title = 'CAMPIONAMENTO',
+sevent = {
 		title: title,
 		allDay: true,
-		type: 'sampling',
-		last: 24
-		// dinamically add machine & joborder reference (and color, from joborder)
+		type: 'sampling'
 };
-$block.html(title);
-$block.data('event', event);
+$sBlock.html(title);
+$sBlock.data('event', sevent);
 
-$block.draggable({
+$sBlock.draggable({
 	zIndex: 999,
 	revert: true,
 	revertduration: 0,
 	appendTo: "body",
-	helper: "clone"
+	helper: function() {
+	    var whform = $("#sform");
+	    if(!whform[0].checkValidity()) {
+			alert("completa tutti i campi");
+	    } else {
+			var event = $sBlock.data('event');
+			event.description = whform.find('input[name="description"]').val();
+			event.client = whform.find('select[name="client"]').val();
+			event.last   = whform.find('input[name="hours"]').val();
+			$sBlock.data('event', event);
+	    }
+	    return $sBlock.clone(true);
+	}
 });
-$block.addClass("fc-draggable-event sampling");
+$sBlock.addClass("fc-draggable-event sampling");
+
+var $mBlock = $("#maintenance-event");
+title = 'MANUTENZIONE';
+var mevent = {
+		title: title,
+		allDay: true,
+		type: 'maintenance'
+};
+$mBlock.html(title);
+$mBlock.data('event', mevent);
+
+$mBlock.draggable({
+	zIndex: 999,
+	revert: true,
+	revertduration: 0,
+	appendTo: "body",
+	helper: function() {
+	    var whform = $("#mform");
+	    if(!whform[0].checkValidity()) {
+			alert("completa tutti i campi");
+	    } else {
+			var event = $mBlock.data('event');
+			event.description = whform.find('input[name="description"]').val();
+			$mBlock.data('event', event);
+	    }
+		return $mBlock.clone(true);
+	}
+});
+$mBlock.addClass("fc-draggable-event maintenance");
 
 window.todojoborders = <%= gson.toJson(application.getAttribute("todojoborders")) %>;
 window.machines = <%= gson.toJson(application.getAttribute("machines")) %>;
@@ -284,6 +320,7 @@ function newAssignedJobOrder(data, machine) {
 }
 
 function toSend(event, machine) {
+    console.log("ToSend: ", event);
     if(event.type == 'assignedjoborder') return {
 			start: event._start._d.toUTCString(),
 			machine: machine,
@@ -292,11 +329,13 @@ function toSend(event, machine) {
 	if(event.type == 'sampling') return {
 			start: event._start._d.toUTCString(),
 			machine: machine,
-			joborder: $("#joborder").val() };
+			client: event.client,
+			description: event.description };
 			
 	if(event.type == 'maintenance') return {
             	start: event._start._d.toUTCString(),
-            	machine: machine };
+            	machine: machine,
+            	description: event.description };
     return {};
 };
 

@@ -42,7 +42,7 @@ if(user.getIsAdmin()) { %>
 			<form id="autoassignworkingdays">
 				A partire da <sup>*</sup><input type="text" class="autostart" required /> <br />
 				Fino a <sup>*</sup><input type="text" class="autoend" required /> <br />
-				<input type="number" min="1" max="24" id="hours" value="0" name="hours" required/><br />
+				Ore: <input style="display: inline" "type="number" min="1" max="24" id="hours" value="0" name="hours" required/><br />
 				<br /><br /><input type="submit" value="Auto assegna" />
 			</form>
 		</div>

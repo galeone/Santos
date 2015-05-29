@@ -102,6 +102,11 @@ div.contain table td, div.contain table th {
 	background-color: #00E;
 }
 
+.maintenance {
+	color: #fff;
+	background-color: #808080;
+}
+
 .leftc {
 	float: left;
 	width: 23%;
