@@ -33,7 +33,7 @@ if(user.getIsAdmin()) { %>
 			<h1>Inserimento manuale (drag and drop)</h1>
 			<i>Inserisci il numero di ore e trascina il blocchetto sul calendario</i>
 			<form id="whform">
-				Ore: <input style="display: inline" type="number" min="1" max="24" id="wdhours" value="0" /><br />
+				Ore: <input style="display: inline" type="number" min="1" max="24" id="wdhours" value="0" required/><br />
 			</form><br />
 			<div id="workingday-event"></div>
 			<hr />
@@ -42,7 +42,7 @@ if(user.getIsAdmin()) { %>
 			<form id="autoassignworkingdays">
 				A partire da <sup>*</sup><input type="text" class="autostart" required /> <br />
 				Fino a <sup>*</sup><input type="text" class="autoend" required /> <br />
-				Ore: <input style="display: inline" "type="number" min="1" max="24" id="hours" value="0" name="hours" required/><br />
+				Ore: <input style="display: inline" type="number" min="1" max="24" id="hours" value="0" name="hours" required/><br />
 				<br /><br /><input type="submit" value="Auto assegna" />
 			</form>
 		</div>

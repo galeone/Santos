@@ -1,5 +1,6 @@
 package it.galeone_dev.santos.servlet;
 
+import it.galeone_dev.santos.GetCollection;
 import it.galeone_dev.santos.hibernate.HibernateUtils;
 import it.galeone_dev.santos.hibernate.abstractions.EventUtils;
 import it.galeone_dev.santos.hibernate.models.AssignedJobOrder;
@@ -16,6 +17,7 @@ import it.galeone_dev.santos.hibernate.models.WorkingDay;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.text.ParseException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 
@@ -109,7 +111,6 @@ public class DeleteServlet extends HttpServlet {
                     message = "Non puoi eliminare l'amministratore";
                 } else {
                     hibSession.delete((User) toDelete);
-                    message = "ok";
                 }
             } else {
                 message = "Utente con id " + id + " non esistente";
@@ -136,7 +137,6 @@ public class DeleteServlet extends HttpServlet {
                 toDelete = hibSession.get(NonWorkingDay.class, id);
                 if (toDelete != null) { // exists
                     hibSession.delete((NonWorkingDay) toDelete);
-                    message = "ok";
                 } else {
                     message = "Giorno non lavorativo non esistente";
                 }
@@ -181,7 +181,6 @@ public class DeleteServlet extends HttpServlet {
                 toDelete = hibSession.get(WorkingDay.class, id);
                 if (toDelete != null) { // exists
                     hibSession.delete((WorkingDay) toDelete);
-                    message = "ok";
                 } else {
                     message = "Giorno lavorativo non esistente";
                 }
@@ -226,7 +225,6 @@ public class DeleteServlet extends HttpServlet {
                 toDelete = hibSession.get(Sampling.class, id);
                 if (toDelete != null) { // exists
                     hibSession.delete((Sampling) toDelete);
-                    message = "ok";
                 } else {
                     message = "Campionamento non esistente";
                 }
@@ -289,7 +287,6 @@ public class DeleteServlet extends HttpServlet {
                 toDelete = hibSession.get(Maintenance.class, id);
                 if (toDelete != null) { // exists
                     hibSession.delete((Maintenance) toDelete);
-                    message = "ok";
                 } else {
                     message = "Manutenzione non esistente";
                 }
@@ -341,7 +338,6 @@ public class DeleteServlet extends HttpServlet {
             toDelete = hibSession.get(Client.class, id);
             if (toDelete != null) { // exists
                 hibSession.delete((Client) toDelete);
-                message = "ok";
             } else {
                 message = "Cliente con id " + id + " non esistente";
             }
@@ -364,7 +360,6 @@ public class DeleteServlet extends HttpServlet {
             toDelete = hibSession.get(Machine.class, id);
             if (toDelete != null) { // exists
                 hibSession.delete((Machine) toDelete);
-                message = "ok";
             } else {
                 message = "Macchina con id " + id + " non esistente";
             }
@@ -393,7 +388,6 @@ public class DeleteServlet extends HttpServlet {
                     j.setMissingTime(j.getMissingTime() + EventUtils.getLast(aj));
                     hibSession.saveOrUpdate(j);
                     hibSession.delete((AssignedJobOrder) toDelete);
-                    message = "ok";
                 } else {
                     message = "Assegnamento blocchetto orario a macchina non esistente";
                 }
@@ -421,10 +415,24 @@ public class DeleteServlet extends HttpServlet {
                     return;
                 }
                 
-                // TODO: aggiornare joborder .missingtime
+                Collection<AssignedJobOrder> willRemove = GetCollection.assignedJobOrdersBetween(m, start, end);
+                Long removedTime = 0L;
+                for(AssignedJobOrder a : willRemove) {
+                    removedTime += EventUtils.getLast(a);
+                }
+                j.setMissingTime(j.getMissingTime() + removedTime);
                 if(deleteBetween(AssignedJobOrder.class, start, end, m, j) < 0) {
                     message = "problema durante l'eliminazione";
                 }
+                hibSession.saveOrUpdate(j);
+                
+                //Fake toDelete event
+                AssignedJobOrder fake = new AssignedJobOrder();
+                fake.setStart(start);
+                fake.setEnd(end);
+                fake.setJobOrder(j);
+                fake.setMachine(m);
+                toDelete = fake;
                 
             } else {
                 message = "richiesta errata, manca id|start|end";
@@ -453,7 +461,6 @@ public class DeleteServlet extends HttpServlet {
             toDelete = hibSession.get(JobOrder.class, id);
             if (toDelete != null) { // exists
                 hibSession.delete((JobOrder) toDelete);
-                message = "ok";
             } else {
                 message = "Commessa con id " + id + " non esistente";
             }
@@ -500,7 +507,8 @@ public class DeleteServlet extends HttpServlet {
 
             hibSession = HibernateUtils.getSessionFactory().openSession();
             hibSession.beginTransaction();
-
+            
+            message = "ok";
             switch (params.get("what")) {
 
             case "nonworkingday":

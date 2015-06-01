@@ -46,6 +46,44 @@
 				</c:choose>
 				<div id="jobordersummary"></div>
 			</div>
+			<h3>Cancellazione</h3>
+			<div>
+				<c:choose>
+					<c:when test="${empty joborders}">
+						Non esistono commesse<br />
+					</c:when>
+					<c:otherwise>
+					<p>Puoi cancellare delle ore lavorative assegnate ad una macchina e ad una commessa</p>
+					<p>La cancellazione manuale è fatta tramite trascinamento delle ore assegnate sul cestino associato
+					al calendario della macchina</p>
+					<p>La cancellazione automatica può essere fatta completando il form sottostante</p><br />
+					<form id="deleteJobOrder">
+						Commessa<br />
+						<select name="joborder">
+							<option selected disabled>Scegli una commessa</option>
+							<c:forEach var="entry" items="${joborders}" varStatus="loop">
+								<option value="${entry.id}">
+									[${entry.id}] ${entry.description}
+								</option>
+							</c:forEach>
+						</select>
+						<br />
+						Macchina<br />
+						<select name="machine">
+							<option selected disabled>Scegli una macchina</option>
+							<c:forEach var="machine" items="${machines}">
+								<option value="${machine.id}">${machine.id}-
+									<c:out value="${machine.name}" /></option>
+							</c:forEach>
+						</select><br />
+						A partire da <sup>*</sup><input type="text" class="autostart"required /><br />
+						Fino a <sup>*</sup> <input type="text" class="autoend" required /> <br />
+						<input type="submit" value="Auto cancella" /><br />
+					</form>
+					</c:otherwise>
+				</c:choose>
+				<div id="jobordersummary"></div>
+			</div>
 			<!-- accordion -->
 			<h3>Campionamento</h3>
 			<div>
@@ -250,8 +288,7 @@ $("#samplingsummary").on('submit', 'form', function(e) {
  	    start.setDate(start.getDate() + 1); //always defined (required field)
  	    end.setDate(end.getDate() + 1); // idem for sampling ^
  	    
- 	    var machine =  $(this).find('select[name="machine"]').val(),
- 	    	client = $(this).find('select[name="client"]').val(),
+ 	    var client = $(this).find('select[name="client"]').val(),
  	    	description = $(this).find('input[name="description"]').val(),
  	    	machine =  $(this).find('select[name="machine"]').val();
  	    
@@ -523,5 +560,32 @@ $("#accordionActions").accordion({
 
 $(".autostart").datepicker( { dateFormat: "dd/mm/yy" } );
 $(".autoend").datepicker( { dateFormat: "dd/mm/yy" } );
+
+$("#deleteJobOrder").on('submit', function(e) {
+    e.preventDefault();
+	if(window.user.canAddJobOrder) {
+	    var start = $(this).find(".autostart").datepicker("getDate"),
+	        end = $(this).find(".autoend").datepicker("getDate");
+	    // datepicker start from the day before the selection (wtf)
+	    start.setDate(start.getDate() + 1); //always defined (required field)
+	    end.setDate(end.getDate() + 1); // idem for sampling ^
+	    
+	    var joborder = $(this).find('select[name="joborder"]').val(),
+	    	machine =  $(this).find('select[name="machine"]').val();
+	    
+	    $.post("<%=request.getContextPath()%>/delete?what=assignedjoborder",
+	            {
+	            	start: start.toUTCString(),
+	            	end:   end.toUTCString(),
+	            	machine: machine,
+	            	joborder: joborder
+	            }, function(data){
+	        		if(data != 'ok') { alert(data); }
+	        		$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
+					$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
+	            });
+	}
+   
+});
 
 </script>
