@@ -116,7 +116,6 @@ public class AddServlet extends HttpServlet {
         } catch (InvalidParameterException e1) {
             message.replace(0, message.length(), e1.getMessage());
         }
-
     }
 
     private void workingDay(HttpServletRequest request) {
@@ -129,6 +128,12 @@ public class AddServlet extends HttpServlet {
             Map<String, String> params = ServletUtils.getParameters(request, new String[] { "start", "end" }, new String[] {"hours"});
             WorkingDay wh = new WorkingDay();
             Date start = EventUtils.start(EventUtils.parseDate(params.get("start")));
+            Date today = EventUtils.start(new Date());
+            if(start.before(today)) {
+                message.replace(0, message.length(), "Non puoi modificare le ore lavorative di giorni passati");
+                return;
+            }
+            
             if(params.get("hours") != null) {
                 Long hours = Long.parseLong(params.get("hours"));
                 Date end = EventUtils.start(EventUtils.parseDate(params.get("end")));

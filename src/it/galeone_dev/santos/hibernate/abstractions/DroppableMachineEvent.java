@@ -23,6 +23,7 @@ public abstract class DroppableMachineEvent implements MachineEvent {
         Collection<Event> toSkip = new LinkedList<Event>(nonWorkingDaysAfterEvent);
         
         Collection<DroppableMachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
+        Collection<MachineEvent> movedEvents = new LinkedList<MachineEvent>();
         
         Calendar cal = Calendar.getInstance(EventUtils.timezone);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
@@ -79,6 +80,7 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             long last = EventUtils.getLast(conflictEvent) * 60000;
             conflictEvent.setStart(nextDate);
             conflictEvent.setEnd(new Date(nextDate.getTime() + last));
+            movedEvents.add(conflictEvent);
             // hibSession.saveOrUpdate(conflictEvent);
             conflictEvent = (MachineEvent) hibSession.merge(conflictEvent);
             hibSession.getTransaction().commit();
@@ -89,7 +91,27 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             qq.removeAll(newConflicts);
             // add elements without duplicate
             qq.addAll(newConflicts);
-        }        
+        }
+        
+        for(MachineEvent moved : movedEvents) {
+            Long movedLast = EventUtils.getLast(moved), dayLast = EventUtils.getLast(WorkingDay.get(moved.getStart()));
+            if(movedLast > dayLast) {
+                moved.setEnd(new Date(moved.getStart().getTime() + dayLast * 60000));
+                hibSession.merge(moved);
+                hibSession.getTransaction().commit();
+                hibSession.getTransaction().begin();
+                
+                Long remainingTime = movedLast - dayLast;
+                while(remainingTime > 0) {
+                    moved.setStart(EventUtils.tomorrow(moved.getStart()));
+                    dayLast = EventUtils.getLast(WorkingDay.get(moved.getStart()));
+                    moved.setEnd(new Date(moved.getStart().getTime() + dayLast * 60000));
+                    hibSession.save(moved);
+                    shiftRight(moved, hibSession);
+                    remainingTime -= dayLast;
+                }
+            }
+        }
     }
     
     private Date oldStart;
