@@ -489,6 +489,7 @@ $("#todoJobOrders").selectmenu({
 			            {
 			            	id: event.id,
 			            	start: event._start._d.toUTCString(),
+			            	end: event._end._d.toUTCString(),
 			            	// global events (does not have machine/joborder)
 			            	machine:  typeof(event.machine)  == 'undefined' ? '' : event.machine.id,
 				            joborder: typeof(event.jobOrder) == 'undefined' ? '' : event.jobOrder.id

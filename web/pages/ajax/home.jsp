@@ -133,7 +133,8 @@ $("#globalCalendar").fullCalendar({
 		    $.post("<%=request.getContextPath()%>/edit?what=" + event.type,
 		            {
 		            	id: event.id,
-		            	start: event._start._d.toUTCString()
+		            	start: event._start._d.toUTCString(),
+		            	end: event._end._d.toUTCString()
 		            },
 					function(data){
 		            	if(data != 'ok') { alert(data); revertFunc(); } 
