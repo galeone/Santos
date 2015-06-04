@@ -89,7 +89,7 @@ picker.linkTo(function(color) {
 	$in.prop('readonly', true);
 });
 
-$("#ore").on('keyup mouseup', function() {
+$("#ore").on('input mousewheel', function() {
 	var minutes = parseInt($("#minuti").val()),
 		hours =  parseInt($(this).val());
 	
@@ -98,7 +98,7 @@ $("#ore").on('keyup mouseup', function() {
 	$("#timeforitem").val(hours * 60 + minutes);
 });
 
-$("#minuti").on('keyup mouseup', function() {
+$("#minuti").on('input mousewheel', function() {
 	var hours  	= parseInt($("#ore").val()),
 		minutes =  parseInt($(this).val());
 
@@ -107,7 +107,7 @@ $("#minuti").on('keyup mouseup', function() {
 	$("#timeforitem").val(hours * 60 + minutes);
 });
 
-$("#numberofitems").on('keyup mouseup', function() {
+$("#numberofitems").on('input mousewheel', function() {
     $("#leadtime").val($("#timeforitem").val() * parseInt($(this).val()));
 	$("#missingtime").val($("#leadtime").val());
 });

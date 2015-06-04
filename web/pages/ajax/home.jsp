@@ -15,7 +15,7 @@
 <div class="wrap">
 	<%
 if(user.getIsAdmin()) { %>
-	<div class="leftc" style="background: #eee">
+	<div class="leftc">
 	<h1>Gestione giorni/ore lavorative</h1>
 	<div id="accordion">
 		<h4>Giorni non lavorativi</h4>
