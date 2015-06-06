@@ -1,5 +1,6 @@
 package it.galeone_dev.santos.servlet;
 
+import it.galeone_dev.santos.GetCollection;
 import it.galeone_dev.santos.hibernate.HibernateUtils;
 import it.galeone_dev.santos.hibernate.abstractions.DroppableMachineEvent;
 import it.galeone_dev.santos.hibernate.abstractions.EventUtils;
@@ -20,8 +21,10 @@ import it.galeone_dev.santos.hibernate.models.WorkingDay;
 import java.io.IOException;
 import java.security.InvalidParameterException;
 import java.text.ParseException;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -117,6 +120,123 @@ public class AddServlet extends HttpServlet {
             message.replace(0, message.length(), e1.getMessage());
         }
     }
+    
+    private void fixAJ(WorkingDay wd) {
+        Collection<Machine> machines = GetCollection.machines();
+        DummyMachineEvent me = new DummyMachineEvent();
+        me.setStart(wd.getStart());
+        me.setEnd(EventUtils.end(wd.getStart()));
+        
+        Long newWorkingHours = EventUtils.getLast(wd);
+        
+        for(Machine m : machines) {
+            me.setMachine(m);
+            Collection<AssignedJobOrder> sameDayAJ = GetCollection.assignedJobOrdersTheSameDayOf(me);
+            Long oldAssignedHours = 0L;
+            for(AssignedJobOrder aj : sameDayAJ) {
+                oldAssignedHours += EventUtils.getLast(aj);
+            }
+            
+            if(oldAssignedHours < newWorkingHours) {
+                // cerca nei giorni successivi cosa può slittare indietro a cascata
+                
+            } else if(oldAssignedHours > newWorkingHours) {
+                // spezza le ore assegnate fino a riempire le nuove ore, sposta in avanti le
+                // ore che non ci stanno più
+                
+                // cerco se esiste un evento tra i samedayAJ che dura esattamente la nuova durata
+                // se c'è, metto lui nel giorno odierno e slitto gli altri in avanti
+                // altrimenti cerco se esistono di durata minore e li sommo finché non arrivo alla durata nuova
+                // se non riesco ad arrivare alla durata nuova con quelli che durano meno, allora tolgo ore
+                // da quelli rimanenti
+                Long sumOfLessLast = 0L, sumOfMoreLast = 0L;
+                // sumofless last + sumof more last = vecchio tempo (da considerare se non esiste un evento della durata nuova)
+                Collection<AssignedJobOrder> lessLast = new LinkedList<AssignedJobOrder>();
+                Collection<AssignedJobOrder> moreLast = new LinkedList<AssignedJobOrder>();
+                for(AssignedJobOrder aj : sameDayAJ) {
+                    Long myLast = EventUtils.getLast(aj);
+                    if(myLast == newWorkingHours) {
+                        for(AssignedJobOrder toMove : sameDayAJ) {
+                            if(!toMove.equals(aj)) {
+                                toMove.setStart(EventUtils.tomorrow(toMove.getStart()));
+                                toMove.setEnd(EventUtils.tomorrow(toMove.getEnd()));
+                                hibSession.merge(toMove);
+                                DroppableMachineEvent.shiftRight(toMove, hibSession, true);
+                            }
+                        }
+                        return;
+                    } else if(myLast < newWorkingHours ) {
+                        sumOfLessLast += EventUtils.getLast(aj);
+                        lessLast.add(aj);
+                    } else if(myLast > newWorkingHours) {
+                        sumOfMoreLast += EventUtils.getLast(aj);
+                        moreLast.add(aj);
+                    }
+                }
+                
+                // ho ridotto le ore
+                // se la somma degli eventi che durano meno di oggi è > delle nuove ore
+                //faccio rimanere quanti più eventi possibili nella data di oggi, gli altri slittano
+                // possono rimanere finché sumOfLessLast <= newWorkingHours
+                
+                // se la somma è minore o uguale, possono rimanere tutti
+                boolean saveNext = false;
+                if(sumOfLessLast > newWorkingHours) {
+                    for(AssignedJobOrder aj : lessLast) {
+                        if(saveNext) {
+                            break;
+                        } else {
+                            Long thisLast = EventUtils.getLast(aj);
+                            if(sumOfLessLast - thisLast <= newWorkingHours) {
+                                saveNext = true; // quelli dopo, possono rimanere, quindi esco
+                            }
+                            aj.setStart(EventUtils.tomorrow(aj.getStart()));
+                            aj.setEnd(EventUtils.tomorrow(aj.getEnd()));
+                            hibSession.merge(aj);
+                            DroppableMachineEvent.shiftRight(aj, hibSession, true);
+                        }
+                    }
+                }
+                // ma se la somma è minore ed esistono eventi che durano più della giornata intero
+                // prendi un'evento che dura più di oggi, riduci le ore per arrivare a completare la giornata
+                // salvalo nella giornata e sposta in avanti un nuovo evento che è pari al vecchio meno il tempo
+                // sotratto. Assieme a tutti gli altri
+                
+                if(moreLast.size() > 0) {
+                    AssignedJobOrder toReduce = moreLast.toArray(new AssignedJobOrder[moreLast.size()])[0],
+                            tomorrowEvent = new AssignedJobOrder();
+                    Date begin = new Date(toReduce.getStart().getTime());                    
+                    Long timeToRemove = 0L;
+                    
+                    if(sumOfLessLast > 0 && sumOfLessLast < newWorkingHours) {
+                        timeToRemove = newWorkingHours - sumOfLessLast;
+                    } else {
+                        timeToRemove = (sumOfLessLast + sumOfMoreLast) - newWorkingHours;
+                    }
+                    
+                    toReduce.setEnd(new Date(toReduce.getEnd().getTime() - timeToRemove*60000));
+                    hibSession.merge(toReduce);
+                    moreLast.remove(toReduce);
+                    
+                    tomorrowEvent.setStart(EventUtils.tomorrow(begin));
+                    tomorrowEvent.setEnd(new Date(tomorrowEvent.getStart().getTime() + timeToRemove*60000));
+                    tomorrowEvent.setJobOrder(toReduce.getJobOrder());
+                    tomorrowEvent.setMachine(m);
+
+                    moreLast.add(tomorrowEvent);
+                }
+                
+                // ogni elementi che dura più di oggi va spostato (Assieme a quel che rimane dell'
+                // evento a cui è stata mangiata una parte di durata ^)
+                for(AssignedJobOrder toMove : moreLast) {
+                    hibSession.merge(toMove);
+                    AssignedJobOrder.shiftRight(toMove, hibSession, true);
+                }
+                
+            }
+            
+        }
+    }
 
     private void workingDay(HttpServletRequest request) {
         if (!user.getIsAdmin()) {
@@ -147,12 +267,14 @@ public class AddServlet extends HttpServlet {
                     Date eventEnd = new Date(start.getTime() + hours * 60 * 60 *1000);
                     wh.setEnd(eventEnd);
                     addOneGlobalEvent(wh, start, eventEnd);
+                    fixAJ(wh);
                     start = EventUtils.tomorrow(start);
                 }
                 
             } else {
                 Date end = EventUtils.parseDate(params.get("end"));
                 addOneGlobalEvent(wh, start, end);
+                fixAJ(wh);
             }
         } catch (ParseException e) {
             message.replace(0, message.length(), "formato data non valido");

@@ -1,6 +1,7 @@
 package it.galeone_dev.santos.hibernate.abstractions;
 
 import it.galeone_dev.santos.GetCollection;
+import it.galeone_dev.santos.hibernate.models.AssignedJobOrder;
 import it.galeone_dev.santos.hibernate.models.NonWorkingDay;
 import it.galeone_dev.santos.hibernate.models.WorkingDay;
 
@@ -16,6 +17,10 @@ import org.hibernate.Session;
 public abstract class DroppableMachineEvent implements MachineEvent {
     
     public static void shiftRight(MachineEvent e, Session hibSession) {
+        shiftRight(e, hibSession, false);
+    }
+    
+    public static void shiftRight(MachineEvent e, Session hibSession, boolean merge) {
         // Global events after e and the same day of e
         Collection<NonWorkingDay> nonWorkingDaysAfterEvent = GetCollection.nonWorkingDaysAfterEvent(e);
         Collection<NonWorkingDay> nonWorkingDaysInConflictWith = GetCollection.nonWorkingDaysTheSameDayOf(e);
@@ -28,18 +33,20 @@ public abstract class DroppableMachineEvent implements MachineEvent {
         Calendar cal = Calendar.getInstance(EventUtils.timezone);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
         
-
         // per ogni evento maccina in conflitto con il nuovo evento
         Queue<MachineEvent> qq = new LinkedList<MachineEvent>(machineEventsInConflict);
         
-        // genero la lista degli eventi macchina da dover sistamare, perché a causa
-        // di un evento globale ho dovuto shiftare l'evento su un evento maccihna già occupato
+        // genero la lista degli eventi macchina da dover sistamare, perché a
+        // causa
+        // di un evento globale ho dovuto shiftare l'evento su un evento
+        // maccihna già occupato
         // per ogni evento globale in conflitto con il nuovo evento
-        if(nonWorkingDaysInConflictWith.size() != 0) {
-            qq.add(e); // se sto spostando su un evento globale sicuramente dovrà muovermi, dato che lui sta fisso
+        if (nonWorkingDaysInConflictWith.size() != 0) {
+            qq.add(e); // se sto spostando su un evento globale sicuramente
+                       // dovrà muovermi, dato che lui sta fisso
         }
         
-        // per ogni evento macchina in conflitto con il nuovo evento macchina        
+        // per ogni evento macchina in conflitto con il nuovo evento macchina
         while (!qq.isEmpty()) {
             MachineEvent conflictEvent = qq.poll();
             cal.setTime(conflictEvent.getStart());
@@ -71,12 +78,14 @@ public abstract class DroppableMachineEvent implements MachineEvent {
                 }
             }
             
-            // nextDate ha dentro il prima giorno successivo senza eventi globali
+            // nextDate ha dentro il prima giorno successivo senza eventi
+            // globali
             
             // ora aggiorna l'evento in conflitto nella nuova data,
-            // dopo controlla se esistono eventi in conflitto con l'evento in conflitto
+            // dopo controlla se esistono eventi in conflitto con l'evento in
+            // conflitto
             // appena salvato e aggiungili alla lista di eventi da spostare
-
+            
             long last = EventUtils.getLast(conflictEvent) * 60000;
             conflictEvent.setStart(nextDate);
             conflictEvent.setEnd(new Date(nextDate.getTime() + last));
@@ -85,7 +94,7 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             conflictEvent = (MachineEvent) hibSession.merge(conflictEvent);
             hibSession.getTransaction().commit();
             hibSession.getTransaction().begin();
-                        
+            
             Collection<DroppableMachineEvent> newConflicts = GetCollection.machineEventsInConflictWith(conflictEvent);
             // remove events already present (avoid duplicate -> avoid loops)
             qq.removeAll(newConflicts);
@@ -93,22 +102,34 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             qq.addAll(newConflicts);
         }
         
-        for(MachineEvent moved : movedEvents) {
+        for (MachineEvent moved : movedEvents) {
             Long movedLast = EventUtils.getLast(moved), dayLast = EventUtils.getLast(WorkingDay.get(moved.getStart()));
-            if(movedLast > dayLast) {
+            if (movedLast > dayLast) {
                 moved.setEnd(new Date(moved.getStart().getTime() + dayLast * 60000));
                 hibSession.merge(moved);
                 hibSession.getTransaction().commit();
                 hibSession.getTransaction().begin();
                 
                 Long remainingTime = movedLast - dayLast;
-                while(remainingTime > 0) {
+                while (remainingTime > 0) {
                     moved.setStart(EventUtils.tomorrow(moved.getStart()));
                     dayLast = EventUtils.getLast(WorkingDay.get(moved.getStart()));
                     moved.setEnd(new Date(moved.getStart().getTime() + dayLast * 60000));
                     hibSession.save(moved);
                     shiftRight(moved, hibSession);
                     remainingTime -= dayLast;
+                }
+            }
+        }
+        // TODO
+        if (merge) {
+            for (MachineEvent moved : movedEvents) {
+                if (moved instanceof AssignedJobOrder) {
+                    Collection<AssignedJobOrder> sameDay = GetCollection.assignedJobOrdersTheSameDayOf(e);
+                    for (AssignedJobOrder aj : sameDay) {
+                        AssignedJobOrder.merge(aj, hibSession);
+                    }
+                    
                 }
             }
         }
@@ -127,15 +148,16 @@ public abstract class DroppableMachineEvent implements MachineEvent {
     public static void switchOn(DroppableMachineEvent e, Session hibSession, StringBuilder message) {
         Collection<DroppableMachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
         
-        if(GetCollection.nonWorkingDaysTheSameDayOf(e).size() > 0) {
-            message.replace(0,message.length(),"Non puoi produrre in un giorno non lavorativo");
+        if (GetCollection.nonWorkingDaysTheSameDayOf(e).size() > 0) {
+            message.replace(0, message.length(), "Non puoi produrre in un giorno non lavorativo");
             return;
         }
         
         Long myLast = EventUtils.getLast(e), maxLast = EventUtils.getLast(WorkingDay.get(e.getStart()));
-
-        if(myLast > maxLast ) {
-            message.replace(0,message.length(),"Non puoi spostare un evento di " + (myLast / 60) + " ore su una giornata lavorativa di "  + (maxLast / 60) + " ore.");
+        
+        if (myLast > maxLast) {
+            message.replace(0, message.length(), "Non puoi spostare un evento di " + (myLast / 60)
+                    + " ore su una giornata lavorativa di " + (maxLast / 60) + " ore.");
             return;
         }
         for (DroppableMachineEvent conflictEvent : machineEventsInConflict) {

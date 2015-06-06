@@ -484,6 +484,7 @@ $("#todoJobOrders").selectmenu({
 			}
 		},
 		eventDrop: function(event, delta, revertFunc) {
+		    console.log(event);
 			if(window.user.canAssignJobOrder) {
 			    $.post("<%=request.getContextPath()%>/edit?what=" + event.type,
 			            {
