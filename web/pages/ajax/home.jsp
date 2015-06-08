@@ -130,6 +130,11 @@ $("#globalCalendar").fullCalendar({
 	},
 	eventDrop: function(event, delta, revertFunc) {
 		if(window.user.isAdmin) {
+		    if(event.allDay) {
+				alert("Non puoi muovere questo tipo di evento");
+				revertFunc();
+				return;
+	    	}
 		    $.post("<%=request.getContextPath()%>/edit?what=" + event.type,
 		            {
 		            	id: event.id,

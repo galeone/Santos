@@ -138,7 +138,27 @@ public class AddServlet extends HttpServlet {
             }
             
             if(oldAssignedHours < newWorkingHours) {
-                // cerca nei giorni successivi cosa può slittare indietro a cascata
+                Collection<AssignedJobOrder> afterAJ = GetCollection.assignedJobOrdersAfterEvent(me);
+                Long newAvaiableTime = newWorkingHours - oldAssignedHours;
+                // devo riempire questo spazio, prendendo dagli aj successivi
+                // se tomorrow(evento) c'è un evento della stessa durata, allora spostalo indetro e poi sposta a cascata
+                // se tomorrow(evento) ci sono eventini la cui somma fa esattamente newTIme allora spostali e poi sposta a cascata
+                // se tomorr(evento) ha solo roba grande, riduci e poi sposta/riduci a cascata
+                // se tomorr(evento) ha eventi piccoli e eventoni, sposta i piccoli e riduci gli eventoni, poi a cascata
+                // per ogni aj che ho spostato o ridotto, devo fare la stessa cosa spostando indeitro altri elementi
+                Collection<AssignedJobOrder> movedOrReducedAj = new LinkedList<AssignedJobOrder>();
+                Date start = EventUtils.start(me.getStart()),
+                     end = EventUtils.end(me.getStart());
+                
+                while(newAvaiableTime > 0L) {
+                    Collection<AssignedJobOrder> tomorrowAj = GetCollection.assignedJobOrdersBetween(m, start, end);
+                    for(AssignedJobOrder aj : tomorrowAj) {
+                        Long myLast = EventUtils.getLast(aj);
+                        if(myLast.equals(newWorkingHours)) {
+                            
+                        }
+                    }
+                }
                 
             } else if(oldAssignedHours > newWorkingHours) {
                 // spezza le ore assegnate fino a riempire le nuove ore, sposta in avanti le
@@ -155,11 +175,12 @@ public class AddServlet extends HttpServlet {
                 Collection<AssignedJobOrder> moreLast = new LinkedList<AssignedJobOrder>();
                 for(AssignedJobOrder aj : sameDayAJ) {
                     Long myLast = EventUtils.getLast(aj);
-                    if(myLast == newWorkingHours) {
+                    if(myLast.equals(newWorkingHours)) {
                         for(AssignedJobOrder toMove : sameDayAJ) {
                             if(!toMove.equals(aj)) {
+                                Long thisLast = EventUtils.getLast(toMove);
                                 toMove.setStart(EventUtils.tomorrow(toMove.getStart()));
-                                toMove.setEnd(EventUtils.tomorrow(toMove.getEnd()));
+                                toMove.setEnd(new Date(toMove.getStart().getTime() + thisLast * 60000));
                                 hibSession.merge(toMove);
                                 DroppableMachineEvent.shiftRight(toMove, hibSession, true);
                             }

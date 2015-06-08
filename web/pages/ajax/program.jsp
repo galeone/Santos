@@ -486,6 +486,11 @@ $("#todoJobOrders").selectmenu({
 		eventDrop: function(event, delta, revertFunc) {
 		    console.log(event);
 			if(window.user.canAssignJobOrder) {
+			    if(event.allDay) {
+					alert("Non puoi muovere questo tipo di evento");
+					revertFunc();
+					return;
+			    }
 			    $.post("<%=request.getContextPath()%>/edit?what=" + event.type,
 			            {
 			            	id: event.id,

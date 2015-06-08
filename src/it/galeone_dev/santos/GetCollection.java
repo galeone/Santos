@@ -393,7 +393,7 @@ public class GetCollection {
                                 ? " e " + missingMinutes + " minuti"
                                 : "")
                        );
-            aj.setAllDay(lastInMinutes == EventUtils.getLast(WorkingDay.get((aj.getStart()))));
+            aj.setAllDay(false);
             aj.setColor(aj.getJobOrder().getColor());
             aj.setEditable(editable);
         }
@@ -436,7 +436,7 @@ public class GetCollection {
                                 ? " e " + missingMinutes + " minuti"
                                 : "")
                        );
-            s.setAllDay(lastInMinutes == EventUtils.getLast(WorkingDay.get((s.getStart()))));
+            s.setAllDay(false);
             s.setEditable(editable);
         }
         return l;
@@ -512,6 +512,25 @@ public class GetCollection {
     public static Collection<DroppableMachineEvent> machineEventsInConflictWith(MachineEvent e) {
         Collection<DroppableMachineEvent> ret = new HashSet<DroppableMachineEvent>();
         Collection<DroppableMachineEvent> machineEventsTheSameDay = machineEventsTheSameDayOf(e);
+        
+        Long last = EventUtils.getLast(e), hoursPerDay = EventUtils.getLast(WorkingDay.get(e.getStart()));
+        if(last >= hoursPerDay) {
+            ret =  machineEventsTheSameDay;
+        } else {
+            Long sumOfLast = 0L;
+            for(MachineEvent ev : machineEventsTheSameDay) {
+                sumOfLast += EventUtils.getLast(ev);
+            }
+            if(sumOfLast + last > hoursPerDay) {
+                ret = machineEventsTheSameDay;
+            }
+        }
+        return ret;
+    }
+    
+    public static Collection<AssignedJobOrder> assignedJobOrdersnConflictWith(MachineEvent e) {
+        Collection<AssignedJobOrder> ret = new HashSet<AssignedJobOrder>();
+        Collection<AssignedJobOrder> machineEventsTheSameDay = assignedJobOrdersTheSameDayOf(e);
         
         Long last = EventUtils.getLast(e), hoursPerDay = EventUtils.getLast(WorkingDay.get(e.getStart()));
         if(last >= hoursPerDay) {
