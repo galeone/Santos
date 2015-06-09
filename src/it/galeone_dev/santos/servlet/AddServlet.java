@@ -138,28 +138,8 @@ public class AddServlet extends HttpServlet {
             }
             
             if(oldAssignedHours < newWorkingHours) {
-                Collection<AssignedJobOrder> afterAJ = GetCollection.assignedJobOrdersAfterEvent(me);
-                Long newAvaiableTime = newWorkingHours - oldAssignedHours;
-                // devo riempire questo spazio, prendendo dagli aj successivi
-                // se tomorrow(evento) c'è un evento della stessa durata, allora spostalo indetro e poi sposta a cascata
-                // se tomorrow(evento) ci sono eventini la cui somma fa esattamente newTIme allora spostali e poi sposta a cascata
-                // se tomorr(evento) ha solo roba grande, riduci e poi sposta/riduci a cascata
-                // se tomorr(evento) ha eventi piccoli e eventoni, sposta i piccoli e riduci gli eventoni, poi a cascata
-                // per ogni aj che ho spostato o ridotto, devo fare la stessa cosa spostando indeitro altri elementi
-                Collection<AssignedJobOrder> movedOrReducedAj = new LinkedList<AssignedJobOrder>();
-                Date start = EventUtils.start(me.getStart()),
-                     end = EventUtils.end(me.getStart());
-                
-                while(newAvaiableTime > 0L) {
-                    Collection<AssignedJobOrder> tomorrowAj = GetCollection.assignedJobOrdersBetween(m, start, end);
-                    for(AssignedJobOrder aj : tomorrowAj) {
-                        Long myLast = EventUtils.getLast(aj);
-                        if(myLast.equals(newWorkingHours)) {
-                            
-                        }
-                    }
-                }
-                
+                // Knapsack with fracion values? O_O
+                // TODO
             } else if(oldAssignedHours > newWorkingHours) {
                 // spezza le ore assegnate fino a riempire le nuove ore, sposta in avanti le
                 // ore che non ci stanno più
@@ -182,7 +162,7 @@ public class AddServlet extends HttpServlet {
                                 toMove.setStart(EventUtils.tomorrow(toMove.getStart()));
                                 toMove.setEnd(new Date(toMove.getStart().getTime() + thisLast * 60000));
                                 hibSession.merge(toMove);
-                                DroppableMachineEvent.shiftRight(toMove, hibSession, true);
+                                DroppableMachineEvent.shiftRight(toMove, hibSession);
                             }
                         }
                         return;
@@ -214,7 +194,7 @@ public class AddServlet extends HttpServlet {
                             aj.setStart(EventUtils.tomorrow(aj.getStart()));
                             aj.setEnd(EventUtils.tomorrow(aj.getEnd()));
                             hibSession.merge(aj);
-                            DroppableMachineEvent.shiftRight(aj, hibSession, true);
+                            DroppableMachineEvent.shiftRight(aj, hibSession);
                         }
                     }
                 }
@@ -251,7 +231,7 @@ public class AddServlet extends HttpServlet {
                 // evento a cui è stata mangiata una parte di durata ^)
                 for(AssignedJobOrder toMove : moreLast) {
                     hibSession.merge(toMove);
-                    AssignedJobOrder.shiftRight(toMove, hibSession, true);
+                    AssignedJobOrder.shiftRight(toMove, hibSession);
                 }
                 
             }
@@ -595,6 +575,10 @@ public class AddServlet extends HttpServlet {
                 } else if(eventType.equals(AssignedJobOrder.class)) {
                     AssignedJobOrder added = addOneAssignedJobOrder(j, m, prev, end);
                     AssignedJobOrder.merge(added, hibSession);
+                    if(added.getStart().after(prev)) {
+                        end = prev;
+                    }
+                    howLong = EventUtils.getLast(added);
                 }
 
                 last -= howLong;

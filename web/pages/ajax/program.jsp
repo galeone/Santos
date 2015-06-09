@@ -363,11 +363,17 @@ function toSend(event, machine) {
 			machine: machine,
 			joborder: event.joborder };
 			
-	if(event.type == 'sampling') return {
+	if(event.type == 'sampling') {
+	    var end = new Date(event._start._d);
+	    end.setHours(end.getHours() + parseInt(event.last));
+	    console.log('end', end);
+	    return {
 			start: event._start._d.toUTCString(),
+			end: end.toUTCString(),
 			machine: machine,
 			client: event.client,
 			description: event.description };
+	}
 			
 	if(event.type == 'maintenance') return {
             	start: event._start._d.toUTCString(),

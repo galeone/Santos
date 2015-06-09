@@ -1,7 +1,6 @@
 package it.galeone_dev.santos.hibernate.abstractions;
 
 import it.galeone_dev.santos.GetCollection;
-import it.galeone_dev.santos.hibernate.models.AssignedJobOrder;
 import it.galeone_dev.santos.hibernate.models.NonWorkingDay;
 import it.galeone_dev.santos.hibernate.models.WorkingDay;
 
@@ -17,10 +16,6 @@ import org.hibernate.Session;
 public abstract class DroppableMachineEvent implements MachineEvent {
     
     public static void shiftRight(MachineEvent e, Session hibSession) {
-        shiftRight(e, hibSession, false);
-    }
-    
-    public static void shiftRight(MachineEvent e, Session hibSession, boolean merge) {
         // Global events after e and the same day of e
         Collection<NonWorkingDay> nonWorkingDaysAfterEvent = GetCollection.nonWorkingDaysAfterEvent(e);
         Collection<NonWorkingDay> nonWorkingDaysInConflictWith = GetCollection.nonWorkingDaysTheSameDayOf(e);
@@ -116,20 +111,11 @@ public abstract class DroppableMachineEvent implements MachineEvent {
                     dayLast = EventUtils.getLast(WorkingDay.get(moved.getStart()));
                     moved.setEnd(new Date(moved.getStart().getTime() + dayLast * 60000));
                     hibSession.save(moved);
+                    // fuck you hibernate (again)
+                    hibSession.getTransaction().commit();
+                    hibSession.getTransaction().begin();
                     shiftRight(moved, hibSession);
                     remainingTime -= dayLast;
-                }
-            }
-        }
-        // TODO
-        if (merge) {
-            for (MachineEvent moved : movedEvents) {
-                if (moved instanceof AssignedJobOrder) {
-                    Collection<AssignedJobOrder> sameDay = GetCollection.assignedJobOrdersTheSameDayOf(e);
-                    for (AssignedJobOrder aj : sameDay) {
-                        AssignedJobOrder.merge(aj, hibSession);
-                    }
-                    
                 }
             }
         }
