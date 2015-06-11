@@ -1,6 +1,7 @@
 package it.galeone_dev.santos.hibernate.abstractions;
 
 import it.galeone_dev.santos.GetCollection;
+import it.galeone_dev.santos.hibernate.models.DummyMachineEvent;
 import it.galeone_dev.santos.hibernate.models.NonWorkingDay;
 import it.galeone_dev.santos.hibernate.models.WorkingDay;
 
@@ -85,7 +86,6 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             conflictEvent.setStart(nextDate);
             conflictEvent.setEnd(new Date(nextDate.getTime() + last));
             movedEvents.add(conflictEvent);
-            // hibSession.saveOrUpdate(conflictEvent);
             conflictEvent = (MachineEvent) hibSession.merge(conflictEvent);
             hibSession.getTransaction().commit();
             hibSession.getTransaction().begin();
@@ -146,6 +146,37 @@ public abstract class DroppableMachineEvent implements MachineEvent {
                     + " ore su una giornata lavorativa di " + (maxLast / 60) + " ore.");
             return;
         }
+        
+        // Per evitare che lo switch all'indietro dell'evento che è persente sulla destinazione
+        // vada a sforare il numero di ore della giornata
+        // prento il numero di ore della giornata da cui questo evento parte (oldstart)
+        // e controllo se numeroDiOreIniziali + ore dell'evento in conflitto ci sta
+        // se ci sta, ok, altrimenti interrompi
+        DummyMachineEvent originalPosition = new DummyMachineEvent();
+        originalPosition.setMachine(e.getMachine());
+        originalPosition.setStart(e.getOldStart());
+        originalPosition.setEnd(new Date(e.getOldStart().getTime() + myLast * 60000));
+        Collection<DroppableMachineEvent> eventsInStartingDate = GetCollection.machineEventsTheSameDayOf(originalPosition);
+        // rimuovo me stesso dagli eventi che vengono spostati
+        // o almeno dal conteggio
+        eventsInStartingDate.remove(e);
+        
+        Long startinHours = 0L;
+        for (DroppableMachineEvent ev: eventsInStartingDate) {
+            startinHours += EventUtils.getLast(ev);
+        }
+        
+        Long movinHours = 0L;
+        for (DroppableMachineEvent conflictEvent : machineEventsInConflict) {
+            movinHours += EventUtils.getLast(conflictEvent);
+        }
+        
+        if(startinHours + movinHours > maxLast) {
+            message.replace(0, message.length(), "L'operazione di switch causerebbe un numero di ore sulla data di inizio (da cui hai iniziato il trascinamento),"
+                    + "superiori alle ore della giornata lavorativa.");
+            return;
+        }
+        
         for (DroppableMachineEvent conflictEvent : machineEventsInConflict) {
             Date oldStart = conflictEvent.getStart();
             conflictEvent.setEnd(new Date(e.getOldStart().getTime() + EventUtils.getLast(conflictEvent) * 60000));
@@ -154,7 +185,6 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             hibSession.getTransaction().commit();
             hibSession.getTransaction().begin();
             conflictEvent.setOldStart(oldStart);
-            switchOn(conflictEvent, hibSession, message);
         }
     }
     

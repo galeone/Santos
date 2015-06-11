@@ -386,7 +386,7 @@ public class DeleteServlet extends HttpServlet {
                     AssignedJobOrder aj = (AssignedJobOrder) toDelete;
                     JobOrder j = aj.getJobOrder();
                     j.setMissingTime(j.getMissingTime() + EventUtils.getLast(aj));
-                    hibSession.saveOrUpdate(j);
+                    hibSession.merge(j);
                     hibSession.delete((AssignedJobOrder) toDelete);
                 } else {
                     message = "Assegnamento blocchetto orario a macchina non esistente";
@@ -424,7 +424,7 @@ public class DeleteServlet extends HttpServlet {
                 if(deleteBetween(AssignedJobOrder.class, start, end, m, j) < 0) {
                     message = "problema durante l'eliminazione";
                 }
-                hibSession.saveOrUpdate(j);
+                hibSession.merge(j);
                 
                 //Fake toDelete event
                 AssignedJobOrder fake = new AssignedJobOrder();

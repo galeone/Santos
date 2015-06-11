@@ -1,9 +1,15 @@
 package it.galeone_dev.santos.hibernate.models;
 
+import it.galeone_dev.santos.GetCollection;
 import it.galeone_dev.santos.hibernate.abstractions.DroppableMachineEvent;
+import it.galeone_dev.santos.hibernate.abstractions.EventUtils;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedList;
+
+import org.hibernate.Session;
 
 public class Maintenance extends DroppableMachineEvent implements Serializable {
 
@@ -116,6 +122,31 @@ public class Maintenance extends DroppableMachineEvent implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+    
+    public static void merge(Maintenance event, Session hibSession) {
+        // After the shift, I have only the event not in conflict with event
+        Collection<Maintenance> sameDayEvents = GetCollection.maintenanceTheSameDayOf(event);
+        Collection<Maintenance> mergeable = new LinkedList<Maintenance>();
+        
+        for(Maintenance sd : sameDayEvents) {
+            if(!sd.equals(event) && sd.getDescription().equals(event.getDescription())) {
+                mergeable.add(sd);
+            }
+        }
+        
+        if(mergeable.size() != 0) {
+            Long sumOfLast = EventUtils.getLast(event);
+            hibSession.clear();
+            for(DroppableMachineEvent sc : mergeable) {
+                sumOfLast += EventUtils.getLast(sc);
+                hibSession.delete(sc);
+            }
+            event.setEnd(new Date(event.getStart().getTime() + sumOfLast * 60000));
+            event = (Maintenance) hibSession.merge(event);
+            hibSession.getTransaction().commit();
+            hibSession.getTransaction().begin();
+        }
     }
 
 }

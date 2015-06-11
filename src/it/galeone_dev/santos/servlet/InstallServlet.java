@@ -46,7 +46,7 @@ public class InstallServlet extends HttpServlet {
                 a0.setPassword("admin");
                 a0.setSurname("Santos");
                 a0.setIsAdmin(true);
-                session.saveOrUpdate(a0);
+                session.save(a0);
             } else {
                 message = "Santos already installed. Admin exists";
             }

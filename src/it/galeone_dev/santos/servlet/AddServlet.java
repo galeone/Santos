@@ -433,17 +433,17 @@ public class AddServlet extends HttpServlet {
         return (AssignedJobOrder) addedEvent;
     }
 
-    private void addOneSampling(String description, Client c, Machine m, Date start, Date end) {
+    private Sampling addOneSampling(String description, Client c, Machine m, Date start, Date end) {
         Sampling s = new Sampling();
         s.setClient(c);
         s.setDescription(description);
-        addOneMachineEvent(s, m, start, end);
+        return (Sampling) addOneMachineEvent(s, m, start, end);
     }
 
-    private void addOneMaintenance(String description, Machine m, Date start, Date end) {
+    private Maintenance addOneMaintenance(String description, Machine m, Date start, Date end) {
         Maintenance maintenance = new Maintenance();
         maintenance.setDescription(description);
-        addOneMachineEvent(maintenance, m, start, end);
+        return (Maintenance) addOneMachineEvent(maintenance, m, start, end);
     }
 
     public MachineEvent addOneMachineEvent(DroppableMachineEvent event, Machine m, Date start, Date end) {
@@ -569,9 +569,11 @@ public class AddServlet extends HttpServlet {
                 dummy.setEnd(end);
                 
                 if(eventType.equals(Sampling.class)) {
-                    addOneSampling(description, c, m, prev, end);
+                    Sampling added = addOneSampling(description, c, m, prev, end);
+                    Sampling.merge(added, hibSession);
                 } else if(eventType.equals(Maintenance.class)) {
-                    addOneMaintenance(description, m, prev, end);
+                    Maintenance added = addOneMaintenance(description, m, prev, end);
+                    Maintenance.merge(added, hibSession);
                 } else if(eventType.equals(AssignedJobOrder.class)) {
                     AssignedJobOrder added = addOneAssignedJobOrder(j, m, prev, end);
                     AssignedJobOrder.merge(added, hibSession);

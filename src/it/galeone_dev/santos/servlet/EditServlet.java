@@ -80,9 +80,11 @@ public class EditServlet extends HttpServlet {
                 return;
             }
             
-            hibSession.saveOrUpdate(sd);
+            hibSession.merge(sd);
             Sampling.switchOn(sd, hibSession, message);
-            
+            if("ok".equals(message.toString())) {
+                Sampling.merge(sd, hibSession);
+            }
         }
     }
     
@@ -117,9 +119,11 @@ public class EditServlet extends HttpServlet {
                 return;
             }
             
-            hibSession.saveOrUpdate(maintenance);
+            hibSession.merge(maintenance);
             Sampling.switchOn(maintenance, hibSession, message);
-            
+            if("ok".equals(message.toString())) {
+                Maintenance.merge(maintenance, hibSession);
+            }
         }
     }
     
@@ -155,7 +159,7 @@ public class EditServlet extends HttpServlet {
                 return;
             }
             
-            hibSession.saveOrUpdate(nw);
+            hibSession.merge(nw);
             NonWorkingDay.shiftMachineEventsRight(nw, hibSession);
             
         }
@@ -192,8 +196,7 @@ public class EditServlet extends HttpServlet {
                 return;
             }
             
-            hibSession.saveOrUpdate(wh);
-            
+            hibSession.merge(wh);
         }
     }
     
@@ -280,7 +283,7 @@ public class EditServlet extends HttpServlet {
                 return;
             }
             
-            hibSession.saveOrUpdate(u);
+            hibSession.merge(u);
             savedObject = u;
             
         }// isadmin
@@ -330,8 +333,7 @@ public class EditServlet extends HttpServlet {
                 return;
             }
             
-            hibSession.saveOrUpdate(c);
-            
+            hibSession.merge(c);
         }
     }
     
@@ -389,8 +391,7 @@ public class EditServlet extends HttpServlet {
                 return;
             }
             
-            hibSession.saveOrUpdate(m);
-            
+            hibSession.merge(m);
         }
     }
     
@@ -509,8 +510,7 @@ public class EditServlet extends HttpServlet {
                 return;
             }
             
-            hibSession.saveOrUpdate(j);
-            
+            hibSession.merge(j);
         }
     }
     
@@ -565,9 +565,11 @@ public class EditServlet extends HttpServlet {
                 return;
             }
             
-            hibSession.saveOrUpdate(aj);
+            hibSession.merge(aj);
             AssignedJobOrder.switchOn(aj, hibSession, message);
-            AssignedJobOrder.merge(aj, hibSession);
+            if (message.toString().equals("ok")) {
+                AssignedJobOrder.merge(aj, hibSession);
+            }
             
         }
     }
@@ -593,7 +595,7 @@ public class EditServlet extends HttpServlet {
                 updatedField = updatedField + " = " + params.get("value");
             }
             h.setWhat(what + "(" + id + "): " + updatedField);
-            hibSession.saveOrUpdate(h);
+            hibSession.merge(h);
             try {
                 hibSession.getTransaction().commit();
                 if (savedObject instanceof User) {

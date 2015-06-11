@@ -1,9 +1,15 @@
 package it.galeone_dev.santos.hibernate.models;
 
+import it.galeone_dev.santos.GetCollection;
 import it.galeone_dev.santos.hibernate.abstractions.DroppableMachineEvent;
+import it.galeone_dev.santos.hibernate.abstractions.EventUtils;
 
 import java.io.Serializable;
+import java.util.Collection;
 import java.util.Date;
+import java.util.LinkedList;
+
+import org.hibernate.Session;
 
 
 public class Sampling extends DroppableMachineEvent implements Serializable {
@@ -123,6 +129,32 @@ public class Sampling extends DroppableMachineEvent implements Serializable {
 
     public void setClient(Client client) {
         this.client = client;
+    }
+    
+    public static void merge(Sampling event, Session hibSession) {
+        // After the shift, I have only the event not in conflict with event
+        Collection<Sampling> sameDayEvents = GetCollection.samplingTheSameDayOf(event);
+        Collection<Sampling> mergeable = new LinkedList<Sampling>();
+        
+        for(Sampling sd : sameDayEvents) {
+            if(!sd.equals(event) && sd.getClient().equals(event.getClient())
+                    && sd.getDescription().equals(event.getDescription())) {
+                mergeable.add(sd);
+            }
+        }
+        
+        if(mergeable.size() != 0) {
+            Long sumOfLast = EventUtils.getLast(event);
+            hibSession.clear();
+            for(DroppableMachineEvent sc : mergeable) {
+                sumOfLast += EventUtils.getLast(sc);
+                hibSession.delete(sc);
+            }
+            event.setEnd(new Date(event.getStart().getTime() + sumOfLast * 60000));
+            event = (Sampling) hibSession.merge(event);
+            hibSession.getTransaction().commit();
+            hibSession.getTransaction().begin();
+        }
     }
 
 }

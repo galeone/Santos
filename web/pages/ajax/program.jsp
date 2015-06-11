@@ -261,6 +261,7 @@ $mBlock.draggable({
 	    } else {
 			var event = $mBlock.data('event');
 			event.description = whform.find('input[name="description"]').val();
+			event.last   	  = whform.find('input[name="hours"]').val();
 			$mBlock.data('event', event);
 	    }
 		return $mBlock.clone(true);
@@ -353,15 +354,21 @@ function newAssignedJobOrder(data, machine) {
 		if(minutes <= 0) {
 		    $("#jobordersforms").remove();
 		}
+		$("#autoaddstatus").html('ok...');
+		setTimeout(function() {
+		    $("#autoaddstatus").html('');
+		},3000);
     }
 }
 
 function toSend(event, machine) {
     console.log("ToSend: ", event);
-    if(event.type == 'assignedjoborder') return {
+    if(event.type == 'assignedjoborder') {
+		return {
 			start: event._start._d.toUTCString(),
 			machine: machine,
 			joborder: event.joborder };
+    }
 			
 	if(event.type == 'sampling') {
 	    var end = new Date(event._start._d);
@@ -375,10 +382,17 @@ function toSend(event, machine) {
 			description: event.description };
 	}
 			
-	if(event.type == 'maintenance') return {
-            	start: event._start._d.toUTCString(),
+	if(event.type == 'maintenance') {
+	    var end = new Date(event._start._d);
+	    end.setHours(end.getHours() + parseInt(event.last));
+	    console.log('end', end);
+	    
+	    return {
+				start: event._start._d.toUTCString(),
+				end: end.toUTCString(),
             	machine: machine,
             	description: event.description };
+	}
     return {};
 };
 
@@ -394,6 +408,7 @@ $("#jobordersummary").on('submit', '#autoassignjoborders', function(e) {
 	    
 	    var machine =  $(this).find('select[name="machine"]').val(),
 	    	jo = $(this).find('input[name="joborder"]').val();
+	    $("#autoaddstatus").html('Inserimento...');
 	    $.post("<%=request.getContextPath()%>/add?what=assignedjoborder",
 	            {
 	            	start: start.toUTCString(),
@@ -431,7 +446,7 @@ $("#todoJobOrders").selectmenu({
 					'<form id="autoassignjoborders">' + '<input type="hidden" name="joborder" value="' + window.todojoborders[index].id + '" />' +
 					'A partire da <sup>*</sup><input type="text" class="autostart" required /> <br />' +
 					'Fino a <input type="text" class="autoend" /> <br />' +
-					machineSelect + '<br /><br /><input type="submit" value="Auto assegna" />' +
+					machineSelect + '<br /><br /><input type="submit" value="Auto assegna" /><div id="autoaddstatus"></div>' +
 					'</form>' +
 					"<br /><br /><b>Inserimento manuale (drag and drop)</b><br /><br /></div>" +
 					"<div id='joborderevent'></div>");
