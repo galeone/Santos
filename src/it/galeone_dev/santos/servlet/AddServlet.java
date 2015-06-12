@@ -429,7 +429,7 @@ public class AddServlet extends HttpServlet {
         aj.setJobOrder(j);
         MachineEvent addedEvent = addOneMachineEvent(aj, m, start, end);
         j.setMissingTime(j.getMissingTime() - EventUtils.getLast(addedEvent));
-        hibSession.saveOrUpdate(j);
+        hibSession.merge(j);
         return (AssignedJobOrder) addedEvent;
     }
 

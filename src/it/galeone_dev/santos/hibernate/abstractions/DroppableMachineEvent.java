@@ -1,8 +1,11 @@
 package it.galeone_dev.santos.hibernate.abstractions;
 
 import it.galeone_dev.santos.GetCollection;
+import it.galeone_dev.santos.hibernate.models.AssignedJobOrder;
 import it.galeone_dev.santos.hibernate.models.DummyMachineEvent;
+import it.galeone_dev.santos.hibernate.models.Maintenance;
 import it.galeone_dev.santos.hibernate.models.NonWorkingDay;
+import it.galeone_dev.santos.hibernate.models.Sampling;
 import it.galeone_dev.santos.hibernate.models.WorkingDay;
 
 import java.text.SimpleDateFormat;
@@ -15,8 +18,8 @@ import java.util.Queue;
 import org.hibernate.Session;
 
 public abstract class DroppableMachineEvent implements MachineEvent {
-    
-    public static void shiftRight(MachineEvent e, Session hibSession) {
+    // returns moved events
+    public static Collection<MachineEvent> shiftRight(MachineEvent e, Session hibSession) {
         // Global events after e and the same day of e
         Collection<NonWorkingDay> nonWorkingDaysAfterEvent = GetCollection.nonWorkingDaysAfterEvent(e);
         Collection<NonWorkingDay> nonWorkingDaysInConflictWith = GetCollection.nonWorkingDaysTheSameDayOf(e);
@@ -24,7 +27,7 @@ public abstract class DroppableMachineEvent implements MachineEvent {
         Collection<Event> toSkip = new LinkedList<Event>(nonWorkingDaysAfterEvent);
         
         Collection<DroppableMachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
-        Collection<MachineEvent> movedEvents = new LinkedList<MachineEvent>();
+        Queue<MachineEvent> movedEvents = new LinkedList<MachineEvent>();
         
         Calendar cal = Calendar.getInstance(EventUtils.timezone);
         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
@@ -97,7 +100,10 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             qq.addAll(newConflicts);
         }
         
-        for (MachineEvent moved : movedEvents) {
+        Collection<MachineEvent> ret = new LinkedList<MachineEvent>(movedEvents);
+        
+        while(!movedEvents.isEmpty()) {
+            MachineEvent moved = movedEvents.poll();
             Long movedLast = EventUtils.getLast(moved), dayLast = EventUtils.getLast(WorkingDay.get(moved.getStart()));
             if (movedLast > dayLast) {
                 moved.setEnd(new Date(moved.getStart().getTime() + dayLast * 60000));
@@ -109,14 +115,31 @@ public abstract class DroppableMachineEvent implements MachineEvent {
                 while (remainingTime > 0) {
                     moved.setStart(EventUtils.tomorrow(moved.getStart()));
                     dayLast = EventUtils.getLast(WorkingDay.get(moved.getStart()));
-                    moved.setEnd(new Date(moved.getStart().getTime() + dayLast * 60000));
+                    Long eventLast = remainingTime > dayLast ? dayLast : remainingTime;
+                    moved.setEnd(new Date(moved.getStart().getTime() + eventLast * 60000));
                     hibSession.save(moved);
                     // fuck you hibernate (again)
                     hibSession.getTransaction().commit();
                     hibSession.getTransaction().begin();
-                    shiftRight(moved, hibSession);
-                    remainingTime -= dayLast;
+                    // remove already Moved events
+                    Collection<MachineEvent> innerMoved = shiftRight(moved, hibSession);
+                    movedEvents.removeAll(innerMoved);
+                    //callMerge(innerMoved, hibSession);
+                    remainingTime -= eventLast;
                 }
+            }
+        }
+        return ret;
+    }
+    
+    private static void callMerge(Collection<MachineEvent> moved, Session hibSession) {
+        for(MachineEvent m : moved) {
+            if(m.getClass().equals(AssignedJobOrder.class)) {
+                AssignedJobOrder.merge((AssignedJobOrder)m, hibSession);
+            } else if(m.getClass().equals(Maintenance.class)) {
+                Maintenance.merge((Maintenance)m, hibSession);
+            } if(m.getClass().equals(Sampling.class)) {
+                Sampling.merge((Sampling)m, hibSession);
             }
         }
     }
@@ -172,7 +195,7 @@ public abstract class DroppableMachineEvent implements MachineEvent {
         }
         
         if(startinHours + movinHours > maxLast) {
-            message.replace(0, message.length(), "L'operazione di switch causerebbe un numero di ore sulla data di inizio (da cui hai iniziato il trascinamento),"
+            message.replace(0, message.length(), "L'operazione di switch causerebbe un numero di ore sulla data di inizio (da cui hai iniziato il trascinamento)"
                     + "superiori alle ore della giornata lavorativa.");
             return;
         }

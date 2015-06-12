@@ -9,7 +9,7 @@ import java.util.Date;
 import org.hibernate.Session;
 
 public abstract class DroppableGlobalEvent implements GlobalEvent {
-    // shift every machine events in conflict with e right
+    // shift every machine events in conflict with e, right
     public static void shiftMachineEventsRight(GlobalEvent e, Session hibSession) {
         Collection<MachineEvent> machineEventsInConflict = GetCollection.machineEventsTheSameDayOf(e);
         for(MachineEvent me : machineEventsInConflict) {
