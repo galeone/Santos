@@ -16,4 +16,9 @@ public class DummyMachineEvent extends DummyEvent implements MachineEvent {
         this.machine = machine;
     }
 
+    @Override
+    public boolean mergeableWith(MachineEvent e) {
+        return false;
+    }
+
 }

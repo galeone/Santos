@@ -1,6 +1,7 @@
 package it.galeone_dev.santos.servlet;
 
 import it.galeone_dev.santos.hibernate.HibernateUtils;
+import it.galeone_dev.santos.hibernate.abstractions.DroppableMachineEvent;
 import it.galeone_dev.santos.hibernate.abstractions.EventUtils;
 import it.galeone_dev.santos.hibernate.models.AssignedJobOrder;
 import it.galeone_dev.santos.hibernate.models.Client;
@@ -83,7 +84,7 @@ public class EditServlet extends HttpServlet {
             hibSession.merge(sd);
             Sampling.switchOn(sd, hibSession, message);
             if("ok".equals(message.toString())) {
-                Sampling.merge(sd, hibSession);
+                DroppableMachineEvent.merge(sd, hibSession);
             }
         }
     }
@@ -122,7 +123,7 @@ public class EditServlet extends HttpServlet {
             hibSession.merge(maintenance);
             Sampling.switchOn(maintenance, hibSession, message);
             if("ok".equals(message.toString())) {
-                Maintenance.merge(maintenance, hibSession);
+                DroppableMachineEvent.merge(maintenance, hibSession);
             }
         }
     }

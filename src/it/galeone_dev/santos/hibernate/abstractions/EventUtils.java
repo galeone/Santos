@@ -55,5 +55,8 @@ public class EventUtils {
         return cal.getTime();
     }
     
+    public static boolean sameDay(Date a, Date b) {
+        return sdf.format(a).startsWith(sdf.format(b).substring(0, 16));
+    }
     
 }

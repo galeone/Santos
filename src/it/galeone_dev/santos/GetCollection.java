@@ -40,7 +40,8 @@ public class GetCollection {
                 (between  ? "(starts BETWEEN :start AND :end)" : "1=1") + " AND " +
                 (after    ? "(starts > :start)" : "1=1") + " AND " +
                 (machine  ? "(idmachine = :machine)" : "1=1") + " AND " +
-                (conflict ? "(id <> :id)" : "1=1"));
+                (conflict ? "(id <> :id)" : "1=1") +
+                (after || between ? " ORDER BY starts ASC" : ""));
         
         if(between) {
             q.setDate("start", start).setDate("end", end);

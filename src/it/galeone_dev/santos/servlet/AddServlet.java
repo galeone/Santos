@@ -231,7 +231,7 @@ public class AddServlet extends HttpServlet {
                 // evento a cui è stata mangiata una parte di durata ^)
                 for(AssignedJobOrder toMove : moreLast) {
                     hibSession.merge(toMove);
-                    AssignedJobOrder.shiftRight(toMove, hibSession);
+                    DroppableMachineEvent.shiftRight(toMove, hibSession);
                 }
                 
             }
@@ -429,6 +429,7 @@ public class AddServlet extends HttpServlet {
         aj.setJobOrder(j);
         MachineEvent addedEvent = addOneMachineEvent(aj, m, start, end);
         j.setMissingTime(j.getMissingTime() - EventUtils.getLast(addedEvent));
+        j.getAssignedJobOrders().clear();//workaround?
         hibSession.merge(j);
         return (AssignedJobOrder) addedEvent;
     }
@@ -570,13 +571,13 @@ public class AddServlet extends HttpServlet {
                 
                 if(eventType.equals(Sampling.class)) {
                     Sampling added = addOneSampling(description, c, m, prev, end);
-                    Sampling.merge(added, hibSession);
+                    DroppableMachineEvent.merge(added, hibSession);
                 } else if(eventType.equals(Maintenance.class)) {
                     Maintenance added = addOneMaintenance(description, m, prev, end);
-                    Maintenance.merge(added, hibSession);
+                    DroppableMachineEvent.merge(added, hibSession);
                 } else if(eventType.equals(AssignedJobOrder.class)) {
                     AssignedJobOrder added = addOneAssignedJobOrder(j, m, prev, end);
-                    AssignedJobOrder.merge(added, hibSession);
+                    DroppableMachineEvent.merge(added, hibSession);
                     if(added.getStart().after(prev)) {
                         end = prev;
                     }

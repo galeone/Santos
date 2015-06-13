@@ -1,15 +1,10 @@
 package it.galeone_dev.santos.hibernate.abstractions;
 
 import it.galeone_dev.santos.GetCollection;
-import it.galeone_dev.santos.hibernate.models.AssignedJobOrder;
 import it.galeone_dev.santos.hibernate.models.DummyMachineEvent;
-import it.galeone_dev.santos.hibernate.models.Maintenance;
 import it.galeone_dev.santos.hibernate.models.NonWorkingDay;
-import it.galeone_dev.santos.hibernate.models.Sampling;
 import it.galeone_dev.santos.hibernate.models.WorkingDay;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.LinkedList;
@@ -19,21 +14,18 @@ import org.hibernate.Session;
 
 public abstract class DroppableMachineEvent implements MachineEvent {
     // returns moved events
-    public static Collection<MachineEvent> shiftRight(MachineEvent e, Session hibSession) {
+    public static void shiftRight(MachineEvent e, Session hibSession) {
         // Global events after e and the same day of e
         Collection<NonWorkingDay> nonWorkingDaysAfterEvent = GetCollection.nonWorkingDaysAfterEvent(e);
         Collection<NonWorkingDay> nonWorkingDaysInConflictWith = GetCollection.nonWorkingDaysTheSameDayOf(e);
         
-        Collection<Event> toSkip = new LinkedList<Event>(nonWorkingDaysAfterEvent);
+        Collection<NonWorkingDay> toSkip = new LinkedList<NonWorkingDay>(nonWorkingDaysAfterEvent);
         
         Collection<DroppableMachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
-        Queue<MachineEvent> movedEvents = new LinkedList<MachineEvent>();
-        
-        Calendar cal = Calendar.getInstance(EventUtils.timezone);
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-        
+               
         // per ogni evento maccina in conflitto con il nuovo evento
-        Queue<MachineEvent> qq = new LinkedList<MachineEvent>(machineEventsInConflict);
+        Queue<MachineEvent> qq = new LinkedList<MachineEvent>(machineEventsInConflict),
+                        fixedConflictsQ = new LinkedList<MachineEvent>();
         
         // genero la lista degli eventi macchina da dover sistamare, perché a
         // causa
@@ -48,21 +40,18 @@ public abstract class DroppableMachineEvent implements MachineEvent {
         // per ogni evento macchina in conflitto con il nuovo evento macchina
         while (!qq.isEmpty()) {
             MachineEvent conflictEvent = qq.poll();
-            cal.setTime(conflictEvent.getStart());
-            cal.add(Calendar.DATE, 1);
-            Date nextDate = cal.getTime();
+            Date nextDate = EventUtils.tomorrow(conflictEvent.getStart());
             // controlla se si può spostare nel giorno
             // successivo
             // cioè se il giorno successivo non cade in un evento globale
             boolean canMove = false;
-            String nextDateString = sdf.format(nextDate);
             
             while (!canMove) {
                 // collisione con evento globale (voglio spostarmi in un
                 // posto già occupato da un evento globale? se sì collisione)
                 boolean collision = false;
-                for (Event skip : toSkip) {
-                    if (sdf.format(skip.getStart()).equals(nextDateString)) {
+                for (NonWorkingDay skip : toSkip) {
+                    if (EventUtils.sameDay(skip.getStart(), nextDate)) {
                         collision = true;
                         break;
                     }
@@ -71,9 +60,7 @@ public abstract class DroppableMachineEvent implements MachineEvent {
                 if (!collision) {
                     canMove = true;
                 } else {
-                    cal.add(Calendar.DATE, 1);
-                    nextDate = cal.getTime();
-                    nextDateString = sdf.format(nextDate);
+                    nextDate = EventUtils.tomorrow(nextDate);
                 }
             }
             
@@ -88,19 +75,63 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             long last = EventUtils.getLast(conflictEvent) * 60000;
             conflictEvent.setStart(nextDate);
             conflictEvent.setEnd(new Date(nextDate.getTime() + last));
-            movedEvents.add(conflictEvent);
-            conflictEvent = (MachineEvent) hibSession.merge(conflictEvent);
-            hibSession.getTransaction().commit();
-            hibSession.getTransaction().begin();
             
-            Collection<DroppableMachineEvent> newConflicts = GetCollection.machineEventsInConflictWith(conflictEvent);
-            // remove events already present (avoid duplicate -> avoid loops)
-            qq.removeAll(newConflicts);
-            // add elements without duplicate
-            qq.addAll(newConflicts);
+            ///
+            
+            Long conflictEventLast = EventUtils.getLast(conflictEvent), dayLast = EventUtils.getLast(WorkingDay.get(conflictEvent.getStart()));
+            if (conflictEventLast > dayLast) {
+                Long remainingTime = conflictEventLast - dayLast;
+                
+                conflictEvent.setEnd(new Date(conflictEvent.getStart().getTime() + dayLast * 60000));
+                hibSession.merge(conflictEvent);
+                hibSession.getTransaction().commit();
+                hibSession.getTransaction().begin();
+                
+                fixedConflictsQ.remove(conflictEvent);
+                fixedConflictsQ.add(conflictEvent);
+                
+                // = else
+                Collection<DroppableMachineEvent> newConflicts = GetCollection.machineEventsInConflictWith(conflictEvent);
+                // remove events already present (avoid duplicate -> avoid loops)
+                qq.removeAll(newConflicts);
+                // add elements without duplicate
+                qq.addAll(newConflicts);
+                //
+                
+                while (remainingTime > 0) {
+                    conflictEvent.setStart(EventUtils.tomorrow(conflictEvent.getStart()));
+                    dayLast = EventUtils.getLast(WorkingDay.get(conflictEvent.getStart()));
+                    Long eventLast = remainingTime > dayLast ? dayLast : remainingTime;
+                    conflictEvent.setEnd(new Date(conflictEvent.getStart().getTime() + eventLast * 60000));
+                    hibSession.save(conflictEvent);
+                    // fuck you hibernate (again)
+                    hibSession.getTransaction().commit();
+                    hibSession.getTransaction().begin();
+                    fixedConflictsQ.remove(conflictEvent);
+                    fixedConflictsQ.add(conflictEvent);
+                    //callMerge(innerMoved, hibSession);
+                    remainingTime -= eventLast;
+                }
+            } else {
+                hibSession.merge(conflictEvent);
+                hibSession.getTransaction().commit();
+                hibSession.getTransaction().begin();
+                fixedConflictsQ.remove(conflictEvent);
+                fixedConflictsQ.add(conflictEvent);
+                Collection<DroppableMachineEvent> newConflicts = GetCollection.machineEventsInConflictWith(conflictEvent);
+                // remove events already present (avoid duplicate -> avoid loops)
+                qq.removeAll(newConflicts);
+                // add elements without duplicate
+                qq.addAll(newConflicts);
+            }
         }
         
-        Collection<MachineEvent> ret = new LinkedList<MachineEvent>(movedEvents);
+        // merge va fatto sugli eventi a cui sono stati sistemati i conflitti
+        for(MachineEvent fixedConflict : fixedConflictsQ) {
+            merge(fixedConflict,hibSession);
+        }
+        /*
+        Collection<MachineEvent> newEvents = new LinkedList<MachineEvent>(movedEvents);
         
         while(!movedEvents.isEmpty()) {
             MachineEvent moved = movedEvents.poll();
@@ -121,27 +152,15 @@ public abstract class DroppableMachineEvent implements MachineEvent {
                     // fuck you hibernate (again)
                     hibSession.getTransaction().commit();
                     hibSession.getTransaction().begin();
-                    // remove already Moved events
-                    Collection<MachineEvent> innerMoved = shiftRight(moved, hibSession);
-                    movedEvents.removeAll(innerMoved);
+                    newEvents.add(moved);
                     //callMerge(innerMoved, hibSession);
                     remainingTime -= eventLast;
                 }
             }
         }
-        return ret;
-    }
-    
-    private static void callMerge(Collection<MachineEvent> moved, Session hibSession) {
-        for(MachineEvent m : moved) {
-            if(m.getClass().equals(AssignedJobOrder.class)) {
-                AssignedJobOrder.merge((AssignedJobOrder)m, hibSession);
-            } else if(m.getClass().equals(Maintenance.class)) {
-                Maintenance.merge((Maintenance)m, hibSession);
-            } if(m.getClass().equals(Sampling.class)) {
-                Sampling.merge((Sampling)m, hibSession);
-            }
-        }
+        
+        return newEvents;
+        */
     }
     
     private Date oldStart;
@@ -200,6 +219,13 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             return;
         }
         
+        Long originalMaxLast = EventUtils.getLast(WorkingDay.get(originalPosition.getStart()));
+        
+        if(originalMaxLast < movinHours) {
+            message.replace(0, message.length(), "L'operazione di switch sposterebbe più ore di quelle effettivamente lavorative.");
+            return;
+        }
+        
         for (DroppableMachineEvent conflictEvent : machineEventsInConflict) {
             Date oldStart = conflictEvent.getStart();
             conflictEvent.setEnd(new Date(e.getOldStart().getTime() + EventUtils.getLast(conflictEvent) * 60000));
@@ -208,6 +234,35 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             hibSession.getTransaction().commit();
             hibSession.getTransaction().begin();
             conflictEvent.setOldStart(oldStart);
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static void merge(MachineEvent event, Session hibSession) {
+        // After the shift, I have only the event not in conflict with event
+        GetCollection.resetDate(event);
+        Collection<MachineEvent> sameDayEvents = GetCollection.get(event.getClass(),event.getStart(),event.getEnd(), event.getMachine());
+        GetCollection.restoreDate(event);
+        Collection<MachineEvent> mergeable = new LinkedList<MachineEvent>();
+        
+        
+        for(MachineEvent sd : sameDayEvents) {
+            if(sd.mergeableWith(event)) {
+                mergeable.add(sd);
+            }
+        }
+        
+        if(mergeable.size() != 0) {
+            Long sumOfLast = EventUtils.getLast(event);
+            hibSession.clear();
+            for(MachineEvent sc : mergeable) {
+                sumOfLast += EventUtils.getLast(sc);
+                hibSession.delete(sc);
+            }
+            event.setEnd(new Date(event.getStart().getTime() + sumOfLast * 60000));
+            hibSession.merge(event);
+            hibSession.getTransaction().commit();
+            hibSession.getTransaction().begin();
         }
     }
     
