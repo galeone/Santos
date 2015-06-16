@@ -16,11 +16,11 @@
 				+ LoginServlet.LOGIN_FORM);
 	}
 %>
-<table id="sampling-table" class="display" cellspacing="0" width="100%">
+<table id="sampling-table" class="display" width="100%">
 	<thead>
 		<tr class="ui-widget-header ">
 			<th>Cliente</th>
-			<th>Commessa</th>
+			<th>Descrizione</th>
 			<th>Macchina</th>
 			<th>Durata</th>
 			<th>Giorno di assegnamento</th>
@@ -28,6 +28,15 @@
 	</thead>
 	<tbody>
 	</tbody>
+	<tfoot>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+		</tr>
+	</tfoot>
 </table>
 <br />
 <%
@@ -42,13 +51,13 @@ $("#sampling-table").dataTable({
 	"language": {
 		"url": "<%=request.getContextPath()%>/scripts/datatables/italian.js"
 	},
-	"data": <%=gson.toJson(GetCollection.sampling())%>,
+	"data": <%=gson.toJson(GetCollection.setSamplingAttr(GetCollection.sampling(),false))%>,
 	"createdRow": function ( row, data, index ) {
 		row.setAttribute('id', data.id);
 	},
     columns: [
-              { data: 'jobOrder.client.name', name: "client" },
-              { data: 'jobOrder.id', name: "joborder"},
+              { data: 'client.name', name: "client" },
+              { data: 'description', name: "description"},
               { data: 'machine.name', name: "machine"},
               {
             	  data: 'leadTime',
@@ -56,9 +65,15 @@ $("#sampling-table").dataTable({
             	  render: dataTablesLeadTime
               },
               {
-        	  	  data: 'start',
-        	  	  name: 'start'
+        	  	  data: 'dateTime',
+        	  	  name: 'dateTime'
               }
-          ]
+          ],
+     drawCallback: function () {
+         var api = this.api();
+         var hours = api.column( 3, {page:'current'} ).data().sum() / 60;
+         $(api.table().footer()).find("tr td:eq(3)").html('<b>' + hours + '</b>');
+       }
+
 });
 </script>

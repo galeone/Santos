@@ -439,6 +439,8 @@ public class GetCollection {
                        );
             s.setAllDay(false);
             s.setEditable(editable);
+            s.setDateTime();
+            s.setLeadTime();
         }
         return l;
     }

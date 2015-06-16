@@ -1,9 +1,13 @@
 package it.galeone_dev.santos.hibernate.models;
 
 import it.galeone_dev.santos.hibernate.abstractions.DroppableMachineEvent;
+import it.galeone_dev.santos.hibernate.abstractions.EventUtils;
 import it.galeone_dev.santos.hibernate.abstractions.MachineEvent;
 
 import java.io.Serializable;
+import java.sql.Timestamp;
+import java.text.Format;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
@@ -18,9 +22,20 @@ public class Sampling extends DroppableMachineEvent implements Serializable, Mac
 	private boolean overlap = true, editable = true, allDay;
 	private String description;
 	private String title;
+	private String dateTime;
+	private Long leadTime;
 	
 	public String color = "#00E";
-	
+
+   public String getDateTime() {
+        return this.dateTime;
+    }
+    
+    public void setDateTime() {
+        Format f = new SimpleDateFormat("dd/MM/yyyy");
+        //hack -> hidden span with timestamp for js sorting
+        this.dateTime = "<span style='display:none'>" + new Long(new Timestamp(getStart().getTime()).getTime()).toString() + "</span>" + f.format(getStart());
+    }
 
     public boolean isEditable() {
         return editable;
@@ -135,6 +150,14 @@ public class Sampling extends DroppableMachineEvent implements Serializable, Mac
                    s.getClient().equals(getClient());
         }
         return false;
+    }
+
+    public Long getLeadTime() {
+        return leadTime;
+    }
+
+    public void setLeadTime() {
+        this.leadTime = EventUtils.getLast(this);
     }
 
 }
