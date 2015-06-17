@@ -126,6 +126,7 @@
 				<exclude name="WEB-INF/web.xml" />
 			</fileset>
 			<zipfileset dir="${src.dir}" includes="**/*.xml" prefix="WEB-INF/classes" />
+			<zipfileset dir="${src.dir}" includes="**/*.xls" prefix="WEB-INF/classes" />
 			<zipfileset dir="${build.classes.dir}" prefix="WEB-INF/classes" />
 		</war>
 		<unwar src="${build.archives.dir}/${ant.project.name}.war" dest="${build.exploded.dir}/${ant.project.name}" />

@@ -2,19 +2,25 @@ package it.galeone_dev.santos.servlet;
 
 import it.galeone_dev.santos.GetCollection;
 import it.galeone_dev.santos.hibernate.HibernateUtils;
+import it.galeone_dev.santos.hibernate.abstractions.MachineEvent;
 import it.galeone_dev.santos.hibernate.models.AssignedJobOrder;
 import it.galeone_dev.santos.hibernate.models.Machine;
 import it.galeone_dev.santos.hibernate.models.Maintenance;
 import it.galeone_dev.santos.hibernate.models.Sampling;
 import it.galeone_dev.santos.hibernate.models.User;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.Locale;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -22,6 +28,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+
+import net.sf.jxls.transformer.XLSTransformer;
 
 import org.hibernate.Session;
 
@@ -32,16 +40,33 @@ public class GetServlet extends HttpServlet {
     private static final long serialVersionUID = 74377157203911L;
     private Gson gson = new Gson();
     private User user;
+    private HashMap<Integer, String> itMonth = new HashMap<Integer, String>();
     
     @Override
     public void init() throws ServletException {
+        itMonth.put(Calendar.JANUARY, "gen");
+        itMonth.put(Calendar.FEBRUARY, "feb");
+        itMonth.put(Calendar.MARCH, "mar");
+        itMonth.put(Calendar.APRIL, "apr");
+        itMonth.put(Calendar.MAY, "mag");
+        itMonth.put(Calendar.JUNE, "giu");
+        itMonth.put(Calendar.JULY, "lug");
+        itMonth.put(Calendar.AUGUST, "ago");
+        itMonth.put(Calendar.SEPTEMBER, "set");
+        itMonth.put(Calendar.OCTOBER, "ott");
+        itMonth.put(Calendar.NOVEMBER, "nov");
+        itMonth.put(Calendar.DECEMBER, "dic");
     }
     
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         doPost(req, resp);
     }
-    
+    private Collection<AssignedJobOrder> assignedJobOrders(Machine m, Date start, Date end) {
+        return GetCollection.setAssignedJobOrderAttr(
+                GetCollection.assignedJobOrdersBetween(m, start, end),
+                user.getCanAssignJobOrder());
+    }
     private Collection<AssignedJobOrder> assignedJobOrders(HttpServletRequest request, Date start, Date end) throws Exception {
         String machine;
         if((machine = request.getParameter("machine")) == null || machine.isEmpty()) {
@@ -58,15 +83,18 @@ public class GetServlet extends HttpServlet {
             if(m == null) {
                 throw new NumberFormatException();
             }
-            return GetCollection.setAssignedJobOrderAttr(
-                    GetCollection.assignedJobOrdersBetween(m, start, end),
-                    user.getCanAssignJobOrder());
+            return assignedJobOrders(m, start, end);
             
         }catch(NumberFormatException e) {
             throw new Exception("Id macchina non valido");
         }        
     }
     
+    private Collection<Sampling> sampling(Machine m, Date start, Date end) {
+        return GetCollection.setSamplingAttr(
+                GetCollection.samplingBetween(m, start, end),
+                user.getCanAssignJobOrder());
+    }
     private Collection<Sampling> sampling(HttpServletRequest request, Date start, Date end) throws Exception {
         String machine;
         if((machine = request.getParameter("machine")) == null || machine.isEmpty()) {
@@ -87,11 +115,14 @@ public class GetServlet extends HttpServlet {
         }catch(NumberFormatException e) {
             throw new Exception("Id macchina non valido");
         }
-        return GetCollection.setSamplingAttr(
-                GetCollection.samplingBetween(m, start, end),
-                user.getCanAssignJobOrder());
+        return sampling(m, start, end);
     }
     
+    private Collection<Maintenance> maintenance(Machine m, Date start, Date end) {
+        return GetCollection.setMaintenanceAttr(
+                GetCollection.maintenanceBetween(m, start, end),
+                user.getCanAssignJobOrder());
+    }
     private Collection<Maintenance> maintenance(HttpServletRequest request, Date start, Date end) throws Exception {
         String machine;
         if((machine = request.getParameter("machine")) == null || machine.isEmpty()) {
@@ -112,9 +143,7 @@ public class GetServlet extends HttpServlet {
         }catch(NumberFormatException e) {
             throw new Exception("Id macchina non valido");
         }
-        return GetCollection.setMaintenanceAttr(
-                GetCollection.maintenanceBetween(m, start, end),
-                user.getCanAssignJobOrder());
+        return maintenance(m, start, end);
     }
     
     private Date getDate(HttpServletRequest request, String name) {
@@ -130,6 +159,29 @@ public class GetServlet extends HttpServlet {
                 return null;
             }
         }
+    }
+    
+    private Collection<MachineEvent> getMachineEvents(Machine m, Date start, Date end) throws Exception {
+        Collection<MachineEvent> c = new HashSet<MachineEvent>();
+        c.addAll(assignedJobOrders(m, start, end));
+        c.addAll(sampling(m, start, end));
+        c.addAll(maintenance(m, start, end));
+        return c;
+    }
+    
+    private Collection<MachineEvent> getMachineEvents(HttpServletRequest request, Date start, Date end) throws Exception {
+        Collection<MachineEvent> c = new HashSet<MachineEvent>();
+        c.addAll(assignedJobOrders(request, start, end));
+        c.addAll(sampling(request, start, end));
+        c.addAll(maintenance(request, start, end));
+        return c;
+    }
+    
+    private Collection<Object> getProgram(HttpServletRequest request, Date start, Date end) throws Exception {
+        Collection<Object> c = new HashSet<Object>();
+        c.addAll(GetCollection.globalEventsBetween(user.getIsAdmin(), start, end));
+        c.addAll(getMachineEvents(request, start, end));
+        return c;
     }
     
     @Override
@@ -196,16 +248,81 @@ public class GetServlet extends HttpServlet {
             
             case "program":
                 try {
-                    c.addAll(GetCollection.globalEventsBetween(user.getIsAdmin(), start, end));
-                    c.addAll(assignedJobOrders(request, start, end));
-                    c.addAll(sampling(request, start, end));
-                    c.addAll(maintenance(request, start, end));
+                    c.addAll(getProgram(request,start, end));
                     out.print(gson.toJson(c));
                 } catch (Exception e) {
                     out.print(e.getMessage());
                     e.printStackTrace();
                 }
             break;
+            
+            case "xls":
+                try {
+                    Calendar calStart = Calendar.getInstance(), calEnd = Calendar.getInstance();
+                    calStart.setTime(start);
+                    calEnd.setTime(end);
+                    calStart.set(Calendar.DAY_OF_MONTH, 1);
+                    calEnd.set(Calendar.DAY_OF_MONTH, calEnd.getMaximum(Calendar.DAY_OF_MONTH));
+                    Collection<String> dates = new LinkedList<String>();
+                    HashMap<String, Date[]> dateDates = new HashMap<String, Date[]>();
+                    
+                    int startMonth = calStart.get(Calendar.MONTH);
+                    while(calStart.get(Calendar.YEAR) != calEnd.get(Calendar.YEAR) ||
+                            startMonth != calEnd.get(Calendar.MONTH)) {
+                        
+                        String key = itMonth.get(startMonth) + "-" + calStart.get(Calendar.YEAR) % 100;
+                        dates.add(key);
+                        Date[] datePair = new Date[2];
+                        datePair[0] = new Date(calStart.getTime().getTime());
+                        datePair[1] = new Date(calEnd.getTime().getTime());
+                        dateDates.put(key, datePair);
+                        
+                        if(startMonth == Calendar.DECEMBER) {
+                            startMonth = Calendar.JANUARY;
+                            calStart.set(Calendar.YEAR, calStart.get(Calendar.YEAR) + 1);
+                            calStart.set(Calendar.MONTH, startMonth);
+                        } else {
+                            ++startMonth;
+                            calStart.set(Calendar.MONTH, startMonth);
+                        }
+                    }
+                    
+                    Collection<Machine> machines = GetCollection.machines();
+                    Map<String, Object> beans = new HashMap<String, Object>();
+                    Map<String, Collection<MachineEvent>> program = new HashMap<String, Collection<MachineEvent>>();
+                    beans.put("machines", machines);
+                    beans.put("dates", dates);
+                    
+                    for(Machine m : machines) {
+                        for(String date : dates) {
+                            Date[] dd = dateDates.get(date);
+                            program.put(m.getId().toString() + date, getMachineEvents(m, dd[0], dd[1]));
+                        }
+                    }
+                    
+                    XLSTransformer transformer = new XLSTransformer();
+                    String relativeWebPathTPL = "/WEB-INF/classes/globalCalendarTpl.xls";
+                    String absoluteDiskPathTPL = getServletContext().getRealPath(relativeWebPathTPL);
+                    String relativeWebPathCompiled = "/globalCalendar.xls";
+                    String absoluteDiskPathCompiled = getServletContext().getRealPath(relativeWebPathCompiled);
+                    
+                    transformer.transformXLS(absoluteDiskPathTPL, beans, absoluteDiskPathCompiled);
+                    
+                    FileInputStream in = new FileInputStream(absoluteDiskPathCompiled);
+                    byte[] buffer = new byte[4096];
+                    int length;
+                    response.setContentType("application/vnd.ms-excel");
+                    response.setHeader("Content-Disposition", "attachment; filename=globalCalendar.xls");
+                    while ((length = in.read(buffer)) > 0){
+                        out.write(buffer, 0, length);
+                    }
+                    in.close();
+                    out.flush();
+                } catch (Exception e) {
+                    out.print(e.getMessage());
+                    e.printStackTrace();
+                }
+                break;
             
             default:
                 out.print("Error");
