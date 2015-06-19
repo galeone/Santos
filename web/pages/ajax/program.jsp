@@ -36,9 +36,18 @@
 							<c:forEach var="entry" items="${todojoborders}" varStatus="loop">
 								<option value="${loop.index}">[${entry.id}] Tempo
 									rimanente:
-									<fmt:formatNumber value="${entry.missingTime / 60 -0.5}"
-										maxFractionDigits="0" /> ore e ${entry.missingTime % 60}
-									minuti
+									<c:choose>
+										<c:when test="${ entry.missingTimeWithOffset > 60 }">
+											<fmt:formatNumber value="${entry.missingTimeWithOffset / 60 -0.5}"
+												maxFractionDigits="0" /> ore e ${entry.missingTimeWithOffset % 60}
+											minuti
+										</c:when>
+										<c:otherwise>
+												<fmt:formatNumber value="${entry.missingTimeWithOffset / 60}"
+												maxFractionDigits="0" /> ore e ${entry.missingTimeWithOffset % 60}
+											minuti
+										</c:otherwise>
+									</c:choose>
 								</option>
 							</c:forEach>
 						</select>
@@ -344,7 +353,7 @@ function newAssignedJobOrder(data, machine) {
 		minutes -= removedTime;
 		remain.data("minutes", minutes);
 		// update event globalobject (avoid recration of assigned blocks on select reselection)
-		window.todojoborders[remain.data("arrayindex")].missingTime = minutes;
+		window.todojoborders[remain.data("arrayindex")].missingTimeWithOffset = minutes;
 		var lastHours = Math.floor(minutes / 60), lastMinutes = minutes % 60;
 		out = lastHours + " ore e " + lastMinutes + " minuti";
 		remain.html("<b>" + out +"</b>");
@@ -430,7 +439,7 @@ $("#todoJobOrders").selectmenu({
 		    var leadMinutes = parseInt(window.todojoborders[index].leadTime),
 		    	leadHours = Math.floor(leadMinutes / 60),
 		    	leadMinutes = leadMinutes % 60,
-		    	dataRemainMinutes = parseInt(window.todojoborders[index].missingTime),
+		    	dataRemainMinutes = parseInt(window.todojoborders[index].missingTimeWithOffset),
 		    	remainMinutes = dataRemainMinutes,
 		    	remainHours = Math.floor(remainMinutes / 60),
 		    	remainMinutes = remainMinutes  % 60;
@@ -439,7 +448,7 @@ $("#todoJobOrders").selectmenu({
 					"Nome cliente: " + window.todojoborders[index].client.name + "<br />" +
 					"Codice cliente: " + window.todojoborders[index].client.code + "<br /><br />" +
 					"Tempo totale: <div><b>" + leadHours + " ore e " + leadMinutes + " minuti</b></div><br />" +
-					"Tempo rimanente : <div id='remainingTime' data-minutes="+dataRemainMinutes+" data-arrayindex="+index+"><b>" + remainHours + " ore e " + remainMinutes + " minuti</div></b><br /><br />" +
+					"Tempo rimanente (con variazioni): <div id='remainingTime' data-minutes="+dataRemainMinutes+" data-arrayindex="+index+"><b>" + remainHours + " ore e " + remainMinutes + " minuti</div></b><br /><br />" +
 					"<div id=\"jobordersforms\"><i>Puoi inserire in un unico colpo quante ore di produzione desideri scegliendo la data di inizio e fine e la macchina a cui assegnale<br />" +
 					"Oppure fare drag and drop del blocchetto sul calendario della macchina alla quale si desidere assegnare il lavoro</i><br /><br />" +
 					"<b>Inserimento automatico</b>" +

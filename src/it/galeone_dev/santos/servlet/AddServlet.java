@@ -410,6 +410,7 @@ public class AddServlet extends HttpServlet {
             j.setTimeForItem(timeForItem);
             j.setLeadTime(leadTime);
             j.setMissingTime(leadTime);
+            j.setMissingTimeWithOffset(leadTime);
             j.setColor(params.get("color"));
             j.setDescription(params.get("description"));
 
@@ -427,10 +428,15 @@ public class AddServlet extends HttpServlet {
     private AssignedJobOrder addOneAssignedJobOrder(JobOrder j, Machine m, Date start, Date end) {
         AssignedJobOrder aj = new AssignedJobOrder();
         aj.setJobOrder(j);
+        // Can return a merged event with last > end - start
         MachineEvent addedEvent = addOneMachineEvent(aj, m, start, end);
-        j.setMissingTime(j.getMissingTime() - EventUtils.getLast(addedEvent));
-        j.getAssignedJobOrders().clear();//workaround?
+        Long addedLast = EventUtils.getLast(addedEvent);
+        j.setMissingTime(j.getMissingTime() - addedLast);
+        j.setMissingTimeWithOffset(j.getMissingTimeWithOffset() - addedLast);
+        j.getAssignedJobOrders().clear(); //workaround?
         hibSession.merge(j);
+        hibSession.getTransaction().commit();
+        hibSession.getTransaction().begin();
         return (AssignedJobOrder) addedEvent;
     }
 
@@ -554,7 +560,7 @@ public class AddServlet extends HttpServlet {
             }
             
             if(eventType.equals(AssignedJobOrder.class)) {
-                Long missingTime = j.getMissingTime();
+                Long missingTime = j.getMissingTimeWithOffset();
                 if(end.before(start) || missingTime < last) {
                     last = missingTime;
                 }
@@ -577,11 +583,12 @@ public class AddServlet extends HttpServlet {
                     DroppableMachineEvent.merge(added, hibSession);
                 } else if(eventType.equals(AssignedJobOrder.class)) {
                     AssignedJobOrder added = addOneAssignedJobOrder(j, m, prev, end);
+                    howLong = EventUtils.getLast(added);
+                    
                     DroppableMachineEvent.merge(added, hibSession);
                     if(added.getStart().after(prev)) {
                         end = prev;
                     }
-                    howLong = EventUtils.getLast(added);
                 }
 
                 last -= howLong;

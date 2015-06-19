@@ -14,9 +14,9 @@ public class Maintenance extends DroppableMachineEvent implements Serializable, 
 
 	private Date start, end;
 	private Machine machine;
-	private String title, description;
+	private String title, description, color = "#808080";;
 	private boolean overlap = true, editable = true, allDay = true;
-	public String type = "maintenance", color = "#808080";
+	public String type = "maintenance";
 	
 	@Override
     public int hashCode() {
@@ -127,6 +127,16 @@ public class Maintenance extends DroppableMachineEvent implements Serializable, 
                    m.getDescription().equals(getDescription());
         }
         return false;
+    }
+
+    @Override
+    public String getColor() {
+        return color;
+    }
+
+    @Override
+    public void setColor(String color) {
+        this.color = color;
     }
 
 }

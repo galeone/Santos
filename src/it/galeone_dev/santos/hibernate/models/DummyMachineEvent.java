@@ -21,4 +21,22 @@ public class DummyMachineEvent extends DummyEvent implements MachineEvent {
         return false;
     }
 
+    @Override
+    public String getColor() {
+        return null;
+    }
+
+    @Override
+    public void setColor(String color) {        
+    }
+
+    @Override
+    public String getTitle() {
+        return null;
+    }
+
+    @Override
+    public void setTitle(String titile) {       
+    }
+
 }

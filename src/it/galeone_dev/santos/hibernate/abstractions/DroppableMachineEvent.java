@@ -130,37 +130,6 @@ public abstract class DroppableMachineEvent implements MachineEvent {
         for(MachineEvent fixedConflict : fixedConflictsQ) {
             merge(fixedConflict,hibSession);
         }
-        /*
-        Collection<MachineEvent> newEvents = new LinkedList<MachineEvent>(movedEvents);
-        
-        while(!movedEvents.isEmpty()) {
-            MachineEvent moved = movedEvents.poll();
-            Long movedLast = EventUtils.getLast(moved), dayLast = EventUtils.getLast(WorkingDay.get(moved.getStart()));
-            if (movedLast > dayLast) {
-                moved.setEnd(new Date(moved.getStart().getTime() + dayLast * 60000));
-                hibSession.merge(moved);
-                hibSession.getTransaction().commit();
-                hibSession.getTransaction().begin();
-                
-                Long remainingTime = movedLast - dayLast;
-                while (remainingTime > 0) {
-                    moved.setStart(EventUtils.tomorrow(moved.getStart()));
-                    dayLast = EventUtils.getLast(WorkingDay.get(moved.getStart()));
-                    Long eventLast = remainingTime > dayLast ? dayLast : remainingTime;
-                    moved.setEnd(new Date(moved.getStart().getTime() + eventLast * 60000));
-                    hibSession.save(moved);
-                    // fuck you hibernate (again)
-                    hibSession.getTransaction().commit();
-                    hibSession.getTransaction().begin();
-                    newEvents.add(moved);
-                    //callMerge(innerMoved, hibSession);
-                    remainingTime -= eventLast;
-                }
-            }
-        }
-        
-        return newEvents;
-        */
     }
     
     private Date oldStart;

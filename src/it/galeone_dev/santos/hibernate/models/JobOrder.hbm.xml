@@ -34,6 +34,9 @@
 
 		<property column="missing_time" generated="never" lazy="false"
 			name="missingTime" optimistic-lock="true" type="long" unique="false" />
+			
+		<property column="missing_time_with_offset" generated="never" lazy="false"
+			name="missingTimeWithOffset" optimistic-lock="true" type="long" unique="false" />
 
 		<property column="production_offset" generated="never" lazy="false"
 			name="offset" optimistic-lock="true" type="long" unique="false" />

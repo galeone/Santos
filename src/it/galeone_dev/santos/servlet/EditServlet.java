@@ -444,6 +444,7 @@ public class EditServlet extends HttpServlet {
                                     j.setNumberOfItems(lt);
                                     j.setLeadTime(lt * j.getTimeForItem());
                                     j.setMissingTime(j.getLeadTime() - actualAssignedTime);
+                                    j.setMissingTimeWithOffset(j.getLeadTime() + j.getOffset() - actualAssignedTime);
                                     outputResult = value;
                                 } catch (NumberFormatException e) {
                                     message.replace(0, message.length(), "Numero di elementi <= 0");
@@ -466,6 +467,7 @@ public class EditServlet extends HttpServlet {
                                     j.setTimeForItem(lt);
                                     j.setLeadTime(lt * j.getNumberOfItems());
                                     j.setMissingTime(j.getLeadTime() - actualAssignedTime);
+                                    j.setMissingTimeWithOffset(j.getLeadTime() + j.getOffset() - actualAssignedTime);
                                     outputResult = value;
                                 } catch (NumberFormatException e) {
                                     message.replace(0, message.length(), "Tempo per capo <= 0");
@@ -483,6 +485,7 @@ public class EditServlet extends HttpServlet {
                                         return;
                                     }
                                     j.setOffset(offset);
+                                    j.setMissingTimeWithOffset(newMissingTime);
                                     outputResult = value;
                                 } catch (NumberFormatException e) {
                                     message.replace(0, message.length(), "Valore variazione non valido");

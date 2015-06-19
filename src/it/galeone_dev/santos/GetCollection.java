@@ -480,7 +480,7 @@ public class GetCollection {
 	public static Collection<JobOrder> todoJobOrders(Boolean editable) {
         Session session = HibernateUtils.getSessionFactory().openSession();
 
-        Query q = session.createQuery("from JobOrder where missingTime <> 0");
+        Query q = session.createQuery("from JobOrder where missingTimeWithOffset <> 0");
         
         List<JobOrder> ret = q.list();
         session.close();

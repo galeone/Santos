@@ -25,7 +25,7 @@ public class Sampling extends DroppableMachineEvent implements Serializable, Mac
 	private String dateTime;
 	private Long leadTime;
 	
-	public String color = "#00E";
+	private String color = "#00E";
 
    public String getDateTime() {
         return this.dateTime;
@@ -158,6 +158,16 @@ public class Sampling extends DroppableMachineEvent implements Serializable, Mac
 
     public void setLeadTime() {
         this.leadTime = EventUtils.getLast(this);
+    }
+
+    @Override
+    public String getColor() {
+        return color;
+    }
+
+    @Override
+    public void setColor(String color) {
+        this.color = color;
     }
 
 }

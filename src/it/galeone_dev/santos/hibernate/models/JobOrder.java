@@ -9,6 +9,7 @@ public class JobOrder implements Serializable {
 	private Client client;
 	private Long id;
 	private Long leadTime, missingTime, numberOfItems, timeForItem, offset;
+	private Long missingTimeWithOffset;
 	private String color, description;
 	
 	transient private Set<AssignedJobOrder> assignedJobOrders;
@@ -126,6 +127,14 @@ public class JobOrder implements Serializable {
 
     public void setOffset(Long offset) {
         this.offset = offset;
+    }
+
+    public Long getMissingTimeWithOffset() {
+        return missingTimeWithOffset;
+    }
+
+    public void setMissingTimeWithOffset(Long missingTimeWithOffset) {
+        this.missingTimeWithOffset = missingTimeWithOffset;
     }
 
 }

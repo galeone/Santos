@@ -38,7 +38,7 @@
 		<label for="numberofitems">Numero di capi</label> <input type="number"
 			name="numberofitems" id="numberofitems" rel="4" /> <input
 			type="hidden" name="leadtime" id="leadtime" rel="5" value="0" /> <input
-			type="hidden" name="missingtime" id="missingtime" rel="6" value="0" />
+			type="hidden" name="missingtimewithoffset" id="missingtimewithoffset" rel="6" value="0" />
 		<input type="hidden" name="offset" id="offset" rel="7" value="0" /> <label
 			for="color">Colore</label> <input type="text" name="color" value=""
 			required class="color text ui-widget-content ui-corner-all" rel="8"
@@ -109,7 +109,7 @@ $("#minuti").on('input mousewheel', function() {
 
 $("#numberofitems").on('input mousewheel', function() {
     $("#leadtime").val($("#timeforitem").val() * parseInt($(this).val()));
-	$("#missingtime").val($("#leadtime").val());
+	$("#missingtimewithoffset").val($("#leadtime").val());
 });
 
 $("#joborders-table").dataTable({
@@ -145,8 +145,8 @@ $("#joborders-table").dataTable({
   	  		      }
               },
               {
-        	  	  data: 'missingTime',
-        	  	  name: 'missingTime',
+        	  	  data: 'missingTimeWithOffset',
+        	  	  name: 'missingTimeWithOffset',
         	  	  render: dataTablesLeadTime,
                   createdCell: function (td, cellData, rowData, row, col) {
                       td.setAttribute('class', 'read_only');

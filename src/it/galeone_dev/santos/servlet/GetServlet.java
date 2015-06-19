@@ -13,11 +13,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
@@ -258,11 +260,13 @@ public class GetServlet extends HttpServlet {
             
             case "xls":
                 try {
-                    Calendar calStart = Calendar.getInstance(), calEnd = Calendar.getInstance();
+                    Calendar calStart = Calendar.getInstance(), calEnd = Calendar.getInstance(),
+                            calEndOfTheStartMonth = Calendar.getInstance();
                     calStart.setTime(start);
                     calEnd.setTime(end);
                     calStart.set(Calendar.DAY_OF_MONTH, 1);
                     calEnd.set(Calendar.DAY_OF_MONTH, calEnd.getMaximum(Calendar.DAY_OF_MONTH));
+                    
                     Collection<String> dates = new LinkedList<String>();
                     HashMap<String, Date[]> dateDates = new HashMap<String, Date[]>();
                     
@@ -274,7 +278,9 @@ public class GetServlet extends HttpServlet {
                         dates.add(key);
                         Date[] datePair = new Date[2];
                         datePair[0] = new Date(calStart.getTime().getTime());
-                        datePair[1] = new Date(calEnd.getTime().getTime());
+                        calEndOfTheStartMonth.setTime(calStart.getTime());
+                        calEndOfTheStartMonth.set(Calendar.DAY_OF_MONTH, calEndOfTheStartMonth.getMaximum(Calendar.DAY_OF_MONTH));
+                        datePair[1] = new Date(calEndOfTheStartMonth.getTime().getTime());
                         dateDates.put(key, datePair);
                         
                         if(startMonth == Calendar.DECEMBER) {
@@ -287,18 +293,40 @@ public class GetServlet extends HttpServlet {
                         }
                     }
                     
-                    Collection<Machine> machines = GetCollection.machines();
                     Map<String, Object> beans = new HashMap<String, Object>();
-                    Map<String, Collection<MachineEvent>> program = new HashMap<String, Collection<MachineEvent>>();
-                    beans.put("machines", machines);
-                    beans.put("dates", dates);
+                    
+                    Collection<Machine> machines = GetCollection.machines();
+                    Collection<MachineCalendar> calendars = new LinkedList<MachineCalendar>();
                     
                     for(Machine m : machines) {
+                        MachineCalendar mc = new MachineCalendar();
+                        mc.setMachine(m);
+                        LinkedHashMap<String, ArrayList<ArrayList<MachineEvent>>> monthsCalendars = new LinkedHashMap<String, ArrayList<ArrayList<MachineEvent>>>();
                         for(String date : dates) {
+                            System.out.println(date);
                             Date[] dd = dateDates.get(date);
-                            program.put(m.getId().toString() + date, getMachineEvents(m, dd[0], dd[1]));
+                            ArrayList<ArrayList<MachineEvent>> events = new ArrayList<ArrayList<MachineEvent>>(31);
+                            for(int i=0;i<31;i++) {
+                                events.add(i, new ArrayList<MachineEvent>());
+                            }
+                            Collection<MachineEvent> collectionEvents = getMachineEvents(m, dd[0], dd[1]);
+                            for(MachineEvent e : collectionEvents) {
+                                calStart.setTime(e.getStart());
+                                int day = calStart.get(Calendar.DAY_OF_MONTH) - 1;
+                                events.get(day).add(e);
+                            }
+                            monthsCalendars.put(date, events);
+                        }
+                        mc.setCalendar(monthsCalendars);
+                        calendars.add(mc);
+                        
+                        for(MachineCalendar mca : calendars) {
+                            for(String date : mca.getCalendar().keySet()) {
+                                System.out.println(date);
+                            }
                         }
                     }
+                    beans.put("calendars", calendars);
                     
                     XLSTransformer transformer = new XLSTransformer();
                     String relativeWebPathTPL = "/WEB-INF/classes/globalCalendarTpl.xls";

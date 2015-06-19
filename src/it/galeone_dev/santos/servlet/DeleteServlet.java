@@ -385,7 +385,9 @@ public class DeleteServlet extends HttpServlet {
                 if (toDelete != null) { // exists
                     AssignedJobOrder aj = (AssignedJobOrder) toDelete;
                     JobOrder j = aj.getJobOrder();
-                    j.setMissingTime(j.getMissingTime() + EventUtils.getLast(aj));
+                    Long deletedLast = EventUtils.getLast(aj);
+                    j.setMissingTime(j.getMissingTime() + deletedLast);
+                    j.setMissingTimeWithOffset(j.getMissingTimeWithOffset() + deletedLast);
                     hibSession.merge(j);
                     hibSession.delete((AssignedJobOrder) toDelete);
                 } else {
@@ -421,10 +423,12 @@ public class DeleteServlet extends HttpServlet {
                     removedTime += EventUtils.getLast(a);
                 }
                 j.setMissingTime(j.getMissingTime() + removedTime);
+                j.setMissingTimeWithOffset(j.getMissingTimeWithOffset() + removedTime);
                 if(deleteBetween(AssignedJobOrder.class, start, end, m, j) < 0) {
                     message = "problema durante l'eliminazione";
+                } else {
+                    hibSession.merge(j);
                 }
-                hibSession.merge(j);
                 
                 //Fake toDelete event
                 AssignedJobOrder fake = new AssignedJobOrder();
