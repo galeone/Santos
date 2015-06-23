@@ -1,9 +1,8 @@
-package it.galeone_dev.santos.servlet;
+package it.galeone_dev.santos.hibernate.abstractions;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 
-import it.galeone_dev.santos.hibernate.abstractions.MachineEvent;
 import it.galeone_dev.santos.hibernate.models.Machine;
 
 public class MachineCalendar {
@@ -18,7 +17,7 @@ public class MachineCalendar {
         result = prime * result + ((machine == null) ? 0 : machine.hashCode());
         return result;
     }
-    public LinkedHashMap<String, ArrayList<ArrayList<MachineEvent>>> getCalendar() {
+    public LinkedHashMap<String,ArrayList<ArrayList<MachineEvent>>> getCalendar() {
         return calendar;
     }
     public void setCalendar(LinkedHashMap<String, ArrayList<ArrayList<MachineEvent>>> calendar) {

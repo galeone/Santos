@@ -13,19 +13,18 @@ import java.util.Queue;
 import org.hibernate.Session;
 
 public abstract class DroppableMachineEvent implements MachineEvent {
-    // returns moved events
+    
     public static void shiftRight(MachineEvent e, Session hibSession) {
         // Global events after e and the same day of e
         Collection<NonWorkingDay> nonWorkingDaysAfterEvent = GetCollection.nonWorkingDaysAfterEvent(e);
         Collection<NonWorkingDay> nonWorkingDaysInConflictWith = GetCollection.nonWorkingDaysTheSameDayOf(e);
         
         Collection<NonWorkingDay> toSkip = new LinkedList<NonWorkingDay>(nonWorkingDaysAfterEvent);
-        
         Collection<DroppableMachineEvent> machineEventsInConflict = GetCollection.machineEventsInConflictWith(e);
                
         // per ogni evento maccina in conflitto con il nuovo evento
-        Queue<MachineEvent> qq = new LinkedList<MachineEvent>(machineEventsInConflict),
-                        fixedConflictsQ = new LinkedList<MachineEvent>();
+        Queue<MachineEvent> qq = new LinkedList<MachineEvent>(machineEventsInConflict);
+                        //fixedConflictsQ = new LinkedList<MachineEvent>();
         
         // genero la lista degli eventi macchina da dover sistamare, perché a
         // causa
@@ -76,7 +75,6 @@ public abstract class DroppableMachineEvent implements MachineEvent {
             conflictEvent.setStart(nextDate);
             conflictEvent.setEnd(new Date(nextDate.getTime() + last));
             
-            ///
             
             Long conflictEventLast = EventUtils.getLast(conflictEvent), dayLast = EventUtils.getLast(WorkingDay.get(conflictEvent.getStart()));
             if (conflictEventLast > dayLast) {
@@ -87,8 +85,8 @@ public abstract class DroppableMachineEvent implements MachineEvent {
                 hibSession.getTransaction().commit();
                 hibSession.getTransaction().begin();
                 
-                fixedConflictsQ.remove(conflictEvent);
-                fixedConflictsQ.add(conflictEvent);
+                //fixedConflictsQ.remove(conflictEvent);
+                //fixedConflictsQ.add(conflictEvent);
                 
                 // = else
                 Collection<DroppableMachineEvent> newConflicts = GetCollection.machineEventsInConflictWith(conflictEvent);
@@ -96,7 +94,6 @@ public abstract class DroppableMachineEvent implements MachineEvent {
                 qq.removeAll(newConflicts);
                 // add elements without duplicate
                 qq.addAll(newConflicts);
-                //
                 
                 while (remainingTime > 0) {
                     conflictEvent.setStart(EventUtils.tomorrow(conflictEvent.getStart()));
@@ -107,29 +104,40 @@ public abstract class DroppableMachineEvent implements MachineEvent {
                     // fuck you hibernate (again)
                     hibSession.getTransaction().commit();
                     hibSession.getTransaction().begin();
-                    fixedConflictsQ.remove(conflictEvent);
-                    fixedConflictsQ.add(conflictEvent);
-                    //callMerge(innerMoved, hibSession);
+                    shiftRight(conflictEvent,hibSession);
+                    //fixedConflictsQ.remove(conflictEvent);
+                    //fixedConflictsQ.add(conflictEvent);
+
+                    //newConflicts = GetCollection.machineEventsInConflictWith(conflictEvent);
+                    // remove events already present (avoid duplicate -> avoid loops)
+                    //qq.removeAll(newConflicts);
+                    // add elements without duplicate
+                    //qq.addAll(newConflicts);
                     remainingTime -= eventLast;
                 }
             } else {
                 hibSession.merge(conflictEvent);
                 hibSession.getTransaction().commit();
                 hibSession.getTransaction().begin();
-                fixedConflictsQ.remove(conflictEvent);
-                fixedConflictsQ.add(conflictEvent);
+                //fixedConflictsQ.remove(conflictEvent);
+                //fixedConflictsQ.add(conflictEvent);
+                // FINALMENTE MANNAGGIA A OGNI COSA POSSIBLE
                 Collection<DroppableMachineEvent> newConflicts = GetCollection.machineEventsInConflictWith(conflictEvent);
-                // remove events already present (avoid duplicate -> avoid loops)
-                qq.removeAll(newConflicts);
-                // add elements without duplicate
-                qq.addAll(newConflicts);
+                if(newConflicts.size() == 0) {
+                    merge(conflictEvent, hibSession);
+                } else {
+                    //remove events already present (avoid duplicate -> avoid loops)
+                    qq.removeAll(newConflicts);
+                    // add elements without duplicate
+                    qq.addAll(newConflicts);
+                }
             }
         }
         
         // merge va fatto sugli eventi a cui sono stati sistemati i conflitti
-        for(MachineEvent fixedConflict : fixedConflictsQ) {
-            merge(fixedConflict,hibSession);
-        }
+        //for(MachineEvent fixedConflict : fixedConflictsQ) {
+        //    merge(fixedConflict,hibSession);
+        //}
     }
     
     private Date oldStart;

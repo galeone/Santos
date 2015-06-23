@@ -142,3 +142,53 @@ html {
 *, :before, :after {
 	box-sizing: inherit;
 }
+
+
+
+.main {
+width:1850px;
+}
+
+.month {
+background-color:black;
+font: bold 16px verdana;
+padding: 5px;
+color:white;
+}
+
+.daysofweek {
+background-color:gray;
+font:bold 12px verdana;
+color:white;
+float:left;
+width:49px;
+border-right:1px solid #EEEEEE;
+text-align:center;
+}
+
+.days {
+font-size: 12px;
+font-family:verdana;
+color:black;
+background-color: lightyellow;
+float:left;
+width:49px;
+border-right:1px solid #EEEEEE;
+height:100px;
+text-align:center;
+overflow:visible;
+}
+
+.days #today{
+font-weight: bold;
+color: red;
+}
+
+.eventBar {
+height:18px;
+background-color:#069;
+margin: 10px 0 0 2px;
+position: absolute;
+color:#fff;
+text-align:left;
+}

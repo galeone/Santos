@@ -34,6 +34,8 @@
 <script
 	src="<%= request.getContextPath() %>/scripts/fullcalendar/fullcalendar.js"></script>
 <script
+	src="<%= request.getContextPath() %>/scripts/fullcalendar/oneline.js"></script>
+<script
 	src="<%= request.getContextPath() %>/scripts/fullcalendar/lang-all.js"></script>
 <script
 	src="<%= request.getContextPath() %>/scripts/datatables/jquery.dataTables.min.js"></script>

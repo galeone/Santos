@@ -2,6 +2,7 @@ package it.galeone_dev.santos.servlet;
 
 import it.galeone_dev.santos.GetCollection;
 import it.galeone_dev.santos.hibernate.HibernateUtils;
+import it.galeone_dev.santos.hibernate.abstractions.MachineCalendar;
 import it.galeone_dev.santos.hibernate.abstractions.MachineEvent;
 import it.galeone_dev.santos.hibernate.models.AssignedJobOrder;
 import it.galeone_dev.santos.hibernate.models.Machine;
@@ -42,7 +43,7 @@ public class GetServlet extends HttpServlet {
     private static final long serialVersionUID = 74377157203911L;
     private Gson gson = new Gson();
     private User user;
-    private HashMap<Integer, String> itMonth = new HashMap<Integer, String>();
+    public static HashMap<Integer, String> itMonth = new HashMap<Integer, String>();
     
     @Override
     public void init() throws ServletException {
@@ -148,7 +149,7 @@ public class GetServlet extends HttpServlet {
         return maintenance(m, start, end);
     }
     
-    private Date getDate(HttpServletRequest request, String name) {
+    public Date getDate(HttpServletRequest request, String name) {
         String dateS = request.getParameter(name);
         if (dateS == null || "".equals(dateS)) {
             return null;
@@ -163,7 +164,7 @@ public class GetServlet extends HttpServlet {
         }
     }
     
-    private Collection<MachineEvent> getMachineEvents(Machine m, Date start, Date end) throws Exception {
+    public Collection<MachineEvent> getMachineEvents(Machine m, Date start, Date end) throws Exception {
         Collection<MachineEvent> c = new HashSet<MachineEvent>();
         c.addAll(assignedJobOrders(m, start, end));
         c.addAll(sampling(m, start, end));
@@ -171,7 +172,7 @@ public class GetServlet extends HttpServlet {
         return c;
     }
     
-    private Collection<MachineEvent> getMachineEvents(HttpServletRequest request, Date start, Date end) throws Exception {
+    public Collection<MachineEvent> getMachineEvents(HttpServletRequest request, Date start, Date end) throws Exception {
         Collection<MachineEvent> c = new HashSet<MachineEvent>();
         c.addAll(assignedJobOrders(request, start, end));
         c.addAll(sampling(request, start, end));

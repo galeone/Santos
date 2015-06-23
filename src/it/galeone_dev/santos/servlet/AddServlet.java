@@ -578,17 +578,17 @@ public class AddServlet extends HttpServlet {
                 if(eventType.equals(Sampling.class)) {
                     Sampling added = addOneSampling(description, c, m, prev, end);
                     DroppableMachineEvent.merge(added, hibSession);
+                    end = added.getStart();
                 } else if(eventType.equals(Maintenance.class)) {
                     Maintenance added = addOneMaintenance(description, m, prev, end);
                     DroppableMachineEvent.merge(added, hibSession);
+                    end = added.getStart();
                 } else if(eventType.equals(AssignedJobOrder.class)) {
                     AssignedJobOrder added = addOneAssignedJobOrder(j, m, prev, end);
                     howLong = EventUtils.getLast(added);
                     
                     DroppableMachineEvent.merge(added, hibSession);
-                    if(added.getStart().after(prev)) {
-                        end = prev;
-                    }
+                    end = added.getStart();
                 }
 
                 last -= howLong;
