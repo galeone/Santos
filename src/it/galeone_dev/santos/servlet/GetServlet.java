@@ -11,7 +11,10 @@ import it.galeone_dev.santos.hibernate.models.Sampling;
 import it.galeone_dev.santos.hibernate.models.User;
 
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -22,6 +25,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -32,9 +36,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import net.sf.jxls.transformer.XLSTransformer;
 
 import org.hibernate.Session;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.jxls.area.Area;
+import org.jxls.builder.AreaBuilder;
+import org.jxls.builder.xls.XlsCommentAreaBuilder;
+import org.jxls.common.CellRef;
+import org.jxls.common.Context;
+import org.jxls.transform.poi.PoiContext;
+import org.jxls.transform.poi.PoiTransformer;
 
 import com.google.gson.Gson;
 
@@ -281,7 +293,7 @@ public class GetServlet extends HttpServlet {
                         datePair[0] = new Date(calStart.getTime().getTime());
                         calEndOfTheStartMonth.setTime(calStart.getTime());
                         calEndOfTheStartMonth.set(Calendar.DAY_OF_MONTH, calEndOfTheStartMonth.getMaximum(Calendar.DAY_OF_MONTH));
-                        datePair[1] = new Date(calEndOfTheStartMonth.getTime().getTime());
+                        datePair[1] = new Date(calEndOfTheStartMonth.getTime().getTime()-1000);
                         dateDates.put(key, datePair);
                         
                         if(startMonth == Calendar.DECEMBER) {
@@ -300,8 +312,6 @@ public class GetServlet extends HttpServlet {
                     Collection<MachineCalendar> calendars = new LinkedList<MachineCalendar>();
                     
                     for(Machine m : machines) {
-                        MachineCalendar mc = new MachineCalendar();
-                        mc.setMachine(m);
                         LinkedHashMap<String, ArrayList<ArrayList<MachineEvent>>> monthsCalendars = new LinkedHashMap<String, ArrayList<ArrayList<MachineEvent>>>();
                         for(String date : dates) {
                             System.out.println(date);
@@ -318,24 +328,47 @@ public class GetServlet extends HttpServlet {
                             }
                             monthsCalendars.put(date, events);
                         }
+                        MachineCalendar mc = new MachineCalendar();
+                        mc.setMachine(m);
                         mc.setCalendar(monthsCalendars);
                         calendars.add(mc);
-                        
-                        for(MachineCalendar mca : calendars) {
-                            for(String date : mca.getCalendar().keySet()) {
-                                System.out.println(date);
+                    }
+                    beans.put("calendars", calendars);
+                    for(MachineCalendar mca : calendars) {
+                        for(String date : mca.getCalendar().keySet()) {
+                            System.out.println(date);
+                            //mel = arrayList<ArrayList<Eventi>(31)
+                            for(int i=0;i<31;i++) {
+                                System.out.println("Giorno: " + i);
+                                System.out.println("Eventi: ");
+                                for(MachineEvent event : mca.getCalendar().get(date).get(i)){                              
+                                    System.out.println(event.getColor());
+                                }
                             }
                         }
                     }
-                    beans.put("calendars", calendars);
                     
-                    XLSTransformer transformer = new XLSTransformer();
+                    
+
                     String relativeWebPathTPL = "/WEB-INF/classes/globalCalendarTpl.xls";
                     String absoluteDiskPathTPL = getServletContext().getRealPath(relativeWebPathTPL);
                     String relativeWebPathCompiled = "/globalCalendar.xls";
                     String absoluteDiskPathCompiled = getServletContext().getRealPath(relativeWebPathCompiled);
                     
-                    transformer.transformXLS(absoluteDiskPathTPL, beans, absoluteDiskPathCompiled);
+                    InputStream is = new FileInputStream(absoluteDiskPathTPL);
+                    Workbook workbook = WorkbookFactory.create(is);
+                    PoiTransformer transformer = PoiTransformer.createTransformer(is);
+                    AreaBuilder areaBuilder = new XlsCommentAreaBuilder(transformer);
+                    List<Area> xlsAreaLis = areaBuilder.build();
+                    Area xlsArea = xlsAreaLis.get(0);
+                    Context context = new PoiContext();
+                    context.putVar("calendars", calendars);
+                    xlsArea.applyAt(new CellRef("Result!A1"), context);
+                    OutputStream os = new FileOutputStream(absoluteDiskPathCompiled);
+                    workbook.write(os);
+                    is.close();
+                    os.close();
+                    //transformer.transformXLS(absoluteDiskPathTPL, beans, absoluteDiskPathCompiled);
                     
                     FileInputStream in = new FileInputStream(absoluteDiskPathCompiled);
                     byte[] buffer = new byte[4096];
