@@ -1,5 +1,7 @@
 package it.galeone_dev.santos.hibernate;
 
+import java.util.logging.Level;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
@@ -17,6 +19,7 @@ public class HibernateUtils {
               } else {
                   System.out.println("Using hibernate.xml connection url");
               }
+              java.util.logging.Logger.getLogger("org.hibernate").setLevel(Level.SEVERE);
               sessionFactory = c.buildSessionFactory();
           } catch (Throwable ex) {
               // Make sure you log the exception, as it might be swallowed

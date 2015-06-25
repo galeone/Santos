@@ -357,13 +357,13 @@ public class GetServlet extends HttpServlet {
                     
                     InputStream is = new FileInputStream(absoluteDiskPathTPL);
                     Workbook workbook = WorkbookFactory.create(is);
-                    PoiTransformer transformer = PoiTransformer.createTransformer(is);
+                    PoiTransformer transformer = PoiTransformer.createTransformer(workbook);
                     AreaBuilder areaBuilder = new XlsCommentAreaBuilder(transformer);
                     List<Area> xlsAreaLis = areaBuilder.build();
                     Area xlsArea = xlsAreaLis.get(0);
                     Context context = new PoiContext();
                     context.putVar("calendars", calendars);
-                    xlsArea.applyAt(new CellRef("Result!A1"), context);
+                    xlsArea.applyAt(new CellRef("Calendario!A1"), context);
                     OutputStream os = new FileOutputStream(absoluteDiskPathCompiled);
                     workbook.write(os);
                     is.close();

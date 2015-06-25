@@ -20,6 +20,7 @@ import it.galeone_dev.santos.hibernate.models.WorkingDay;
 
 import java.io.IOException;
 import java.security.InvalidParameterException;
+import java.sql.BatchUpdateException;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.Date;
@@ -35,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
@@ -619,7 +621,8 @@ public class AddServlet extends HttpServlet {
                 hibSession.saveOrUpdate(h);
             }
             hibSession.getTransaction().commit();
-        } catch (ConstraintViolationException e) {
+        } catch (HibernateException e) {
+            savedObject = null;
             message.replace(0, message.length(), "Esiste già un record con questo nome");
             hibSession.getTransaction().rollback();
         }
