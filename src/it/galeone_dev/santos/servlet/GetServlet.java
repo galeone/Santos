@@ -1,6 +1,7 @@
 package it.galeone_dev.santos.servlet;
 
 import it.galeone_dev.santos.GetCollection;
+import it.galeone_dev.santos.JXLSCellBackground;
 import it.galeone_dev.santos.hibernate.HibernateUtils;
 import it.galeone_dev.santos.hibernate.abstractions.MachineCalendar;
 import it.galeone_dev.santos.hibernate.abstractions.MachineEvent;
@@ -36,11 +37,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-
 import org.hibernate.Session;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.jxls.area.Area;
+import org.jxls.area.XlsArea;
 import org.jxls.builder.AreaBuilder;
 import org.jxls.builder.xls.XlsCommentAreaBuilder;
 import org.jxls.common.CellRef;
@@ -333,6 +334,8 @@ public class GetServlet extends HttpServlet {
                         mc.setCalendar(monthsCalendars);
                         calendars.add(mc);
                     }
+                    out.print(gson.toJson(calendars));
+                    /*
                     beans.put("calendars", calendars);
                     for(MachineCalendar mca : calendars) {
                         for(String date : mca.getCalendar().keySet()) {
@@ -360,15 +363,16 @@ public class GetServlet extends HttpServlet {
                     PoiTransformer transformer = PoiTransformer.createTransformer(workbook);
                     AreaBuilder areaBuilder = new XlsCommentAreaBuilder(transformer);
                     List<Area> xlsAreaLis = areaBuilder.build();
-                    Area xlsArea = xlsAreaLis.get(0);
+                    XlsArea xlsArea = (XlsArea) xlsAreaLis.get(0);
                     Context context = new PoiContext();
                     context.putVar("calendars", calendars);
+                    xlsArea.addAreaListener(new JXLSCellBackground(xlsArea));
                     xlsArea.applyAt(new CellRef("Calendario!A1"), context);
+                    
                     OutputStream os = new FileOutputStream(absoluteDiskPathCompiled);
                     workbook.write(os);
                     is.close();
                     os.close();
-                    //transformer.transformXLS(absoluteDiskPathTPL, beans, absoluteDiskPathCompiled);
                     
                     FileInputStream in = new FileInputStream(absoluteDiskPathCompiled);
                     byte[] buffer = new byte[4096];
@@ -380,6 +384,7 @@ public class GetServlet extends HttpServlet {
                     }
                     in.close();
                     out.flush();
+                    */
                 } catch (Exception e) {
                     out.print(e.getMessage());
                     e.printStackTrace();
