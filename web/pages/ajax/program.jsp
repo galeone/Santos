@@ -195,6 +195,16 @@
 				</c:choose>
 			</div>
 			<!-- accordion div -->
+			<h3>Calendario generale</h3>
+			<div>
+			<i>Scegli un mese di inzio e fine (il giorno non è importante)</i>
+			<form method="get" target="_blank" action="<%=request.getContextPath()%>/pages/global.jsp">
+				A partire da <sup>*</sup><input type="text" class="autostart" name="start" required /><br />
+				Fino a <sup>*</sup><input type="text" class="autoend" name="end" required /> <br />
+				<input type="submit" value="Genera calendario" /><br />
+			</form>
+			<i><br />Il calendario generato conterrà sempre almeno 2 mesi, anche se viene selezionata una coppia di date contenente lo stesso mese</i>
+			</div>
 		</div>
 		<!-- accorion -->
 	</div>

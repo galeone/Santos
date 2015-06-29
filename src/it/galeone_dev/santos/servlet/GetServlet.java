@@ -286,7 +286,7 @@ public class GetServlet extends HttpServlet {
                     
                     int startMonth = calStart.get(Calendar.MONTH);
                     while(calStart.get(Calendar.YEAR) != calEnd.get(Calendar.YEAR) ||
-                            startMonth != calEnd.get(Calendar.MONTH)) {
+                            startMonth <= calEnd.get(Calendar.MONTH)) {
                         
                         String key = itMonth.get(startMonth) + "-" + calStart.get(Calendar.YEAR) % 100;
                         dates.add(key);
@@ -306,9 +306,7 @@ public class GetServlet extends HttpServlet {
                             calStart.set(Calendar.MONTH, startMonth);
                         }
                     }
-                    
-                    Map<String, Object> beans = new HashMap<String, Object>();
-                    
+                                        
                     Collection<Machine> machines = GetCollection.machines();
                     Collection<MachineCalendar> calendars = new LinkedList<MachineCalendar>();
                     
@@ -335,56 +333,7 @@ public class GetServlet extends HttpServlet {
                         calendars.add(mc);
                     }
                     out.print(gson.toJson(calendars));
-                    /*
-                    beans.put("calendars", calendars);
-                    for(MachineCalendar mca : calendars) {
-                        for(String date : mca.getCalendar().keySet()) {
-                            System.out.println(date);
-                            //mel = arrayList<ArrayList<Eventi>(31)
-                            for(int i=0;i<31;i++) {
-                                System.out.println("Giorno: " + i);
-                                System.out.println("Eventi: ");
-                                for(MachineEvent event : mca.getCalendar().get(date).get(i)){                              
-                                    System.out.println(event.getColor());
-                                }
-                            }
-                        }
-                    }
-                    
-                    
 
-                    String relativeWebPathTPL = "/WEB-INF/classes/globalCalendarTpl.xls";
-                    String absoluteDiskPathTPL = getServletContext().getRealPath(relativeWebPathTPL);
-                    String relativeWebPathCompiled = "/globalCalendar.xls";
-                    String absoluteDiskPathCompiled = getServletContext().getRealPath(relativeWebPathCompiled);
-                    
-                    InputStream is = new FileInputStream(absoluteDiskPathTPL);
-                    Workbook workbook = WorkbookFactory.create(is);
-                    PoiTransformer transformer = PoiTransformer.createTransformer(workbook);
-                    AreaBuilder areaBuilder = new XlsCommentAreaBuilder(transformer);
-                    List<Area> xlsAreaLis = areaBuilder.build();
-                    XlsArea xlsArea = (XlsArea) xlsAreaLis.get(0);
-                    Context context = new PoiContext();
-                    context.putVar("calendars", calendars);
-                    xlsArea.addAreaListener(new JXLSCellBackground(xlsArea));
-                    xlsArea.applyAt(new CellRef("Calendario!A1"), context);
-                    
-                    OutputStream os = new FileOutputStream(absoluteDiskPathCompiled);
-                    workbook.write(os);
-                    is.close();
-                    os.close();
-                    
-                    FileInputStream in = new FileInputStream(absoluteDiskPathCompiled);
-                    byte[] buffer = new byte[4096];
-                    int length;
-                    response.setContentType("application/vnd.ms-excel");
-                    response.setHeader("Content-Disposition", "attachment; filename=globalCalendar.xls");
-                    while ((length = in.read(buffer)) > 0){
-                        out.write(buffer, 0, length);
-                    }
-                    in.close();
-                    out.flush();
-                    */
                 } catch (Exception e) {
                     out.print(e.getMessage());
                     e.printStackTrace();

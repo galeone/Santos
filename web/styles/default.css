@@ -192,3 +192,17 @@ position: absolute;
 color:#fff;
 text-align:left;
 }
+
+#table td {
+	width: 50px;
+	text-align:center;
+}
+
+#table table {
+	min-height: 50px;
+	width: 100%;
+}
+
+@media print {
+body {-webkit-print-color-adjust: exact;}
+}
