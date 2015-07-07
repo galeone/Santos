@@ -203,6 +203,11 @@ text-align:left;
 	width: 100%;
 }
 
+#message {
+	font-weight: bold;
+	font-size: large;
+}
+
 @media print {
 body {-webkit-print-color-adjust: exact;}
 }
