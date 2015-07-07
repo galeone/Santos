@@ -48,6 +48,7 @@ if(user.getIsAdmin()) { %>
 		</div>
 		</div>
 	</div>
+	<div id="message"></div>
 	<div class="rightc">
 		<div id='globalCalendar'></div>
 	</div>
@@ -117,12 +118,14 @@ $("#globalCalendar").fullCalendar({
 		    } else if(event.type == "workingday") {
 				end.setHours(end.getHours() + parseInt($("#wdhours").val()));
 		    }
+		    $("#message").html("Attendere prego...");
 		    $.post("<%=request.getContextPath()%>/add?what=" + event.type,
 		            {
 		            	start: event._start._d.toUTCString(),
 		            	end: end.toUTCString()
 		            }, function(data) {
 		        		if(data != 'ok') { alert(data); }
+		        		$("#message").html("");
 	 		   			$("#globalCalendar").fullCalendar( 'refetchEvents' );
 						$("#globalCalendar").fullCalendar( 'rerenderEvents' );
 		    });
@@ -135,6 +138,7 @@ $("#globalCalendar").fullCalendar({
 				revertFunc();
 				return;
 	    	}
+		    $("#message").html("Attendere prego...");
 		    $.post("<%=request.getContextPath()%>/edit?what=" + event.type,
 		            {
 		            	id: event.id,
@@ -142,7 +146,9 @@ $("#globalCalendar").fullCalendar({
 		            	end: event._end._d.toUTCString()
 		            },
 					function(data){
-		            	if(data != 'ok') { alert(data); revertFunc(); } 
+		            	if(data != 'ok') { alert(data); revertFunc();
+		            	$("#message").html("");
+		            } 
 		    });
 		}
 	},

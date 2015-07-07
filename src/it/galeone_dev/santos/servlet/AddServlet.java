@@ -20,7 +20,6 @@ import it.galeone_dev.santos.hibernate.models.WorkingDay;
 
 import java.io.IOException;
 import java.security.InvalidParameterException;
-import java.sql.BatchUpdateException;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.Date;
@@ -39,7 +38,6 @@ import javax.servlet.http.HttpSession;
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.hibernate.Session;
-import org.hibernate.exception.ConstraintViolationException;
 
 import com.google.gson.Gson;
 

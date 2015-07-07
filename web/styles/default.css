@@ -194,7 +194,7 @@ text-align:left;
 }
 
 #table td {
-	width: 50px;
+	min-width: 35px;
 	text-align:center;
 }
 

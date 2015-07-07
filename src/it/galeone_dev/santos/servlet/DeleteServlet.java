@@ -420,7 +420,9 @@ public class DeleteServlet extends HttpServlet {
                 Collection<AssignedJobOrder> willRemove = GetCollection.assignedJobOrdersBetween(m, start, end);
                 Long removedTime = 0L;
                 for(AssignedJobOrder a : willRemove) {
-                    removedTime += EventUtils.getLast(a);
+                    if(a.getJobOrder().equals(j)) {
+                        removedTime += EventUtils.getLast(a);
+                    }
                 }
                 j.setMissingTime(j.getMissingTime() + removedTime);
                 j.setMissingTimeWithOffset(j.getMissingTimeWithOffset() + removedTime);

@@ -38,12 +38,12 @@
 									rimanente:
 									<c:choose>
 										<c:when test="${ entry.missingTimeWithOffset > 60 }">
-											<fmt:formatNumber value="${entry.missingTimeWithOffset / 60 -0.5}"
+											<fmt:formatNumber value="${entry.missingTimeWithOffset % 60 == 0 ? entry.missingTimeWithOffset / 60 : entry.missingTimeWithOffset / 60  -0.5}"
 												maxFractionDigits="0" /> ore e ${entry.missingTimeWithOffset % 60}
 											minuti
 										</c:when>
 										<c:otherwise>
-												<fmt:formatNumber value="${entry.missingTimeWithOffset / 60}"
+											<fmt:formatNumber value="${entry.missingTimeWithOffset / 60}"
 												maxFractionDigits="0" /> ore e ${entry.missingTimeWithOffset % 60}
 											minuti
 										</c:otherwise>
@@ -209,6 +209,7 @@
 		<!-- accorion -->
 	</div>
 	<!-- leftc -->
+	<div id="message"></div>
 	<div class="rightc">
 		<h1>Calendario per macchina</h1>
 		<div id="accordionCalendars">
@@ -311,7 +312,7 @@ $("#samplingsummary").on('submit', 'form', function(e) {
  	    var client = $(this).find('select[name="client"]').val(),
  	    	description = $(this).find('input[name="description"]').val(),
  	    	machine =  $(this).find('select[name="machine"]').val();
- 	    
+ 	    $("#message").html("Attendere prego...");
  	    $.post("<%=request.getContextPath()%>/add?what=sampling",
  	            {
  	            	start: start.toUTCString(),
@@ -321,6 +322,7 @@ $("#samplingsummary").on('submit', 'form', function(e) {
  	            	description: description
  	            }, function(data){
  	        		if(isNaN(parseInt(data))) { alert(data); }
+ 	        		$("#message").html("");
  	        		$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
 					$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
  	            });
@@ -339,7 +341,7 @@ $("#maintenancesummary").on('submit', 'form', function(e) {
  	    var machine =  $(this).find('select[name="machine"]').val(),
  	    	description = $(this).find('input[name="description"]').val(),
  	    	machine =  $(this).find('select[name="machine"]').val();
- 	    
+ 	    $("#message").html("Attendere prego...");
  	    $.post("<%=request.getContextPath()%>/add?what=maintenance",
  	            {
  	            	start: start.toUTCString(),
@@ -348,8 +350,10 @@ $("#maintenancesummary").on('submit', 'form', function(e) {
  	            	description: description
  	            }, function(data){
  	        		if(isNaN(parseInt(data))) { alert(data); }
+ 	        		$("#message").html("");
  	        		$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
 					$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
+					
  	            });
  	}
 });
@@ -428,6 +432,7 @@ $("#jobordersummary").on('submit', '#autoassignjoborders', function(e) {
 	    var machine =  $(this).find('select[name="machine"]').val(),
 	    	jo = $(this).find('input[name="joborder"]').val();
 	    $("#autoaddstatus").html('Inserimento...');
+	    $("#message").html("Attendere prego...");
 	    $.post("<%=request.getContextPath()%>/add?what=assignedjoborder",
 	            {
 	            	start: start.toUTCString(),
@@ -436,6 +441,7 @@ $("#jobordersummary").on('submit', '#autoassignjoborders', function(e) {
 	            	joborder: jo
 	            }, function(data) {
 	        		newAssignedJobOrder(data, machine);
+	        		$("#message").html("");
 	        		$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
 					$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
 	   });
@@ -512,12 +518,14 @@ $("#todoJobOrders").selectmenu({
 	    disableResizing: true,
 		eventReceive: function(event) {
 			if(window.user.canAssignJobOrder) {
+				$("#message").html("Attendere prego...");
 			    $.post("<%=request.getContextPath()%>/add?what=" + event.type, toSend(event, ${machine.id}), function(data) {
 			            	if(event.type == "assignedjoborder") {
 			            		newAssignedJobOrder(data, ${machine.id});
 			            	} else {
 			            	    console.log(data);
 			            	}
+			            	$("#message").html("");
 							$("#m${machine.id}Calendar").fullCalendar( 'refetchEvents' );
 							$("#m${machine.id}Calendar").fullCalendar( 'rerenderEvents' );
 				    });
@@ -531,6 +539,7 @@ $("#todoJobOrders").selectmenu({
 					revertFunc();
 					return;
 			    }
+			    $("#message").html("Attendere prego...");
 			    $.post("<%=request.getContextPath()%>/edit?what=" + event.type,
 			            {
 			            	id: event.id,
@@ -544,6 +553,7 @@ $("#todoJobOrders").selectmenu({
 			            	if(data != 'ok') { alert(data); revertFunc(); }
 			            	else {
 			            	    // handle moving of events server side
+			            	    $("#message").html("");
 			            		$("#m${machine.id}Calendar").fullCalendar( 'refetchEvents' );
 								$("#m${machine.id}Calendar").fullCalendar( 'rerenderEvents' );
 			            	}
@@ -568,9 +578,10 @@ $("#todoJobOrders").selectmenu({
 		            if (!trashEl.hasClass("to-trash")) {
 		        		trashEl.addClass("to-trash");
 		            }
-
+		            $("#message").html("Attendere prego...");
 				    $.post("<%=request.getContextPath()%>/delete?what=" + event.type, { id: event.id }, function(data) {
 				    	if(data == 'ok') {
+				    		$("#message").html("");
 				    		$("#m${machine.id}Calendar").fullCalendar( 'refetchEvents' );
 							$("#m${machine.id}Calendar").fullCalendar( 'rerenderEvents' );
 							trashEl.removeClass("to-trash");
@@ -594,6 +605,7 @@ $("#accordionCalendars").accordion({
 		var visibleCalendar = ui.newPanel.data('calendarid');
 		if(visibleCalendar !== null) {
 		    visibleCalendar = $("#"+visibleCalendar);
+		    $("#message").html("");
 		    visibleCalendar.fullCalendar( 'refetchEvents' );
 		    visibleCalendar.fullCalendar( 'rerenderEvents' );
 		}		
@@ -619,7 +631,7 @@ $("#deleteJobOrder").on('submit', function(e) {
 	    
 	    var joborder = $(this).find('select[name="joborder"]').val(),
 	    	machine =  $(this).find('select[name="machine"]').val();
-	    
+	    $("#message").html("Attendere prego...");
 	    $.post("<%=request.getContextPath()%>/delete?what=assignedjoborder",
 	            {
 	            	start: start.toUTCString(),
@@ -628,6 +640,7 @@ $("#deleteJobOrder").on('submit', function(e) {
 	            	joborder: joborder
 	            }, function(data){
 	        		if(data != 'ok') { alert(data); }
+	        		$("#message").html("");
 	        		$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
 					$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
 	            });

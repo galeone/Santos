@@ -1,7 +1,6 @@
 package it.galeone_dev.santos.servlet;
 
 import it.galeone_dev.santos.GetCollection;
-import it.galeone_dev.santos.JXLSCellBackground;
 import it.galeone_dev.santos.hibernate.HibernateUtils;
 import it.galeone_dev.santos.hibernate.abstractions.MachineCalendar;
 import it.galeone_dev.santos.hibernate.abstractions.MachineEvent;
@@ -11,11 +10,8 @@ import it.galeone_dev.santos.hibernate.models.Maintenance;
 import it.galeone_dev.santos.hibernate.models.Sampling;
 import it.galeone_dev.santos.hibernate.models.User;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,9 +22,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
@@ -38,16 +32,6 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.hibernate.Session;
-import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.apache.poi.ss.usermodel.Workbook;
-import org.jxls.area.Area;
-import org.jxls.area.XlsArea;
-import org.jxls.builder.AreaBuilder;
-import org.jxls.builder.xls.XlsCommentAreaBuilder;
-import org.jxls.common.CellRef;
-import org.jxls.common.Context;
-import org.jxls.transform.poi.PoiContext;
-import org.jxls.transform.poi.PoiTransformer;
 
 import com.google.gson.Gson;
 
@@ -294,7 +278,7 @@ public class GetServlet extends HttpServlet {
                         datePair[0] = new Date(calStart.getTime().getTime());
                         calEndOfTheStartMonth.setTime(calStart.getTime());
                         calEndOfTheStartMonth.set(Calendar.DAY_OF_MONTH, calEndOfTheStartMonth.getMaximum(Calendar.DAY_OF_MONTH));
-                        datePair[1] = new Date(calEndOfTheStartMonth.getTime().getTime()-1000);
+                        datePair[1] = new Date(calEndOfTheStartMonth.getTime().getTime());
                         dateDates.put(key, datePair);
                         
                         if(startMonth == Calendar.DECEMBER) {
@@ -313,7 +297,6 @@ public class GetServlet extends HttpServlet {
                     for(Machine m : machines) {
                         LinkedHashMap<String, ArrayList<ArrayList<MachineEvent>>> monthsCalendars = new LinkedHashMap<String, ArrayList<ArrayList<MachineEvent>>>();
                         for(String date : dates) {
-                            System.out.println(date);
                             Date[] dd = dateDates.get(date);
                             ArrayList<ArrayList<MachineEvent>> events = new ArrayList<ArrayList<MachineEvent>>(31);
                             for(int i=0;i<31;i++) {
