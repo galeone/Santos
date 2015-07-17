@@ -56,6 +56,7 @@ $("#machines-table").dataTable({
 	"bJQueryUI": true,
 	"bProcestrueng": true,
 	"sPaginationType": "full_numbers",
+	"order": [[ 1, "asc" ]],
 	"language": {
 		"url": "<%=request.getContextPath()%>/scripts/datatables/italian.js"
 	},

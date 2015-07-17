@@ -108,8 +108,9 @@ $("#minuti").on('input mousewheel', function() {
 });
 
 $("#numberofitems").on('input mousewheel', function() {
-    $("#leadtime").val($("#timeforitem").val() * parseInt($(this).val()));
-	$("#missingtimewithoffset").val($("#leadtime").val());
+	var lead = parseInt($("#timeforitem").val()) * parseInt($(this).val());
+    $("#leadtime").val(lead);
+	$("#missingtimewithoffset").val(lead);
 });
 
 $("#joborders-table").dataTable({

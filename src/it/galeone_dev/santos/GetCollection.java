@@ -17,7 +17,10 @@ import it.galeone_dev.santos.hibernate.models.Sampling;
 import it.galeone_dev.santos.hibernate.models.User;
 import it.galeone_dev.santos.hibernate.models.WorkingDay;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -378,7 +381,13 @@ public class GetCollection {
     
     @SuppressWarnings("unchecked")
     public static Collection<Machine> machines() {
-        return (Collection<Machine>) get(Machine.class);
+        List<Machine> sortedMach = new ArrayList<Machine>((Collection<Machine>)get(Machine.class));
+        Collections.sort(sortedMach, new Comparator<Machine>() {
+            @Override
+            public int compare(Machine o1, Machine o2) {
+                return o1.getName().compareTo(o2.getName());
+            }});
+        return sortedMach;
     }
     
     public static Collection<AssignedJobOrder> setAssignedJobOrderAttr(Collection<AssignedJobOrder> l, boolean editable) {

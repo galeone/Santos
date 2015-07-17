@@ -34,8 +34,7 @@
 						<select id="todoJobOrders">
 							<option selected disabled>Scegli una commessa</option>
 							<c:forEach var="entry" items="${todojoborders}" varStatus="loop">
-								<option value="${loop.index}">[${entry.id}] Tempo
-									rimanente:
+								<option value="${loop.index}">[${entry.description}] TR:
 									<c:choose>
 										<c:when test="${ entry.missingTimeWithOffset > 60 }">
 											<fmt:formatNumber value="${entry.missingTimeWithOffset % 60 == 0 ? entry.missingTimeWithOffset / 60 : entry.missingTimeWithOffset / 60  -0.5}"
@@ -203,7 +202,6 @@
 				Fino a <sup>*</sup><input type="text" class="autoend" name="end" required /> <br />
 				<input type="submit" value="Genera calendario" /><br />
 			</form>
-			<i><br />Il calendario generato conterrà sempre almeno 2 mesi, anche se viene selezionata una coppia di date contenente lo stesso mese</i>
 			</div>
 		</div>
 		<!-- accorion -->
@@ -215,11 +213,11 @@
 		<div id="accordionCalendars">
 			<c:forEach var="machine" items="${machines}">
 				<h3>
-					ID: ${machine.id} -
 					<c:out value="${machine.name}" />
 					-
 					<c:out value="${machine.type}" />
-					- Finezza: ${machine.nicety}
+					- Finezza: ${machine.nicety} -
+					ID: ${machine.id}
 				</h3>
 				<div id="m${machine.id}Calendar"
 					data-calendarid="m${machine.id}Calendar"></div>
@@ -321,8 +319,8 @@ $("#samplingsummary").on('submit', 'form', function(e) {
  	            	machine: machine,
  	            	description: description
  	            }, function(data){
+ 	            	$("#message").html("");
  	        		if(isNaN(parseInt(data))) { alert(data); }
- 	        		$("#message").html("");
  	        		$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
 					$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
  	            });
@@ -349,8 +347,8 @@ $("#maintenancesummary").on('submit', 'form', function(e) {
  	            	machine: machine,
  	            	description: description
  	            }, function(data){
+ 	            	$("#message").html("");
  	        		if(isNaN(parseInt(data))) { alert(data); }
- 	        		$("#message").html("");
  	        		$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
 					$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
 					
@@ -372,7 +370,7 @@ function newAssignedJobOrder(data, machine) {
 		out = lastHours + " ore e " + lastMinutes + " minuti";
 		remain.html("<b>" + out +"</b>");
 		var selectVal = $("#selectvalue");
-		$('#todoJobOrders option[value="'+selectVal.data('value')+'"]').html("[" + selectVal.data('joborderid') + "] Tempo rimanente:" + out);
+		$('#todoJobOrders option[value="'+selectVal.data('value')+'"]').html("[" + selectVal.data('joborderdescr') + "] TR:" + out);
 		$("#todoJobOrders").selectmenu("refresh");
 		if(minutes <= 0) {
 		    $("#jobordersforms").remove();
@@ -385,18 +383,24 @@ function newAssignedJobOrder(data, machine) {
 }
 
 function toSend(event, machine) {
-    console.log("ToSend: ", event);
     if(event.type == 'assignedjoborder') {
-		return {
-			start: event._start._d.toUTCString(),
-			machine: machine,
-			joborder: event.joborder };
+    	var ret = {
+    		start: event._start._d.toUTCString(),
+    		machine: machine,
+	    	joborder: event.joborder
+    	};
+    	
+    	if(typeof event.last !== 'undefined') {
+    		var end = new Date(event._start._d);
+    		end.setHours(end.getHours() + parseInt(event.last));
+    		ret.end = end.toUTCString();
+    	}
+		return ret;
     }
 			
 	if(event.type == 'sampling') {
 	    var end = new Date(event._start._d);
 	    end.setHours(end.getHours() + parseInt(event.last));
-	    console.log('end', end);
 	    return {
 			start: event._start._d.toUTCString(),
 			end: end.toUTCString(),
@@ -407,9 +411,7 @@ function toSend(event, machine) {
 			
 	if(event.type == 'maintenance') {
 	    var end = new Date(event._start._d);
-	    end.setHours(end.getHours() + parseInt(event.last));
-	    console.log('end', end);
-	    
+	    end.setHours(end.getHours() + parseInt(event.last));	    
 	    return {
 				start: event._start._d.toUTCString(),
 				end: end.toUTCString(),
@@ -460,7 +462,7 @@ $("#todoJobOrders").selectmenu({
 		    	remainHours = Math.floor(remainMinutes / 60),
 		    	remainMinutes = remainMinutes  % 60;
 		    
-			$("#jobordersummary").html( '<div id="selectvalue" data-value="'+index+'" data-joborderid="'+window.todojoborders[index].id+'"></div>' +
+			$("#jobordersummary").html( '<div id="selectvalue" data-value="'+index+'" data-joborderdescr="'+window.todojoborders[index].description+'"></div>' +
 					"Nome cliente: " + window.todojoborders[index].client.name + "<br />" +
 					"Codice cliente: " + window.todojoborders[index].client.code + "<br /><br />" +
 					"Tempo totale: <div><b>" + leadHours + " ore e " + leadMinutes + " minuti</b></div><br />" +
@@ -473,7 +475,8 @@ $("#todoJobOrders").selectmenu({
 					'Fino a <input type="text" class="autoend" /> <br />' +
 					machineSelect + '<br /><br /><input type="submit" value="Auto assegna" /><div id="autoaddstatus"></div>' +
 					'</form>' +
-					"<br /><br /><b>Inserimento manuale (drag and drop)</b><br /><br /></div>" +
+					"<br /><br /><b>Inserimento manuale (drag and drop)</b><br /><br /></div><i>0 ore equivalngono all'intera giornata lavorativa.<br /> Un numero di ore maggiore di quello della giornata lavorativa vengono troncate alla durata della giornata lavorativa.</i><br/>" +
+					'<form id="ajeventform">Ore: <input style="display: inline" type="number" min="0" max="24" value="0" name="hours"/><br /></form><br />' +
 					"<div id='joborderevent'></div>");
 			
 			$("#jobordersummary .autostart").datepicker( { dateFormat: "dd/mm/yy" } );
@@ -496,10 +499,27 @@ $("#todoJobOrders").selectmenu({
 			
 			$block.draggable({
 				zIndex: 999,
-				appendTo: "body",
-			    helper: "clone",
 			    revert: true,
 			    revertduration: 0,
+				appendTo: "body",
+				helper: function() {
+				    var whform = $("#ajeventform");
+				    if(!whform[0].checkValidity()) {
+						alert("completa correttamente i campi");
+				    } else {
+						var last = whform.find('input[name="hours"]').val();
+						var event = $block.data('event');
+						if(last > 0) {
+							event.last = last;
+							$sBlock.data('event', event);
+						} else {
+							if(typeof event.last !== 'undefined') {
+								delete event.last;
+							}
+						}
+				    }
+				    return $block.clone(true);
+				}
 			});
 			$block.addClass("fc-draggable-event");
 			$block.addClass("block");
@@ -532,7 +552,6 @@ $("#todoJobOrders").selectmenu({
 			}
 		},
 		eventDrop: function(event, delta, revertFunc) {
-		    console.log(event);
 			if(window.user.canAssignJobOrder) {
 			    if(event.allDay) {
 					alert("Non puoi muovere questo tipo di evento");
@@ -550,10 +569,10 @@ $("#todoJobOrders").selectmenu({
 				            joborder: typeof(event.jobOrder) == 'undefined' ? '' : event.jobOrder.id
 			            },
 						function(data){
+			            	$("#message").html("");
 			            	if(data != 'ok') { alert(data); revertFunc(); }
 			            	else {
 			            	    // handle moving of events server side
-			            	    $("#message").html("");
 			            		$("#m${machine.id}Calendar").fullCalendar( 'refetchEvents' );
 								$("#m${machine.id}Calendar").fullCalendar( 'rerenderEvents' );
 			            	}
@@ -581,13 +600,13 @@ $("#todoJobOrders").selectmenu({
 		            $("#message").html("Attendere prego...");
 				    $.post("<%=request.getContextPath()%>/delete?what=" + event.type, { id: event.id }, function(data) {
 				    	if(data == 'ok') {
-				    		$("#message").html("");
 				    		$("#m${machine.id}Calendar").fullCalendar( 'refetchEvents' );
 							$("#m${machine.id}Calendar").fullCalendar( 'rerenderEvents' );
 							trashEl.removeClass("to-trash");
 				    	} else {
 				    		alert(data);
 				    	}
+				    	$("#message").html("");
 				    });
 			    } else if (trashEl.hasClass("to-trash")) {
 					trashEl.removeClass("to-trash");
@@ -639,8 +658,8 @@ $("#deleteJobOrder").on('submit', function(e) {
 	            	machine: machine,
 	            	joborder: joborder
 	            }, function(data){
+	            	$("#message").html("");
 	        		if(data != 'ok') { alert(data); }
-	        		$("#message").html("");
 	        		$("#m" + machine + "Calendar").fullCalendar( 'refetchEvents' );
 					$("#m" + machine + "Calendar").fullCalendar( 'rerenderEvents' );
 	            });

@@ -1,5 +1,7 @@
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<jsp:useBean id="date" class="java.util.Date" />
 <footer style="position: fixed; bottom: 1px; font-size: 9px">Santos
-	&copy; 2015.</footer>
+	&copy; <fmt:formatDate value="${date}" pattern="yyyy" />.</footer>
 <script>
 $("#error").dialog({
 	autoOpen: true,
