@@ -48,8 +48,8 @@ if(user.getIsAdmin()) { %>
 		</div>
 		</div>
 	</div>
-	<div id="message"></div>
 	<div class="rightc">
+		<div id="message"></div>
 		<div id='globalCalendar'></div>
 	</div>
 	<% } else { %>
@@ -209,6 +209,7 @@ $("#accordion").accordion({
     collapsible: true,
     heightStyle: "content"
 });
+$("#message").css('top', '0');
 $(".autostart").datepicker( { dateFormat: "dd/mm/yy" } );
 $(".autoend").datepicker( { dateFormat: "dd/mm/yy" } );
 </script>

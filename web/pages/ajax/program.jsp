@@ -207,9 +207,8 @@
 		<!-- accorion -->
 	</div>
 	<!-- leftc -->
-	<div id="message"></div>
 	<div class="rightc">
-		<h1>Calendario per macchina</h1>
+		<h1>Calendario per macchina</h1> <div id="message"></div>
 		<div id="accordionCalendars">
 			<c:forEach var="machine" items="${machines}">
 				<h3>
@@ -667,4 +666,18 @@ $("#deleteJobOrder").on('submit', function(e) {
    
 });
 
+var lc = $(".leftc"), goodTop = lc.offset().top, roundedTop = Math.round(goodTop);
+lc.css({"top": goodTop,
+    "bottom": "0",
+    "position": "fixed",
+    "overflow-y": "auto",
+    "overflow-x": "hidden"
+});
+$(document).scroll(function(){
+    if ( $(this).scrollTop() >= roundedTop ){
+		lc.css('top', "0");
+    } else {
+		lc.css('top', goodTop);
+    }
+});
 </script>

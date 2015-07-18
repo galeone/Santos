@@ -206,6 +206,11 @@ text-align:left;
 #message {
 	font-weight: bold;
 	font-size: large;
+	color: red;
+	position: relative;
+  	top: -25px;
+  	left: 200px;
+  	height: 0px;
 }
 
 @media print {

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 
-<project name="Santos" basedir=".." default="09b.deploy.dir">
+<project name="Santos" basedir=".." default="09a.deploy.war">
 	<!-- ================ -->
 	<!-- Properties setup -->
 	<!-- ================ -->
