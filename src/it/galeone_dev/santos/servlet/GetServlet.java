@@ -259,40 +259,56 @@ public class GetServlet extends HttpServlet {
             case "xls":
                 try {
                     Calendar calStart = Calendar.getInstance(), calEnd = Calendar.getInstance(),
-                            calEndOfTheStartMonth = Calendar.getInstance();
+                            calEndOfTheStartMonth = Calendar.getInstance();                   
                     calStart.setTime(start);
-                    calEnd.setTime(end);
                     calStart.set(Calendar.DAY_OF_MONTH, 1);
-                    calEnd.set(Calendar.DAY_OF_MONTH, calEnd.getMaximum(Calendar.DAY_OF_MONTH));
+                    //System.out.println(start + "\n" + end);
+                    
+                    calEnd.setTime(end);
+                    calEnd.set(Calendar.DAY_OF_MONTH, calEnd.getActualMaximum(Calendar.DAY_OF_MONTH));
+                    
+                    //System.out.println(calStart.getTime() + "\n" + calEnd.getTime());
+                    
                     
                     Collection<String> dates = new LinkedList<String>();
                     HashMap<String, Date[]> dateDates = new HashMap<String, Date[]>();
-                    
-                    int startMonth = calStart.get(Calendar.MONTH);
-                    
+                                        
                     if(calStart.get(Calendar.YEAR) <= calEnd.get(Calendar.YEAR)) {
-                    
-                        while(calStart.get(Calendar.YEAR) != calEnd.get(Calendar.YEAR) ||
-                                startMonth != calEnd.get(Calendar.MONTH)) {
+                        while(calStart.get(Calendar.YEAR) <= calEnd.get(Calendar.YEAR) ||
+                                        calStart.get(Calendar.MONTH) <= calEnd.get(Calendar.MONTH)) {
+                            //System.out.println(calStart.get(Calendar.YEAR) + " != " + calEnd.get(Calendar.YEAR) + " || " + calStart.get(Calendar.MONTH) + " != " + calEnd.get(Calendar.MONTH));
                             
-                            //System.out.println(calStart.get(Calendar.YEAR) + " != " + calEnd.get(Calendar.YEAR) + " || " + startMonth + " != " + calEnd.get(Calendar.MONTH));
-                            
-                            String key = itMonth.get(startMonth) + "-" + calStart.get(Calendar.YEAR) % 100;
+                            String key = itMonth.get(calStart.get(Calendar.MONTH)) + "-" + calStart.get(Calendar.YEAR) % 100;
                             dates.add(key);
                             Date[] datePair = new Date[2];
                             datePair[0] = new Date(calStart.getTime().getTime());
                             calEndOfTheStartMonth.setTime(calStart.getTime());
-                            calEndOfTheStartMonth.set(Calendar.DAY_OF_MONTH, calEndOfTheStartMonth.getMaximum(Calendar.DAY_OF_MONTH));
+                            calEndOfTheStartMonth.set(Calendar.DAY_OF_MONTH, calEndOfTheStartMonth.getActualMaximum(Calendar.DAY_OF_MONTH));
                             datePair[1] = new Date(calEndOfTheStartMonth.getTime().getTime());
                             dateDates.put(key, datePair);
                             
-                            if(startMonth == Calendar.DECEMBER) {
-                                startMonth = Calendar.JANUARY;
-                                calStart.set(Calendar.YEAR, calStart.get(Calendar.YEAR) + 1);
-                            } else {
-                                ++startMonth;
+                            if(calStart.get(Calendar.YEAR) == calEnd.get(Calendar.YEAR) &&
+                                            calStart.get(Calendar.MONTH) == calEnd.get(Calendar.MONTH)){
+                                break;
                             }
-                            calStart.set(Calendar.MONTH, startMonth);
+                            
+                            if(calStart.get(Calendar.MONTH) == Calendar.DECEMBER) {
+                                calStart.add(Calendar.YEAR, 1);
+                                calStart.set(Calendar.MONTH, Calendar.JANUARY);
+                                // copied code
+                                key = itMonth.get(calStart.get(Calendar.MONTH)) + "-" + calStart.get(Calendar.YEAR) % 100;
+                                dates.add(key);
+                                datePair = new Date[2];
+                                datePair[0] = new Date(calStart.getTime().getTime());
+                                calEndOfTheStartMonth.setTime(calStart.getTime());
+                                calEndOfTheStartMonth.set(Calendar.DAY_OF_MONTH, calEndOfTheStartMonth.getActualMaximum(Calendar.DAY_OF_MONTH));
+                                datePair[1] = new Date(calEndOfTheStartMonth.getTime().getTime());
+                                dateDates.put(key, datePair);
+                                // end
+                                
+                            } else {
+                                calStart.add(Calendar.MONTH, 1);
+                            }
                         }
                     }
                                         
