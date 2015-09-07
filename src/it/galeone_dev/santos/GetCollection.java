@@ -395,7 +395,7 @@ public class GetCollection {
             Long lastInMinutes = EventUtils.getLast(aj);
             Long missingHours = lastInMinutes / 60, missingMinutes = lastInMinutes % 60;
             
-            aj.setTitle(aj.getJobOrder().getClient().getCode() +  
+            aj.setTitle(aj.getJobOrder().getClient().getName() +  
                         " - " +  aj.getJobOrder().getId() + "\n" +
                         aj.getJobOrder().getDescription() + "\n" +
                         missingHours + " ore" + (
@@ -439,7 +439,7 @@ public class GetCollection {
             Long lastInMinutes = EventUtils.getLast(s);
             Long missingHours = lastInMinutes / 60, missingMinutes = lastInMinutes % 60;
             
-            s.setTitle("CAMPIONAMENTO\n" +  s.getClient().getCode() + "\n" +
+            s.setTitle("CAMPIONAMENTO\n" +  s.getClient().getName() + "\n" +
                         s.getDescription() + "\n" +
                         missingHours + " ore" + (
                                 missingMinutes > 0

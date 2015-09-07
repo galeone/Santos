@@ -391,7 +391,7 @@ function toSend(event, machine) {
     	
     	if(typeof event.last !== 'undefined') {
     		var end = new Date(event._start._d);
-    		end.setHours(end.getHours() + parseInt(event.last));
+    		end.setUTCHours(end.getUTCHours() + parseInt(event.last));
     		ret.end = end.toUTCString();
     	}
 		return ret;
@@ -399,7 +399,7 @@ function toSend(event, machine) {
 			
 	if(event.type == 'sampling') {
 	    var end = new Date(event._start._d);
-	    end.setHours(end.getHours() + parseInt(event.last));
+	    end.setUTCHours(end.getUTCHours() + parseInt(event.last));
 	    return {
 			start: event._start._d.toUTCString(),
 			end: end.toUTCString(),
@@ -410,7 +410,7 @@ function toSend(event, machine) {
 			
 	if(event.type == 'maintenance') {
 	    var end = new Date(event._start._d);
-	    end.setHours(end.getHours() + parseInt(event.last));	    
+	    end.setUTCHours(end.getUTCHours() + parseInt(event.last));	    
 	    return {
 				start: event._start._d.toUTCString(),
 				end: end.toUTCString(),
@@ -530,6 +530,7 @@ $("#todoJobOrders").selectmenu({
 <c:forEach var="machine" items="${machines}">
 	$("#m${machine.id}Calendar").fullCalendar({
 		lang: 'it',
+		timeFormat: ' ', /* remove starting hours from block */
 		weekNumbers: true,
 		editable: window.user.canAssignJobOrder,
 		droppable: window.user.canAssignJobOrder,
@@ -635,8 +636,8 @@ $("#accordionActions").accordion({
     heightStyle: "content"    
 });
 
-$(".autostart").datepicker( { dateFormat: "dd/mm/yy" } );
-$(".autoend").datepicker( { dateFormat: "dd/mm/yy" } );
+$(".autostart").datepicker();
+$(".autoend").datepicker();
 
 $("#deleteJobOrder").on('submit', function(e) {
     e.preventDefault();

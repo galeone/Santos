@@ -114,9 +114,9 @@ $("#globalCalendar").fullCalendar({
 		if(window.user.isAdmin) {
 		    var end = new Date(event._start._d);
 		    if(event.type == "nonworkingday") {
-		    	end.setHours(end.getHours() + 24);
+		    	end.setUTCHours(end.getUTCHours() + 24);
 		    } else if(event.type == "workingday") {
-				end.setHours(end.getHours() + parseInt($("#wdhours").val()));
+				end.setUTCHours(end.getUTCHours() + parseInt($("#wdhours").val()));
 		    }
 		    $("#message").html("Attendere prego...");
 		    $.post("<%=request.getContextPath()%>/add?what=" + event.type,
