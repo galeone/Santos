@@ -18,6 +18,8 @@ $("#error").dialog({
 		}
 	}
 });
+
+$.datepicker.setDefaults($.datepicker.regional['it']);
 </script>
 </body>
 </html>

@@ -27,6 +27,8 @@
 <script src="<%= request.getContextPath() %>/scripts/jquery/jquery.js"></script>
 <script
 	src="<%= request.getContextPath() %>/scripts/jquery/jquery-ui.js"></script>
+<script
+	src="<%= request.getContextPath() %>/scripts/jquery/datepicker-it.js"></script>
 <!-- <script
 	src="<%= request.getContextPath() %>/scripts/jquery/jquery.hoverintent.js"></script> -->
 <script
