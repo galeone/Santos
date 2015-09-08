@@ -567,8 +567,15 @@ public class AddServlet extends HttpServlet {
             }
             
             Date prev = new Date(dummy.getStart().getTime());
+            Collection<NonWorkingDay> nonWorkingDaysInConflictWith = null;
             while (last > 0) {
                 dummy.setStart(prev);
+                nonWorkingDaysInConflictWith = GetCollection.nonWorkingDaysTheSameDayOf(dummy);
+                while(!nonWorkingDaysInConflictWith.isEmpty()) {
+                    prev = EventUtils.tomorrow(prev);
+                    dummy.setStart(prev);
+                    nonWorkingDaysInConflictWith = GetCollection.nonWorkingDaysTheSameDayOf(dummy);
+                }
                 Long hoursPerDay = EventUtils.getLast(WorkingDay.get(dummy.getStart()));
                 Long howLong = last > hoursPerDay ? hoursPerDay : last;
 
