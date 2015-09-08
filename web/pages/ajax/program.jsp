@@ -139,7 +139,8 @@
 												value="${c.name} [${c.code}]" /></option>
 									</c:forEach>
 								</select><br /> Descrizione<br /> <input type="text" name="description" required /><br />
-								Ore: <input style="display: inline" type="number" min="1" max="24" value="0" name="hours" required/><br />
+								Ore: <input style="display: inline" type="number" min="0" max="24" value="0" name="hours" required /><br />
+								Minuti: <input style="display: inline" type="number" min="0" max="59" value="0" name="minutes" required /><br />
 							</form>
 							<br />
 							<div id="sampling-event"></div>
@@ -183,7 +184,8 @@
 							</p>
 							<form id="mform">
 								Descrizione<br /> <input type="text" name="description" required /><br />
-								Ore: <input style="display: inline" type="number" min="1" max="24" value="0" name="hours" required/><br />
+								Ore: <input style="display: inline" type="number" min="0" max="24" value="0" name="hours" required/><br />
+								Minuti: <input style="display: inline" type="number" min="0" max="59" value="0" name="minutes" required /><br />
 							</form>
 							<br />
 							<div id="maintenance-event"></div>
@@ -248,7 +250,13 @@ $sBlock.draggable({
 			var event = $sBlock.data('event');
 			event.description = whform.find('input[name="description"]').val();
 			event.client = whform.find('select[name="client"]').val();
-			event.last   = whform.find('input[name="hours"]').val();
+			
+			var hours = parseInt(whform.find('input[name="hours"]').val(), 10),
+			minutes = parseInt(whform.find('input[name="minutes"]').val(), 10);
+			hours = isNaN(hours) ? 0 : hours;
+			minutes = isNaN(minutes) ? 0 : minutes;
+			
+			event.last =(hours * 60 + minutes)*60*1000;
 			$sBlock.data('event', event);
 	    }
 	    return $sBlock.clone(true);
@@ -278,7 +286,12 @@ $mBlock.draggable({
 	    } else {
 			var event = $mBlock.data('event');
 			event.description = whform.find('input[name="description"]').val();
-			event.last   	  = whform.find('input[name="hours"]').val();
+			var hours = parseInt(whform.find('input[name="hours"]').val(), 10),
+			minutes = parseInt(whform.find('input[name="minutes"]').val(), 10);
+			hours = isNaN(hours) ? 0 : hours;
+			minutes = isNaN(minutes) ? 0 : minutes;
+			
+			event.last = (hours * 60 + minutes)*60*1000;
 			$mBlock.data('event', event);
 	    }
 		return $mBlock.clone(true);
@@ -382,6 +395,7 @@ function newAssignedJobOrder(data, machine) {
 }
 
 function toSend(event, machine) {
+    console.log(event);
     if(event.type == 'assignedjoborder') {
     	var ret = {
     		start: event._start._d.toUTCString(),
@@ -391,7 +405,7 @@ function toSend(event, machine) {
     	
     	if(typeof event.last !== 'undefined') {
     		var end = new Date(event._start._d);
-    		end.setUTCHours(end.getUTCHours() + parseInt(event.last));
+    		end.setTime(end.getTime() + event.last);
     		ret.end = end.toUTCString();
     	}
 		return ret;
@@ -399,7 +413,7 @@ function toSend(event, machine) {
 			
 	if(event.type == 'sampling') {
 	    var end = new Date(event._start._d);
-	    end.setUTCHours(end.getUTCHours() + parseInt(event.last));
+	    end.setTime(end.getTime() + event.last);
 	    return {
 			start: event._start._d.toUTCString(),
 			end: end.toUTCString(),
@@ -410,7 +424,7 @@ function toSend(event, machine) {
 			
 	if(event.type == 'maintenance') {
 	    var end = new Date(event._start._d);
-	    end.setUTCHours(end.getUTCHours() + parseInt(event.last));	    
+	    end.setTime(end.getTime() + event.last);	    
 	    return {
 				start: event._start._d.toUTCString(),
 				end: end.toUTCString(),
@@ -451,7 +465,7 @@ $("#jobordersummary").on('submit', '#autoassignjoborders', function(e) {
 
 $("#todoJobOrders").selectmenu({
 	select: function(event, ui) {
-	    var index = parseInt(ui.item.element.val());
+	    var index = parseInt(ui.item.element.val(), 10);
 	    if(!isNaN(index)) {
 		    var leadMinutes = parseInt(window.todojoborders[index].leadTime),
 		    	leadHours = Math.floor(leadMinutes / 60),
@@ -474,9 +488,10 @@ $("#todoJobOrders").selectmenu({
 					'Fino a <input type="text" class="autoend" /> <br />' +
 					machineSelect + '<br /><br /><input type="submit" value="Auto assegna" /><div id="autoaddstatus"></div>' +
 					'</form>' +
-					"<br /><br /><b>Inserimento manuale (drag and drop)</b><br /><br /></div><i>0 ore equivalngono all'intera giornata lavorativa.<br /> Un numero di ore maggiore di quello della giornata lavorativa vengono troncate alla durata della giornata lavorativa.</i><br/>" +
-					'<form id="ajeventform">Ore: <input style="display: inline" type="number" min="0" max="24" value="0" name="hours"/><br /></form><br />' +
-					"<div id='joborderevent'></div>");
+					"<br /><br /><b>Inserimento manuale (drag and drop)</b><br /><br /></div><i>0 ore e 0 minuti equivalngono all'intera giornata lavorativa.<br /> Un numero di ore maggiore di quello della giornata lavorativa vengono troncate alla durata della giornata lavorativa.</i><br/>" +
+					'<form id="ajeventform">Ore: <input style="display: inline" type="number" min="0" max="24" value="0" name="hours"/><br />' +
+					'Minuti: <input style="display: inline" type="number" min="0" max="59" value="0" name="minutes" required /><br />' +
+					'</form><br /><div id="joborderevent"></div>');
 			
 			$("#jobordersummary .autostart").datepicker( { dateFormat: "dd/mm/yy" } );
 			$("#jobordersummary .autoend").datepicker( { dateFormat: "dd/mm/yy" } );
@@ -488,13 +503,12 @@ $("#todoJobOrders").selectmenu({
 				color = window.todojoborders[index].color;
 			
 			$block.html(title);
-			event = {
+			$block.data('event', {
 				joborder: window.todojoborders[index].id,
 				title: title,
 				color: color,
 				type: "assignedjoborder"
-			};
-			$block.data('event', event);
+			});
 			
 			$block.draggable({
 				zIndex: 999,
@@ -506,11 +520,15 @@ $("#todoJobOrders").selectmenu({
 				    if(!whform[0].checkValidity()) {
 						alert("completa correttamente i campi");
 				    } else {
-						var last = whform.find('input[name="hours"]').val();
+						var hours = parseInt(whform.find('input[name="hours"]').val(), 10),
+							minutes = parseInt(whform.find('input[name="minutes"]').val(), 10);
+						hours = isNaN(hours) ? 0 : hours;
+						minutes = isNaN(minutes) ? 0 : minutes;
+						var last = (hours * 60 + minutes)*60*1000;
 						var event = $block.data('event');
 						if(last > 0) {
 							event.last = last;
-							$sBlock.data('event', event);
+							$block.data('event', event);
 						} else {
 							if(typeof event.last !== 'undefined') {
 								delete event.last;

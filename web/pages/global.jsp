@@ -31,6 +31,9 @@ function content(event) {
 		return "MANUTENZIONE: " + event.description;
 	case "sampling":
 		return "CAMPIONAMENTO: " + event.client.name + "<br>" + event.description;
+	case "nonworkingday":
+	case "workingday":
+	    return event.title;
 	default:
 		return event.description;
 	}
@@ -57,7 +60,9 @@ $.getJSON(url, function(data) {
 				row += "<td>";
 				row += "<table>"
 				$.each(days[i], function(i, event) {
-					row += "<tr><td style='background-color:" + event.color + "'>"+content(event)+"</td></tr>";
+				    if(event.id > 0) { /* skip default values (workind day values) */
+						row += "<tr><td style='background-color:" + event.color + "'>"+content(event)+"</td></tr>";
+				    }
 				});
 				row += "</table>"
 				row += "</td>";

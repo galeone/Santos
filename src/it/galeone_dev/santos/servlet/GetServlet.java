@@ -2,6 +2,7 @@ package it.galeone_dev.santos.servlet;
 
 import it.galeone_dev.santos.GetCollection;
 import it.galeone_dev.santos.hibernate.HibernateUtils;
+import it.galeone_dev.santos.hibernate.abstractions.Event;
 import it.galeone_dev.santos.hibernate.abstractions.MachineCalendar;
 import it.galeone_dev.santos.hibernate.abstractions.MachineEvent;
 import it.galeone_dev.santos.hibernate.models.AssignedJobOrder;
@@ -177,10 +178,17 @@ public class GetServlet extends HttpServlet {
         return c;
     }
     
-    private Collection<Object> getProgram(HttpServletRequest request, Date start, Date end) throws Exception {
-        Collection<Object> c = new HashSet<Object>();
+    private Collection<Event> getProgram(HttpServletRequest request, Date start, Date end) throws Exception {
+        Collection<Event> c = new HashSet<Event>();
         c.addAll(GetCollection.globalEventsBetween(user.getIsAdmin(), start, end));
         c.addAll(getMachineEvents(request, start, end));
+        return c;
+    }
+    
+    private Collection<Event> getProgram(Machine m, Date start, Date end) throws Exception {
+        Collection<Event> c = new HashSet<Event>();
+        c.addAll(GetCollection.globalEventsBetween(user.getIsAdmin(), start, end));
+        c.addAll(getMachineEvents(m, start, end));
         return c;
     }
     
@@ -316,15 +324,15 @@ public class GetServlet extends HttpServlet {
                     Collection<MachineCalendar> calendars = new LinkedList<MachineCalendar>();
                     
                     for(Machine m : machines) {
-                        LinkedHashMap<String, ArrayList<ArrayList<MachineEvent>>> monthsCalendars = new LinkedHashMap<String, ArrayList<ArrayList<MachineEvent>>>();
+                        LinkedHashMap<String, ArrayList<ArrayList<Event>>> monthsCalendars = new LinkedHashMap<String, ArrayList<ArrayList<Event>>>();
                         for(String date : dates) {
                             Date[] dd = dateDates.get(date);
-                            ArrayList<ArrayList<MachineEvent>> events = new ArrayList<ArrayList<MachineEvent>>(31);
+                            ArrayList<ArrayList<Event>> events = new ArrayList<ArrayList<Event>>(31);
                             for(int i=0;i<31;i++) {
-                                events.add(i, new ArrayList<MachineEvent>());
+                                events.add(i, new ArrayList<Event>());
                             }
-                            Collection<MachineEvent> collectionEvents = getMachineEvents(m, dd[0], dd[1]);
-                            for(MachineEvent e : collectionEvents) {
+                            Collection<Event> collectionEvents = getProgram(m, dd[0], dd[1]);
+                            for(Event e : collectionEvents) {
                                 calStart.setTime(e.getStart());
                                 int day = calStart.get(Calendar.DAY_OF_MONTH) - 1;
                                 events.get(day).add(e);

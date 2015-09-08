@@ -7,7 +7,7 @@ import it.galeone_dev.santos.hibernate.models.Machine;
 
 public class MachineCalendar {
     private Machine machine;
-    private LinkedHashMap<String, ArrayList<ArrayList<MachineEvent>>> calendar;
+    private LinkedHashMap<String, ArrayList<ArrayList<Event>>> calendar;
     
     @Override
     public int hashCode() {
@@ -17,10 +17,10 @@ public class MachineCalendar {
         result = prime * result + ((machine == null) ? 0 : machine.hashCode());
         return result;
     }
-    public LinkedHashMap<String,ArrayList<ArrayList<MachineEvent>>> getCalendar() {
+    public LinkedHashMap<String,ArrayList<ArrayList<Event>>> getCalendar() {
         return calendar;
     }
-    public void setCalendar(LinkedHashMap<String, ArrayList<ArrayList<MachineEvent>>> calendar) {
+    public void setCalendar(LinkedHashMap<String, ArrayList<ArrayList<Event>>> calendar) {
         this.calendar = calendar;
     }
     @Override
