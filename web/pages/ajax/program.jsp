@@ -493,8 +493,12 @@ $("#todoJobOrders").selectmenu({
 					'Minuti: <input style="display: inline" type="number" min="0" max="59" value="0" name="minutes" required /><br />' +
 					'</form><br /><div id="joborderevent"></div>');
 			
-			$("#jobordersummary .autostart").datepicker( { dateFormat: "dd/mm/yy" } );
-			$("#jobordersummary .autoend").datepicker( { dateFormat: "dd/mm/yy" } );
+			$("#jobordersummary .autoend").datepicker();
+			$("#jobordersummary .autostart").datepicker({
+			    onSelect: function(dateText, inst) {
+					$("#jobordersummary .autoend").datepicker("option", "defaultDate", dateText);
+			    }
+			});
 			
 			var $block = $("#joborderevent"),
 				title = '[' + window.todojoborders[index].id + "] " +
@@ -654,8 +658,12 @@ $("#accordionActions").accordion({
     heightStyle: "content"    
 });
 
-$(".autostart").datepicker();
 $(".autoend").datepicker();
+$(".autostart").datepicker({
+    onSelect: function(dateText, inst) {
+		$(".autoend").datepicker("option", "defaultDate", dateText);
+    }
+});
 
 $("#deleteJobOrder").on('submit', function(e) {
     e.preventDefault();

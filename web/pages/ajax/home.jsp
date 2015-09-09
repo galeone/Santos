@@ -112,13 +112,13 @@ $("#globalCalendar").fullCalendar({
     eventOverlap: window.user.isAdmin,
 	eventReceive: function(event) {
 		if(window.user.isAdmin) {
+			$("#message").html("Attendere prego...");
 		    var end = new Date(event._start._d);
 		    if(event.type == "nonworkingday") {
 		    	end.setUTCHours(end.getUTCHours() + 24);
 		    } else if(event.type == "workingday") {
 				end.setUTCHours(end.getUTCHours() + parseInt($("#wdhours").val()));
 		    }
-		    $("#message").html("Attendere prego...");
 		    $.post("<%=request.getContextPath()%>/add?what=" + event.type,
 		            {
 		            	start: event._start._d.toUTCString(),
@@ -185,6 +185,7 @@ $("#globalCalendar").fullCalendar({
 $("#autoassignworkingdays").on('submit', function(e) {
     e.preventDefault();
  	if(window.user.isAdmin) {
+		$("#message").html("Attendere prego...");
  	    var start = $(this).find(".autostart").datepicker("getDate"),
  	        end = $(this).find(".autoend").datepicker("getDate");
  	    // datepicker start from the day before the selection (wtf)
@@ -199,6 +200,7 @@ $("#autoassignworkingdays").on('submit', function(e) {
  	            	hours: hours
  	            }, function(data) {
  	        		if(data != 'ok') { alert(data); }
+ 	        		$("#message").html("");
  	        		$("#globalCalendar").fullCalendar( 'refetchEvents' );
  					$("#globalCalendar").fullCalendar( 'rerenderEvents' );
  	   });
@@ -210,6 +212,12 @@ $("#accordion").accordion({
     heightStyle: "content"
 });
 $("#message").css('top', '0');
-$(".autostart").datepicker( { dateFormat: "dd/mm/yy" } );
-$(".autoend").datepicker( { dateFormat: "dd/mm/yy" } );
+
+$(".autoend").datepicker();
+
+$(".autostart").datepicker({
+    onSelect: function(dateText, inst) {
+		$(".autoend").datepicker("option", "defaultDate", dateText);
+    }
+});
 </script>
